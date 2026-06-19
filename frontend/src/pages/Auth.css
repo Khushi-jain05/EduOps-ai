@@ -364,3 +364,34 @@ input:-webkit-autofill:active {
   -webkit-box-shadow: 0 0 0px 1000px #efefef inset !important;
   transition: background-color 5000s ease-in-out 0s;
 }
+.input-group select {
+  width: 100%;
+  padding: 1rem;
+  font-size: 1rem;
+  background-color: var(--gray);
+  color: #111827;
+  border-radius: 0.5rem;
+  border: 2px solid transparent;
+  outline: none;
+  cursor: pointer;
+
+  /* remove default browser style */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  /* custom arrow */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='%236b7280' viewBox='0 0 16 16'%3E%3Cpath d='M1.5 5.5l6 6 6-6' stroke='%236b7280' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 16px;
+}
+
+.input-group select:focus {
+  border-color: var(--primary-color);
+}
+
+.input-group select option {
+  color: #111827;
+  background: white;
+}
