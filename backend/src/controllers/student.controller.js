@@ -2,34 +2,41 @@ const prisma = require("../config/prisma");
 
 exports.getDashboard = async (req, res) => {
   try {
+
     const userId = req.user.id;
 
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-    });
-
     const attendance = await prisma.attendance.findFirst({
-      where: { userId },
+      where: {
+        userId
+      }
     });
 
     const assignments = await prisma.assignment.findMany({
-      where: { userId },
+      where: {
+        userId
+      },
+      orderBy: {
+        dueDate: "asc"
+      }
     });
 
     const timetable = await prisma.timetable.findMany({
-      where: { userId },
+      where: {
+        userId
+      }
     });
 
-    res.json({
-      user,
+    res.status(200).json({
       attendance,
       assignments,
-      timetable,
+      timetable
     });
-  } catch (err) {
-    console.log(err);
+
+  } catch (error) {
+    console.log(error);
+
     res.status(500).json({
-      message: "Server Error",
+      message: "Server Error"
     });
   }
 };

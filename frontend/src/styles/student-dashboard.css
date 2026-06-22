@@ -1,0 +1,207 @@
+.dashboard-layout{
+  display:flex;
+  min-height:100vh;
+}
+
+/* RIGHT SIDE */
+.dashboard-content{
+  flex:1;
+
+  /* IMPORTANT */
+  height:100vh;
+  overflow-y:auto;
+
+  background:linear-gradient(
+    180deg,
+    #f7fbff 0%,
+    #eef5ff 40%,
+    #e8f2ff 100%
+  );
+}
+
+/* SCROLL AREA */
+.dashboard-wrapper{
+  padding:30px;
+  padding-bottom:120px;
+  min-height:max-content;
+}
+
+.workspace-label{
+  color:#64748b;
+  letter-spacing:3px;
+  font-size:13px;
+}
+
+.welcome-title{
+  font-size:56px;
+  margin:10px 0;
+}
+
+.welcome-title span{
+  color:#3b82f6;
+}
+
+.welcome-subtitle{
+  color:#64748b;
+  font-size:22px;
+}
+
+/* KPI */
+
+.kpi-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:20px;
+  margin-top:30px;
+  margin-bottom:30px;
+}
+
+.dashboard-card{
+  border-radius:28px;
+  padding:28px;
+  box-shadow:0 8px 24px rgba(0,0,0,.05);
+}
+
+.kpi-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.icon-circle{
+  width:52px;
+  height:52px;
+  background:white;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 6px 18px rgba(0,0,0,.08);
+}
+
+.dashboard-card h2{
+  font-size:56px;
+  margin:18px 0 10px;
+}
+
+.dashboard-card p{
+  font-size:13px;
+  letter-spacing:2px;
+  color:#64748b;
+}
+
+.dashboard-card span{
+  color:#64748b;
+}
+
+/* CONTENT GRID */
+
+.content-grid{
+  display:grid;
+  grid-template-columns:2fr 1.3fr;
+  gap:25px;
+  margin-bottom:30px;
+}
+
+.white-card{
+  background:white;
+  border-radius:30px;
+  padding:30px;
+  box-shadow:0 8px 24px rgba(0,0,0,.05);
+}
+
+.card-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:20px;
+}
+
+.small-btn{
+  border:none;
+  background:#f8fafc;
+  padding:12px 18px;
+  border-radius:14px;
+  cursor:pointer;
+}
+
+/* TIMETABLE */
+
+.schedule-item{
+  display:flex;
+  gap:18px;
+  padding:18px 0;
+  border-bottom:1px solid #edf2f7;
+}
+
+.schedule-item:last-child{
+  border:none;
+}
+
+.time-badge{
+  width:56px;
+  height:56px;
+
+  background:linear-gradient(
+    135deg,
+    #2563eb,
+    #3b82f6
+  );
+
+  border-radius:18px;
+  color:white;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+
+  font-weight:700;
+}
+
+.time-badge small{
+  font-size:10px;
+}
+
+/* ASSIGNMENTS */
+
+.assignment-item{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+
+  padding:16px;
+  border:1px solid #edf2f7;
+  border-radius:18px;
+  margin-bottom:14px;
+}
+
+.assignment-badge{
+  background:#3b82f6;
+  color:white;
+  padding:7px 14px;
+  border-radius:999px;
+  font-size:11px;
+  font-weight:700;
+}
+
+/* AI BOX */
+
+.ai-box{
+  border:2px dashed #dbeafe;
+  border-radius:24px;
+  padding:90px;
+  text-align:center;
+  color:#64748b;
+}
+
+/* CHAT */
+
+.chat-btn{
+  border:none;
+  background:#3b82f6;
+  color:white;
+  padding:12px 22px;
+  border-radius:14px;
+  cursor:pointer;
+}

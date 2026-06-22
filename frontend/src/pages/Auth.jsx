@@ -57,7 +57,7 @@ const [loginData, setLoginData] = useState({
     console.log(response);
 
     alert("Registration Successful");
-    navigate("/home");
+    navigate("/student");
 
   } catch (error) {
     console.error(error);
@@ -71,14 +71,26 @@ const handleLogin = async () => {
       password: loginData.password,
     });
 
-    console.log(response);
+    localStorage.setItem("token", response.token);
+
+    localStorage.setItem(
+      "user",
+      JSON.stringify(response.user)
+    );
 
     alert("Login Successful");
 
-    navigate("/home");
+    if (response.user.role === "student") {
+      navigate("/student");
+    } else if (response.user.role === "faculty") {
+      navigate("/faculty");
+    } else {
+      navigate("/admin");
+    }
+
   } catch (error) {
     console.error(error);
-    alert("Login Failed");
+    alert(error.message || "Login Failed");
   }
 };
 
