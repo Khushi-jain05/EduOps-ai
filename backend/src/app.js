@@ -4,6 +4,7 @@ const cors = require("cors");
 const authRoutes = require("./routes/auth.routes");
 const studentRoutes = require("./routes/student.routes");
 const chatRoutes =require("./routes/chat.routes");
+const supportRoutes =require("./routes/supportAI.routes");
 const app = express();
 
 app.use(
@@ -23,8 +24,15 @@ app.use(
   "/api/chat",
   chatRoutes
 );
+app.use(
+ "/api/support-ai",
+ supportRoutes
+);
 app.get("/", (req, res) => {
   res.send("EduOps Backend Running 🚀");
 });
+
+
+
 
 module.exports = app;

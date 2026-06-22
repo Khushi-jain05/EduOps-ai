@@ -43,11 +43,14 @@ model Assignment {
   createdAt DateTime @default(now())
 }
 model Timetable {
-  id          String @id @default(uuid())
+  id          String   @id @default(uuid())
 
   subject     String
   faculty     String
   room        String
+
+  day         String
+  category    String
 
   startTime   String
   duration    Int
@@ -55,7 +58,7 @@ model Timetable {
   userId      String
   user        User @relation(fields:[userId], references:[id])
 
-  createdAt DateTime @default(now())
+  createdAt   DateTime @default(now())
 }
 model Chat {
   id        String   @id @default(cuid())

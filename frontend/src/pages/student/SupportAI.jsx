@@ -1,7 +1,9 @@
 import { useState } from "react";
 import Sidebar from "../../components/layout/Sidebar";
 import Navbar from "../../components/layout/Navbar";
-
+import {
+  sendMessage as sendAIMessage
+} from "../../services/supportAI.service";
 import ChatSidebar from "../../components/supportAI/ChatSidebar";
 import ChatHeader from "../../components/supportAI/ChatHeader";
 import QuickActions from "../../components/supportAI/QuickActions";
@@ -15,6 +17,7 @@ export default function SupportAI() {
 
   const [messages, setMessages] = useState([
     {
+      id:1,
       role: "assistant",
       content:
         "Hi! I'm your Study Companion. Ask me anything from your syllabus, homework, doubts, revisions or exam prep."
@@ -30,30 +33,51 @@ export default function SupportAI() {
     "Python list comprehension"
   ]);
 
-  const sendMessage = () => {
-    if (!input.trim()) return;
+  const sendMessage = async () => {
+  if (!input.trim()) return;
+
+  const userMessage = {
+    role: "user",
+    content: input,
+  };
+
+  setMessages((prev) => [
+    ...prev,
+    userMessage,
+  ]);
+
+  const currentInput = input;
+  setInput("");
+
+  try {
+    const response =
+      await sendAIMessage(
+        "demo-chat-id",
+        currentInput
+      );
 
     setMessages((prev) => [
       ...prev,
       {
-        role: "user",
-        content: input
-      }
+        role: "assistant",
+        content:
+          response.assistant?.content ||
+          "No response received",
+      },
     ]);
+  } catch (error) {
+    console.log(error);
 
-    setTimeout(() => {
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content:
-            "This is a demo AI response. Backend Gemini integration will come next."
-        }
-      ]);
-    }, 1000);
-
-    setInput("");
-  };
+    setMessages((prev) => [
+      ...prev,
+      {
+        role: "assistant",
+        content:
+          "Sorry, something went wrong.",
+      },
+    ]);
+  }
+};
 
   return (
     <div className="support-layout">

@@ -101,7 +101,7 @@ export default function Sidebar() {
   </div>
 
 
-<div style={menuItem}>
+<div style={menuItem}  onClick={() => navigate("/timetable")}>
   <FiCalendar />
   Timetable
 </div>
