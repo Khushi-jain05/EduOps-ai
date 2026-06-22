@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+
 import {
   FiGrid,
   FiBook,
@@ -46,6 +47,7 @@ export default function Sidebar() {
               margin: 0,
             }}
           >
+           
             EduOps AI
           </h2>
 
@@ -73,10 +75,9 @@ export default function Sidebar() {
           LEARN
         </p>
 
-        <div
-  style={{
-    background:
-      "linear-gradient(90deg,#2563eb,#3b82f6)",
+        <div style={{background:
+      "linear-gradient(135deg,#2563eb,#60a5fa)",
+      
     color: "white",
     padding: "14px",
     borderRadius: "14px",
@@ -85,16 +86,20 @@ export default function Sidebar() {
     display: "flex",
     alignItems: "center",
     gap: "10px",
-  }}
+  }}  onClick={() => navigate("/student")}
 >
   <FiGrid />
   Dashboard
 </div>
 
-<div style={menuItem}>
-  <MdOutlineSupportAgent />
-  Support AI
-</div>
+
+  <div style={menuItem} onClick={() => navigate("/support-ai")}>
+
+    <MdOutlineSupportAgent />
+    Support AI
+    
+  </div>
+
 
 <div style={menuItem}>
   <FiCalendar />
