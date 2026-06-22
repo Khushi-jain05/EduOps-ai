@@ -57,3 +57,23 @@ model Timetable {
 
   createdAt DateTime @default(now())
 }
+model Chat {
+  id        String   @id @default(cuid())
+  title     String
+  userId    String
+  createdAt DateTime @default(now())
+
+  messages  Message[]
+}
+model Message {
+  id        String   @id @default(cuid())
+
+  chatId    String
+  role      String // user | assistant
+
+  content   String @db.Text
+
+  createdAt DateTime @default(now())
+
+  chat      Chat @relation(fields: [chatId], references: [id])
+}

@@ -3,7 +3,7 @@ const cors = require("cors");
 
 const authRoutes = require("./routes/auth.routes");
 const studentRoutes = require("./routes/student.routes");
-
+const chatRoutes =require("./routes/chat.routes");
 const app = express();
 
 app.use(
@@ -18,6 +18,11 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/student", studentRoutes);
 
+
+app.use(
+  "/api/chat",
+  chatRoutes
+);
 app.get("/", (req, res) => {
   res.send("EduOps Backend Running 🚀");
 });
