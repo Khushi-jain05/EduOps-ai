@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import SupportAI from "./pages/student/SupportAI";
 import Auth from "./pages/Auth";
 import StudentDashboard from "./pages/student/StudentDashboard";
+import Timetable from "./pages/student/Timetable";
+
 
 function App() {
   return (
@@ -16,6 +18,11 @@ function App() {
         <Route
   path="/support-ai"
   element={<SupportAI />}
+/>
+
+<Route
+  path="/timetable"
+  element={<Timetable />}
 />
       </Routes>
     </BrowserRouter>

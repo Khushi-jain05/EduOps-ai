@@ -1,0 +1,342 @@
+.timetable-layout{
+  display:flex;
+  height:100vh;
+  background:#eef6ff;
+}
+
+.timetable-content{
+  flex:1;
+  overflow-y:auto;
+}
+
+.timetable-wrapper{
+  padding:24px;
+}
+
+.tt-header h1{
+  font-size:48px;
+  margin:0;
+}
+
+.tt-toolbar{
+  margin-top:20px;
+
+  background:white;
+
+  border-radius:20px;
+
+  padding:20px;
+
+  display:flex;
+  justify-content:space-between;
+}
+
+.tt-grid{
+  margin-top:20px;
+
+  background:white;
+
+  border-radius:24px;
+
+  overflow:hidden;
+}
+
+.tt-row{
+  display:grid;
+
+  grid-template-columns:
+  90px repeat(6,1fr);
+
+  min-height:80px;
+
+  border-bottom:
+  1px solid #eef2f7;
+}
+
+.tt-row > div{
+  border-right:
+  1px solid #eef2f7;
+
+  padding:12px;
+}
+
+.tt-head{
+  font-weight:600;
+}
+
+.timetable-bottom{
+  margin-top:24px;
+
+  display:grid;
+
+  grid-template-columns:
+  2fr 1fr;
+
+  gap:20px;
+}
+.bottom-section{
+  display:grid;
+  grid-template-columns:2fr 1fr;
+  gap:24px;
+  margin-top:24px;
+}
+
+.today-card,
+.weekly-card{
+  background:white;
+  border-radius:28px;
+  padding:28px;
+  box-shadow:0 8px 20px rgba(0,0,0,.04);
+}
+
+.today-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:20px;
+}
+
+.today-header h3{
+  font-size:28px;
+  margin:0;
+}
+
+.today-header p{
+  color:#64748b;
+  margin-top:6px;
+}
+
+.today-header button{
+  border:none;
+  background:#f8fafc;
+  padding:12px 18px;
+  border-radius:14px;
+  cursor:pointer;
+}
+
+.today-row{
+  display:flex;
+  align-items:center;
+  gap:18px;
+  padding:18px 0;
+  border-top:1px solid #eef2f7;
+}
+
+.today-time{
+  width:70px;
+  font-size:22px;
+  color:#64748b;
+}
+
+.subject-icon{
+  width:48px;
+  height:48px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.subject-info{
+  flex:1;
+}
+
+.subject-info h4{
+  margin:0;
+  font-size:16px;
+}
+
+.subject-info p{
+  margin-top:4px;
+  color:#64748b;
+}
+
+.duration{
+  display:flex;
+  gap:6px;
+  align-items:center;
+  color:#64748b;
+}
+
+.weekly-card h3{
+  margin:0;
+  font-size:20px;
+}
+
+.weekly-card > p{
+  color:#64748b;
+  margin:8px 0 24px;
+}
+
+.stat-row{
+  margin-bottom:22px;
+}
+
+.stat-header{
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:8px;
+}
+
+.progress-bg{
+  height:10px;
+  background:#edf2f7;
+  border-radius:999px;
+}
+
+.progress-fill{
+  height:100%;
+  border-radius:999px;
+}
+.timetable-controls{
+  background:white;
+  border-radius:24px;
+  padding:20px 24px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:24px;
+}
+
+.week-nav{
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+
+.week-nav button{
+  width:40px;
+  height:40px;
+  border:none;
+  border-radius:12px;
+  background:#f8fafc;
+  cursor:pointer;
+}
+
+.week-label{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-weight:600;
+  font-size:18px;
+}
+
+.legend{
+  display:flex;
+  gap:20px;
+  flex-wrap:wrap;
+}
+
+.legend span{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  color:#64748b;
+  font-size:14px;
+}
+
+.legend i{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  display:block;
+}
+
+/* CARD */
+
+.timetable-card{
+  border:2px solid;
+  border-radius:22px;
+  padding:14px;
+  min-height:120px;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-start;
+}
+
+.course-code{
+  font-size:13px;
+  font-weight:600;
+  opacity:.7;
+}
+
+.timetable-card h4{
+  margin:8px 0;
+  font-size:24px;
+}
+
+.timetable-card p{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  margin:4px 0;
+}
+
+.timetable-card small{
+  color:#64748b;
+}
+.tt-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  margin-bottom:28px;
+}
+
+.tt-label{
+  letter-spacing:4px;
+  color:#64748b;
+  font-size:13px;
+}
+
+.tt-header h1{
+  margin:8px 0;
+  font-size:56px;
+  font-weight:700;
+}
+
+.tt-header p{
+  color:#64748b;
+}
+
+.tt-actions{
+  display:flex;
+  gap:12px;
+  align-items:center;
+}
+
+.tt-actions button{
+  border:none;
+  background:white;
+  padding:12px 18px;
+  border-radius:14px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  cursor:pointer;
+  box-shadow:0 4px 12px rgba(0,0,0,.06);
+}
+
+.tt-actions .active{
+  background:#3b82f6;
+  color:white;
+}
+
+.tt-actions .primary{
+  background:#3b82f6;
+  color:white;
+}
+.timetable-controls{
+  background:white;
+  border-radius:26px;
+  padding:22px 28px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:28px;
+}
+.weekly-grid{
+  background:white;
+  border-radius:28px;
+  overflow:hidden;
+  box-shadow:0 8px 24px rgba(0,0,0,.05);
+}
