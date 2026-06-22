@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API_URL =
-  "http://localhost:5000/api/student";
+  "http://localhost:8000/api/student";
 
 export const getDashboard = async () => {
   const token =

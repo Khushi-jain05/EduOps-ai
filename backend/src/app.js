@@ -1,13 +1,10 @@
-const express = require('express');
-const cors = require('cors');
+const express = require("express");
+const cors = require("cors");
 
-const authRoutes = require('./routes/auth.routes');
+const authRoutes = require("./routes/auth.routes");
+const studentRoutes = require("./routes/student.routes");
 
 const app = express();
-
-app.use(cors());
-app.use(express.json());
-
 
 app.use(
   cors({
@@ -16,8 +13,13 @@ app.use(
   })
 );
 
-app.use('/api/auth', authRoutes);
+app.use(express.json());
+
+app.use("/api/auth", authRoutes);
+app.use("/api/student", studentRoutes);
+
 app.get("/", (req, res) => {
-    res.send("EduOps Backend Running 🚀");
-  });
+  res.send("EduOps Backend Running 🚀");
+});
+
 module.exports = app;

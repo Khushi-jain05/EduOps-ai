@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Sidebar from "../../components/layout/Sidebar";
 import Navbar from "../../components/layout/Navbar";
+import { useNavigate } from "react-router-dom";
 import "../../styles/student-dashboard.css";
 
 import { getDashboard } from "../../services/student.service";
@@ -20,7 +21,7 @@ export default function StudentDashboard() {
   timetable: [],
   assignments: [],
 });
-
+const navigate = useNavigate();
   const user = JSON.parse(
     localStorage.getItem("user")
   );
@@ -269,37 +270,32 @@ export default function StudentDashboard() {
           {/* AI ASSISTANT */}
 
           <div className="white-card">
-            <div className="card-header">
-              <div>
-                <h2>
-                  AI Study Assistant
-                </h2>
+  <div
+    style={{
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+    }}
+  >
+    <div>
+      <h2>AI Study Assistant</h2>
 
-                <p>
-                  Ask anything about
-                  your subjects,
-                  schedule or
-                  assignments.
-                </p>
-              </div>
+      <p>
+        Get instant help with subjects,
+        assignments, notes and exams.
+      </p>
+    </div>
 
-              <button className="chat-btn">
-                Open Chat
-              </button>
-            </div>
-
-            <div className="ai-box">
-              ✨
-              <br />
-              <br />
-              Try:
-              <br />
-              <strong>
-                "Explain B-Trees with
-                an example"
-              </strong>
-            </div>
-          </div>
+    <button
+      className="chat-btn"
+      onClick={() =>
+        navigate("/student/support-ai")
+      }
+    >
+      Launch AI Assistant →
+    </button>
+  </div>
+</div>
         </div>
       </div>
     </div>
