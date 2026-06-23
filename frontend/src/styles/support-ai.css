@@ -1,7 +1,11 @@
 .support-layout{
   display:flex;
   height:100vh;
-  background:#eef5ff;
+   background:linear-gradient(
+    125deg,
+    #fefefe,
+    #76b0f6a7
+  );
   overflow:hidden;
 }
 

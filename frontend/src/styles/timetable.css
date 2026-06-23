@@ -1,7 +1,11 @@
 .timetable-layout{
   display:flex;
   height:100vh;
-  background:#eef6ff;
+ background:linear-gradient(
+    125deg,
+    #fefefe,
+    #76b0f6a7
+  );
 }
 
 .timetable-content{
@@ -255,24 +259,33 @@
 }
 
 .course-code{
-  font-size:13px;
-  font-weight:600;
-  opacity:.7;
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+  letter-spacing: 0.5px;
 }
 
 .timetable-card h4{
-  margin:8px 0;
-  font-size:24px;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #1e293b;
+  margin: 8px 0;
 }
 
 .timetable-card p{
   display:flex;
   align-items:center;
   gap:6px;
-  margin:4px 0;
+  font-size:14px;
+  font-weight:500;
+  color:#334155;
+  margin:10px 0 4px;
 }
 
 .timetable-card small{
+  font-size:13px;
+  font-weight:500;
   color:#64748b;
 }
 .tt-header{
@@ -291,7 +304,7 @@
 .tt-header h1{
   margin:8px 0;
   font-size:56px;
-  font-weight:700;
+  font-weight:400;
 }
 
 .tt-header p{
@@ -317,12 +330,20 @@
 }
 
 .tt-actions .active{
-  background:#3b82f6;
+ background:linear-gradient(
+    135deg,
+    #2563eb,
+    #60a5fa
+  );
   color:white;
 }
 
 .tt-actions .primary{
-  background:#3b82f6;
+  background:linear-gradient(
+    135deg,
+    #2563eb,
+    #60a5fa
+  );
   color:white;
 }
 .timetable-controls{
@@ -337,6 +358,23 @@
 .weekly-grid{
   background:white;
   border-radius:28px;
+  overflow:hidden;
+  box-shadow:0 8px 24px rgba(0,0,0,.05);
+}
+.tt-cell{
+  min-height:140px;
+  padding:10px;
+}
+
+.tt-row{
+  display:grid;
+  grid-template-columns:
+  90px repeat(6,1fr);
+}
+
+.tt-grid{
+  background:white;
+  border-radius:24px;
   overflow:hidden;
   box-shadow:0 8px 24px rgba(0,0,0,.05);
 }

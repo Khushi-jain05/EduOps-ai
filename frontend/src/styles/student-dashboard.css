@@ -11,12 +11,11 @@
   height:100vh;
   overflow-y:auto;
 
-  background:linear-gradient(
-    180deg,
-    #f7fbff 0%,
-    #eef5ff 40%,
-    #e8f2ff 100%
-  );
+   background:linear-gradient(
+    125deg,
+    #fefefe,
+    #76b0f6a7
+  ); 
 }
 
 /* SCROLL AREA */
