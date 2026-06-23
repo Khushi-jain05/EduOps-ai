@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 
 import Sidebar from "../../components/layout/Sidebar";
 import Navbar from "../../components/layout/Navbar";
@@ -13,83 +13,173 @@ import { getTimetable } from "../../services/timetable.service";
 
 import "../../styles/timetable.css";
 
-export default function Timetable() {
+function normalizeDay(raw) {
+  if (!raw) return null;
+  const s = raw.toString().trim().toLowerCase();
+  const map = {
+    mon: "Monday",
+    monday: "Monday",
+    tue: "Tuesday",
+    tues: "Tuesday",
+    tuesday: "Tuesday",
+    wed: "Wednesday",
+    weds: "Wednesday",
+    wednesday: "Wednesday",
+    thu: "Thursday",
+    thur: "Thursday",
+    thurs: "Thursday",
+    thursday: "Thursday",
+    fri: "Friday",
+    friday: "Friday",
+    sat: "Saturday",
+    saturday: "Saturday",
+    sun: "Sunday",
+    sunday: "Sunday",
+  };
+  return map[s] || null;
+}
 
+function formatWeekLabel(startDate) {
+  const start = new Date(startDate);
+  const end = new Date(start);
+  end.setDate(start.getDate() + 6);
+  const opts = { month: "short", day: "numeric" };
+  return `${start.toLocaleDateString(undefined, opts)} – ${end.toLocaleDateString(undefined, opts)}`;
+}
+
+export default function Timetable() {
   const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [viewMode, setViewMode] = useState("week");
+  const [weekStart, setWeekStart] = useState(() => {
+    const d = new Date();
+    // set to monday
+    const day = d.getDay();
+    const diff = (day + 6) % 7; // days since monday
+    d.setDate(d.getDate() - diff);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  });
+
   useEffect(() => {
-
     const fetchTimetable = async () => {
-
       try {
-
         const data = await getTimetable();
         console.log("Timetable data:", data);
-        setClasses(data);
-
+        setClasses(data || []);
       } catch (error) {
-
-        console.error(
-          "Failed to fetch timetable",
-          error
-        );
-
+        console.error("Failed to fetch timetable", error);
       } finally {
-
         setLoading(false);
-
       }
-
     };
 
     fetchTimetable();
-
   }, []);
+
+  const weekLabel = useMemo(() => formatWeekLabel(weekStart), [weekStart]);
+
+  const prevWeek = () => {
+    setWeekStart((s) => {
+      const n = new Date(s);
+      n.setDate(n.getDate() - 7);
+      return n;
+    });
+  };
+
+  const nextWeek = () => {
+    setWeekStart((s) => {
+      const n = new Date(s);
+      n.setDate(n.getDate() + 7);
+      return n;
+    });
+  };
+
+  const onFilter = () => {
+    // placeholder: open filter UI
+    console.log("Open filter modal");
+    alert("Filter not implemented yet");
+  };
+
+  const onExport = () => {
+    // simple CSV export
+    const rows = classes.map((c) => ({
+      subject: c.subject,
+      faculty: c.faculty,
+      room: c.room,
+      day: c.day,
+      startTime: c.startTime,
+      duration: c.duration,
+      category: c.category,
+    }));
+
+    const header = Object.keys(rows[0] || {}).join(",");
+    const csv = [header]
+      .concat(rows.map((r) => Object.values(r).map((v) => `"${String(v || "").replace(/"/g, '""')}"`).join(",")))
+      .join("\n");
+
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `timetable-export-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
+
+  const onAddEvent = () => {
+    // placeholder: navigate to add event page or open modal
+    console.log("Add event clicked");
+    alert("Add event not implemented yet");
+  };
+
+  const todayFull = useMemo(() => {
+    const d = new Date();
+    const map = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    return map[d.getDay()];
+  }, []);
+
+  const filtered = useMemo(() => {
+    if (viewMode === "day") {
+      return classes.filter((c) => normalizeDay(c.day) === todayFull);
+    }
+    return classes;
+  }, [classes, viewMode, todayFull]);
 
   return (
     <div className="timetable-layout">
-
       <Sidebar />
 
       <div className="timetable-content">
-
         <Navbar />
 
         <div className="timetable-wrapper">
+          <TimetableHeader
+            viewMode={viewMode}
+            setViewMode={setViewMode}
+            onFilter={onFilter}
+            onExport={onExport}
+            onAddEvent={onAddEvent}
+          />
 
-          <TimetableHeader />
-
-          <TimetableControls />
+          <TimetableControls prevWeek={prevWeek} nextWeek={nextWeek} weekLabel={weekLabel} />
 
           {loading ? (
-
             <p>Loading timetable...</p>
-
           ) : (
-
-            <TimetableGrid
-              timetable={classes}
-            />
-
+            <TimetableGrid timetable={filtered} />
           )}
 
           <div className="timetable-bottom">
+            <TodaySchedule timetableData={classes} />
 
-            <TodaySchedule
-              timetable={classes}
-            />
-
-            <WeeklyStats
-              timetable={classes}
-            />
-
+            <WeeklyStats timetableData={classes} />
           </div>
-
         </div>
-
       </div>
-
     </div>
   );
 }

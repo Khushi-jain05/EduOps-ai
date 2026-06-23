@@ -4,50 +4,57 @@ import {
   Plus
 } from "lucide-react";
 
-export default function TimetableHeader() {
+export default function TimetableHeader({
+  viewMode = "week",
+  setViewMode = () => {},
+  onFilter = () => {},
+  onExport = () => {},
+  onAddEvent = () => {},
+}) {
   return (
     <div className="tt-header">
 
       <div>
-        <span className="tt-label">
-          SCHEDULE
-        </span>
+        <span className="tt-label">SCHEDULE</span>
 
         <h1>My Timetable</h1>
 
         <p>
-          Week view of classes, labs and co-curriculars.
-          Tap a block to see details.
+          Week view of classes, labs and co-curriculars. Tap a block to see
+          details.
         </p>
       </div>
 
       <div className="tt-actions">
-
-        <button className="active">
+        <button
+          className={viewMode === "week" ? "active" : ""}
+          onClick={() => setViewMode("week")}
+        >
           Week
         </button>
 
-        <button>
+        <button
+          className={viewMode === "day" ? "active" : ""}
+          onClick={() => setViewMode("day")}
+        >
           Day
         </button>
 
-        <button>
-          <Filter size={16}/>
+        <button onClick={onFilter}>
+          <Filter size={16} />
           Filter
         </button>
 
-        <button>
-          <Download size={16}/>
+        <button onClick={onExport}>
+          <Download size={16} />
           Export
         </button>
 
-        <button className="primary">
-          <Plus size={16}/>
+        <button className="primary" onClick={onAddEvent}>
+          <Plus size={16} />
           Add event
         </button>
-
       </div>
-
     </div>
   );
 }

@@ -1,90 +1,122 @@
 import TimetableCard from "./TimetableCard";
 
-export default function TimetableGrid({ timetable = [] }) {
+export default function TimetableGrid({
+  timetable = [],
+}) {
+
   const days = [
-    { abbr: "Mon", full: "Monday" },
-    { abbr: "Tue", full: "Tuesday" },
-    { abbr: "Wed", full: "Wednesday" },
-    { abbr: "Thu", full: "Thursday" },
-    { abbr: "Fri", full: "Friday" },
-    { abbr: "Sat", full: "Saturday" },
+    "Mon",
+    "Tue",
+    "Wed",
+    "Thu",
+    "Fri",
+    "Sat",
   ];
 
-  const normalizeDay = (raw) => {
-    if (!raw) return null;
-    const s = raw.toString().trim().toLowerCase();
-    const map = {
-      mon: "Monday",
-      monday: "Monday",
-      tue: "Tuesday",
-      tues: "Tuesday",
-      tuesday: "Tuesday",
-      wed: "Wednesday",
-      weds: "Wednesday",
-      wednesday: "Wednesday",
-      thu: "Thursday",
-      thur: "Thursday",
-      thurs: "Thursday",
-      thursday: "Thursday",
-      fri: "Friday",
-      friday: "Friday",
-      sat: "Saturday",
-      saturday: "Saturday",
-      sun: "Sunday",
-      sunday: "Sunday",
-    };
-    return map[s] || null;
-  };
-
   const getColor = (category) => {
-    const cat = (category || "").toString().trim().toLowerCase();
-    if (cat.includes("math")) return { bg: "#dbeafe", border: "#93c5fd" };
-    if (cat.includes("computer") || cat.includes("cs"))
-      return { bg: "#f3e8ff", border: "#d8b4fe" };
-    if (cat.includes("phys")) return { bg: "#e0f2fe", border: "#7dd3fc" };
-    if (cat.includes("lab")) return { bg: "#dcfce7", border: "#86efac" };
-    // default / other
-    return { bg: "#fef3c7", border: "#fbbf24" };
-  };
 
-  const hourList = [8, 9, 10, 11, 12, 13, 14, 15, 16];
+    switch (category) {
+
+      case "Mathematics":
+        return {
+          bg: "#dbeafe",
+          border: "#93c5fd",
+        };
+
+      case "Computer Science":
+        return {
+          bg: "#f3e8ff",
+          border: "#d8b4fe",
+        };
+
+      case "Physics":
+        return {
+          bg: "#e0f2fe",
+          border: "#7dd3fc",
+        };
+
+      case "Labs":
+        return {
+          bg: "#dcfce7",
+          border: "#86efac",
+        };
+
+      default:
+        return {
+          bg: "#fef3c7",
+          border: "#fbbf24",
+        };
+    }
+  };
 
   return (
     <div className="tt-grid">
+
       <div className="tt-row tt-head">
         <div>Time</div>
-        {days.map((d) => (
-          <div key={d.full}>{d.abbr}</div>
+
+        {days.map((day) => (
+          <div key={day}>{day}</div>
         ))}
       </div>
 
-      {hourList.map((hour) => (
-        <div key={hour} className="tt-row">
-          <div>{hour}:00</div>
+      {[8,9,10,11,12,13,14,15,16].map(
+        (hour) => (
+          <div
+            key={hour}
+            className="tt-row"
+          >
+            <div>{hour}:00</div>
 
-          {days.map((d) => {
-            const classItem = timetable.find((item) => {
-              const itemDay = normalizeDay(item?.day || item?.dayOfWeek || "");
-              const itemHour = parseInt((item?.startTime || "0").toString().split(":")[0], 10);
-              return itemDay === d.full && itemHour === hour;
-            });
+            {days.map((day) => {
 
-            return (
-              <div key={d.full} className="tt-cell">
-                {classItem && (
-                  <TimetableCard
-                    code={classItem.code || classItem.subject}
-                    subject={classItem.subject}
-                    room={classItem.room}
-                    faculty={classItem.faculty}
-                    color={getColor(classItem.category)}
-                  />
-                )}
-              </div>
-            );
-          })}
-        </div>
-      ))}
+              const classItem =
+                timetable.find(
+                  (item) =>
+                    item.day === day &&
+                    parseInt(
+                      item.startTime.split(":")[0]
+                    ) === hour
+                );
+
+              return (
+                <div
+                  key={day}
+                  className="tt-cell"
+                >
+
+                  {classItem && (
+
+                    <TimetableCard
+                      code={
+                        classItem.code ||
+                        classItem.subject
+                      }
+                      subject={
+                        classItem.subject
+                      }
+                      room={
+                        classItem.room
+                      }
+                      faculty={
+                        classItem.faculty
+                      }
+                      color={
+                        getColor(
+                          classItem.category
+                        )
+                      }
+                    />
+
+                  )}
+
+                </div>
+              );
+            })}
+          </div>
+        )
+      )}
+
     </div>
   );
 }

@@ -106,17 +106,17 @@ export default function Sidebar() {
   Timetable
 </div>
 
-<div style={menuItem}>
+<div style={menuItem} onClick={() => navigate("/assignments")}>
   <FiFileText />
   Assignments
 </div>
 
-<div style={menuItem}>
+<div style={menuItem} onClick={() => navigate("/exams")}>
   <FiBook />
   Exams
 </div>
 
-<div style={menuItem}>
+<div style={menuItem} onClick={() => navigate("/subject-assistant")}>
   <PiRobotBold />
   Subject Assistant
 </div>
@@ -133,7 +133,7 @@ export default function Sidebar() {
           ACCOUNT
         </p>
 
-       <div style={menuItem}>
+       <div style={menuItem} onClick={() => navigate("/profile")}>
   <FiUser />
   Profile
 </div>
