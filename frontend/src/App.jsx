@@ -4,6 +4,7 @@ import Auth from "./pages/Auth";
 import StudentDashboard from "./pages/student/StudentDashboard";
 import Timetable from "./pages/student/Timetable";
 import Assignments from "./pages/student/Assignments";
+import Exams from "./pages/student/Exams";
 
 
 function App() {
@@ -28,6 +29,10 @@ function App() {
 <Route
   path="/assignments"
   element={<Assignments />}
+/>
+<Route
+  path="/exams"
+  element={<Exams />}
 />
       </Routes>
     </BrowserRouter>
