@@ -29,6 +29,7 @@ export default function Sidebar() {
     <div
       style={{
         width: "280px",
+        boxSizing: "border-box",
         background: "#ffffff",
         borderRight: "1px solid #e5e7eb",
         height: "100vh",

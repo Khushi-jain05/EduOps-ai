@@ -3,6 +3,7 @@ import SupportAI from "./pages/student/SupportAI";
 import Auth from "./pages/Auth";
 import StudentDashboard from "./pages/student/StudentDashboard";
 import Timetable from "./pages/student/Timetable";
+import Assignments from "./pages/student/Assignments";
 
 
 function App() {
@@ -23,6 +24,10 @@ function App() {
 <Route
   path="/timetable"
   element={<Timetable />}
+/>
+<Route
+  path="/assignments"
+  element={<Assignments />}
 />
       </Routes>
     </BrowserRouter>
