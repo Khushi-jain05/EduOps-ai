@@ -13,6 +13,46 @@ export default function TimetableGrid({
     "Sat",
   ];
 
+  const normalizeDay = (day) => {
+
+    const map = {
+      mon: "monday",
+      monday: "monday",
+
+      tue: "tuesday",
+      tues: "tuesday",
+      tuesday: "tuesday",
+
+      wed: "wednesday",
+      weds: "wednesday",
+      wednesday: "wednesday",
+
+      thu: "thursday",
+      thur: "thursday",
+      thurs: "thursday",
+      thursday: "thursday",
+
+      fri: "friday",
+      friday: "friday",
+
+      sat: "saturday",
+      saturday: "saturday",
+    };
+
+    return map[
+      day?.toLowerCase()?.trim()
+    ];
+  };
+
+  const dayMap = {
+    Mon: "Monday",
+    Tue: "Tuesday",
+    Wed: "Wednesday",
+    Thu: "Thursday",
+    Fri: "Friday",
+    Sat: "Saturday",
+  };
+
   const getColor = (category) => {
 
     switch (category) {
@@ -41,10 +81,16 @@ export default function TimetableGrid({
           border: "#86efac",
         };
 
+      case "Languages":
+        return {
+          bg: "#ffedd5",
+          border: "#fdba74",
+        };
+
       default:
         return {
-          bg: "#fef3c7",
-          border: "#fbbf24",
+          bg: "#fce7f3",
+          border: "#f9a8d4",
         };
     }
   };
@@ -56,11 +102,13 @@ export default function TimetableGrid({
         <div>Time</div>
 
         {days.map((day) => (
-          <div key={day}>{day}</div>
+          <div key={day}>
+            {day}
+          </div>
         ))}
       </div>
 
-      {[8,9,10,11,12,13,14,15,16].map(
+      {[8, 9, 10, 11, 12, 13, 14, 15, 16].map(
         (hour) => (
           <div
             key={hour}
@@ -70,22 +118,29 @@ export default function TimetableGrid({
 
             {days.map((day) => {
 
-              const classItem =
-                timetable.find(
-                  (item) =>
-                    item.day === day &&
-                    parseInt(
-                      item.startTime.split(":")[0]
-                    ) === hour
-                );
+              const classItem = timetable.find((item) => {
+  const dayMatch =
+    normalizeDay(item.day) ===
+    normalizeDay(dayMap[day]);
+
+  const timeMatch =
+    parseInt(item.startTime?.split(":")[0]) ===
+    hour;
+
+  if (dayMatch && timeMatch) {
+    console.log("MATCH FOUND", item);
+  }
+
+  return dayMatch && timeMatch;
+});
 
               return (
                 <div
-                  key={day}
+                  key={`${day}-${hour}`}
                   className="tt-cell"
                 >
 
-                  {classItem && (
+                  {classItem ? (
 
                     <TimetableCard
                       code={
@@ -107,6 +162,12 @@ export default function TimetableGrid({
                         )
                       }
                     />
+
+                  ) : (
+
+                    <div className="tt-empty">
+                      No Classes
+                    </div>
 
                   )}
 

@@ -21,8 +21,11 @@ exports.getTimetable = async (req, res) => {
 }; 
 
 exports.createTimetable = async (req, res) => {
-
   try {
+
+    console.log("========== CREATE TIMETABLE ==========");
+    console.log("BODY:", req.body);
+    console.log("USER:", req.user);
 
     const {
       subject,
@@ -34,28 +37,31 @@ exports.createTimetable = async (req, res) => {
       duration,
     } = req.body;
 
-    const timetable =
-      await prisma.timetable.create({
-        data: {
-          subject,
-          faculty,
-          room,
-          day,
-          category,
-          startTime,
-          duration,
-          userId: req.user.id,
-        },
-      });
+    const timetable = await prisma.timetable.create({
+      data: {
+        subject,
+        faculty,
+        room,
+        day,
+        category,
+        startTime,
+        duration: Number(duration),
+        userId: req.user.id,
+      },
+    });
+
+    console.log("CREATED:", timetable);
 
     res.status(201).json(timetable);
 
   } catch (error) {
 
+    console.log("========== ERROR ==========");
     console.log(error);
 
     res.status(500).json({
       message: "Failed to create timetable",
+      error: error.message,
     });
   }
 };

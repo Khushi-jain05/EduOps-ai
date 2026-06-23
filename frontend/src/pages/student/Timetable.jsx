@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 
 import Sidebar from "../../components/layout/Sidebar";
 import Navbar from "../../components/layout/Navbar";
-
+import AddEventModal from "../../components/timetable/AddEventModal";
 import TimetableHeader from "../../components/timetable/TimetableHeader";
 import TimetableControls from "../../components/timetable/TimetableControls";
 import TimetableGrid from "../../components/timetable/TimetableGrid";
@@ -48,10 +48,13 @@ function formatWeekLabel(startDate) {
 }
 
 export default function Timetable() {
+
   const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [viewMode, setViewMode] = useState("week");
+  const [showAddModal, setShowAddModal] = useState(false);
+const [selectedCategories, setSelectedCategories] = useState([]);
   const [weekStart, setWeekStart] = useState(() => {
     const d = new Date();
     // set to monday
@@ -97,10 +100,21 @@ export default function Timetable() {
   };
 
   const onFilter = () => {
-    // placeholder: open filter UI
-    console.log("Open filter modal");
-    alert("Filter not implemented yet");
-  };
+  const input = prompt(
+    "Enter categories separated by comma\nExample:\nMathematics,Physics"
+  );
+
+  if (!input) {
+    setSelectedCategories([]);
+    return;
+  }
+
+  const categories = input
+    .split(",")
+    .map((c) => c.trim());
+
+  setSelectedCategories(categories);
+};
 
   const onExport = () => {
     // simple CSV export
@@ -131,10 +145,8 @@ export default function Timetable() {
   };
 
   const onAddEvent = () => {
-    // placeholder: navigate to add event page or open modal
-    console.log("Add event clicked");
-    alert("Add event not implemented yet");
-  };
+  setShowAddModal(true);
+};
 
   const todayFull = useMemo(() => {
     const d = new Date();
@@ -143,12 +155,27 @@ export default function Timetable() {
   }, []);
 
   const filtered = useMemo(() => {
-    if (viewMode === "day") {
-      return classes.filter((c) => normalizeDay(c.day) === todayFull);
-    }
-    return classes;
-  }, [classes, viewMode, todayFull]);
+  let result = [...classes];
 
+  if (viewMode === "day") {
+    result = result.filter(
+      (c) => normalizeDay(c.day) === todayFull
+    );
+  }
+
+  if (selectedCategories.length > 0) {
+    result = result.filter((c) =>
+      selectedCategories.includes(c.category)
+    );
+  }
+
+  return result;
+}, [
+  classes,
+  viewMode,
+  todayFull,
+  selectedCategories,
+]);
   return (
     <div className="timetable-layout">
       <Sidebar />
@@ -178,6 +205,14 @@ export default function Timetable() {
 
             <WeeklyStats timetableData={classes} />
           </div>
+          <AddEventModal
+  open={showAddModal}
+  onClose={() => setShowAddModal(false)}
+  onSuccess={async () => {
+    const data = await getTimetable();
+    setClasses(data || []);
+  }}
+/>
         </div>
       </div>
     </div>
