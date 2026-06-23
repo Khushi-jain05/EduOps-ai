@@ -1,82 +1,87 @@
 generator client {
   provider = "prisma-client-js"
 }
+
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
-  id        String   @id @default(cuid())
-  username  String
-  email     String   @unique
-  password  String
-  role      String   @default("student")
-  attendance   Attendance[]
-  assignments  Assignment[]
-  timetable    Timetable[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String       @id @default(cuid())
+  email       String       @unique
+  role        String       @default("student")
+  createdAt   DateTime     @default(now())
+  password    String
+  updatedAt   DateTime     @updatedAt
+  username    String
+  assignments Assignment[]
+  attendance  Attendance[]
+  timetable   Timetable[]
 }
+
 model Attendance {
-  id         String @id @default(uuid())
-
+  id         String   @id @default(uuid())
   percentage Float
-
   userId     String
-  user       User @relation(fields:[userId], references:[id])
-
-  createdAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id])
 }
+
 model Assignment {
-  id          String @id @default(uuid())
+  id          String   @id @default(uuid())
 
   title       String
   subject     String
+
+  description String?
+
+  faculty     String?
+
   dueDate     DateTime
+
   status      String
 
-  userId      String
-  user        User @relation(fields:[userId], references:[id])
+  score       Int?
 
-  createdAt DateTime @default(now())
-}
-model Timetable {
-  id          String   @id @default(uuid())
+  totalMarks  Int?
 
-  subject     String
-  faculty     String
-  room        String
-
-  day         String
-  category    String
-
-  startTime   String
-  duration    Int
+  fileUrl     String?
 
   userId      String
+
   user        User @relation(fields:[userId], references:[id])
 
   createdAt   DateTime @default(now())
 }
-model Chat {
-  id        String   @id @default(cuid())
-  title     String
+
+model Timetable {
+  id        String   @id @default(dbgenerated("gen_random_uuid()"))
+  subject   String
+  faculty   String
+  room      String
+  startTime String
+  duration  Int
   userId    String
   createdAt DateTime @default(now())
+  category  String
+  day       String
+  user      User     @relation(fields: [userId], references: [id])
+}
 
+model Chat {
+  id        String    @id @default(cuid())
+  title     String
+  userId    String
+  createdAt DateTime  @default(now())
   messages  Message[]
 }
+
 model Message {
   id        String   @id @default(cuid())
-
   chatId    String
-  role      String // user | assistant
-
-  content   String @db.Text
-
+  role      String
+  content   String
   createdAt DateTime @default(now())
-
-  chat      Chat @relation(fields: [chatId], references: [id])
+  chat      Chat     @relation(fields: [chatId], references: [id])
 }
