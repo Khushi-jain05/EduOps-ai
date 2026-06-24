@@ -18,6 +18,7 @@ model User {
   assignments Assignment[]
   attendance  Attendance[]
   timetable   Timetable[]
+  exam        Exam[]
 }
 
 model Attendance {
@@ -84,4 +85,20 @@ model Message {
   content   String
   createdAt DateTime @default(now())
   chat      Chat     @relation(fields: [chatId], references: [id])
+}
+model Exam {
+  id          String   @id @default(uuid())
+  subject     String
+  code        String
+  type        String
+  examDate    DateTime
+  examTime    String
+  venue       String
+  duration    String
+  status      String   @default("upcoming")
+
+  userId      String
+  user        User @relation(fields: [userId], references: [id])
+
+  createdAt   DateTime @default(now())
 }

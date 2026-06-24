@@ -289,7 +289,7 @@ const navigate = useNavigate();
     <button
       className="chat-btn"
       onClick={() =>
-        navigate("/student/support-ai")
+        navigate("/support-ai")
       }
     >
       Launch AI Assistant →
