@@ -285,3 +285,20 @@
 .progress-fill.indigo{
   background:#4361ee;
 }
+.subject-icon{
+    width:56px;
+    height:56px;
+
+    border-radius:50%;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    color:white;
+}
+
+.subject-icon svg{
+    width:28px;
+    height:28px;
+}

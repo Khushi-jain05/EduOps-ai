@@ -1,38 +1,30 @@
 const prisma = require("../config/prisma");
 
-const getSubjects = async (req,res)=>{
+const getSubjects = async (req, res) => {
+  try {
 
-    try{
+    const subjects = await prisma.subject.findMany({
+      where: {
+        userId: req.user.id,
+      },
+      orderBy: {
+        code: "asc",
+      },
+    });
 
-        const subjects =
-        await prisma.subject.findMany({
+    res.json(subjects);
 
-            where:{
-                userId:req.user.id
-            },
+  } catch (error) {
 
-            orderBy:{
-                createdAt:"asc"
-            }
+    console.log(error);
 
-        });
+    res.status(500).json({
+      message: "Failed to fetch subjects",
+    });
 
-        res.json(subjects);
-
-    }
-
-    catch(err){
-
-        console.log(err);
-
-        res.status(500).json({
-            message:"Failed to fetch subjects"
-        });
-
-    }
-
+  }
 };
 
-module.exports={
-    getSubjects
+module.exports = {
+  getSubjects,
 };

@@ -160,7 +160,7 @@ export default function Exams() {
             <div className="exam-header-left">
 
               <span className="exam-label">
-                🎓 Exam Center
+                Exam Center
               </span>
 
               <h1>Exams</h1>
@@ -257,7 +257,7 @@ export default function Exams() {
               </h2>
 
               <div className="term-info">
-                🏅
+                
                 <span>
                   Exams Scheduled
                 </span>

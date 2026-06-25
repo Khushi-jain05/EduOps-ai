@@ -1,23 +1,47 @@
 import { Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import {
+  Calculator,
+  Code2,
+  Atom,
+  FlaskConical,
+  Globe2,
+  Languages,
+} from "lucide-react";
+const iconMap = {
+  calculator: Calculator,
+  code: Code2,
+  atom: Atom,
+  flask: FlaskConical,
+  globe: Globe2,
+  language: Languages,
+};
 
 export default function SubjectCard({
   subject,
 }) {
   const navigate = useNavigate();
+  const Icon = iconMap[subject.icon];
+  console.log(subject);
+console.log(subject.icon);
+console.log(iconMap[subject.icon]);
   return (
+      
     <div
       className={`subject-card ${subject.color}`}
     >
       <div className="card-top">
 
         <div className="subject-icon">
-          {subject.icon}
-        </div>
 
-        <span className="card-arrow">
+  {Icon && <Icon size={28} strokeWidth={2.2}/>}
+
+</div>
+
+
+        {/* <span className="card-arrow">
           →
-        </span>
+        </span> */}
 
       </div>
 
@@ -54,6 +78,8 @@ export default function SubjectCard({
          <Sparkles className="ai-icon" />
          Ask the AI tutor
       </button>
+      
     </div>
   );
+
 }
