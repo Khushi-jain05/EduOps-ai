@@ -5,6 +5,7 @@ import StudentDashboard from "./pages/student/StudentDashboard";
 import Timetable from "./pages/student/Timetable";
 import Assignments from "./pages/student/Assignments";
 import Exams from "./pages/student/Exams";
+import Subjects from './pages/student/SubjectAssistant';
 
 
 function App() {
@@ -21,6 +22,10 @@ function App() {
   path="/support-ai"
   element={<SupportAI />}
 />
+<Route
+  path="/subject-assistant"
+  element={<Subjects />}
+/>  
 
 <Route
   path="/timetable"

@@ -1,10 +1,12 @@
 import Sidebar from "../../components/layout/Sidebar";
 import Navbar from "../../components/layout/Navbar";
+
+import { useEffect, useState } from "react";
+
 import {
+  getExams,
   downloadExamPdf,
 } from "../../services/exam.service";
-import { useEffect, useState } from "react";
-import { getExams } from "../../services/exam.service";
 
 import {
   Calendar,
@@ -16,36 +18,14 @@ import {
 import "../../styles/exams.css";
 
 export default function Exams() {
-    const handleDownloadPdf =
-  async () => {
+  const [activeTab, setActiveTab] =
+    useState("upcoming");
 
-    try {
+  const [exams, setExams] =
+    useState([]);
 
-      const blob =
-        await downloadExamPdf();
-
-      const url =
-        window.URL.createObjectURL(blob);
-
-      const link =
-        document.createElement("a");
-
-      link.href = url;
-
-      link.download =
-        "Exam-Timetable.pdf";
-
-      link.click();
-
-      window.URL.revokeObjectURL(url);
-
-    } catch (error) {
-
-      console.log(error);
-    }
-};
-  const [exams, setExams] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] =
+    useState(true);
 
   useEffect(() => {
     loadExams();
@@ -53,29 +33,116 @@ export default function Exams() {
 
   const loadExams = async () => {
     try {
-      const data = await getExams();
+      const data =
+        await getExams();
 
-      console.log("Exams:", data);
+      console.log(
+        "Exams:",
+        data
+      );
 
       setExams(data || []);
     } catch (error) {
-      console.error("Failed to fetch exams:", error);
+      console.error(
+        "Failed to fetch exams:",
+        error
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const getCardColor = (subject) => {
-    const value = subject?.toLowerCase();
+  const handleDownloadPdf =
+    async () => {
+      try {
+        const blob =
+          await downloadExamPdf();
 
-    if (value?.includes("math")) return "blue";
-    if (value?.includes("computer")) return "purple";
-    if (value?.includes("physics")) return "yellow";
+        const url =
+          window.URL.createObjectURL(
+            blob
+          );
+
+        const link =
+          document.createElement(
+            "a"
+          );
+
+        link.href = url;
+
+        link.download =
+          "Exam-Timetable.pdf";
+
+        document.body.appendChild(
+          link
+        );
+
+        link.click();
+
+        link.remove();
+
+        window.URL.revokeObjectURL(
+          url
+        );
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+  const getCardColor = (
+    subject
+  ) => {
+    const value =
+      subject?.toLowerCase();
+
+    if (
+      value?.includes("math")
+    )
+      return "blue";
+
+    if (
+      value?.includes(
+        "computer"
+      )
+    )
+      return "purple";
+
+    if (
+      value?.includes(
+        "physics"
+      )
+    )
+      return "yellow";
 
     return "blue";
   };
 
-  const nextExam = exams.length > 0 ? exams[0] : null;
+  const filteredExams =
+    exams.filter(
+      (exam) => {
+        if (
+          activeTab ===
+          "upcoming"
+        ) {
+          return (
+            exam.status?.toLowerCase() ===
+            "upcoming"
+          );
+        }
+
+        return (
+          exam.status?.toLowerCase() ===
+          "past"
+        );
+      }
+    );
+
+  const nextExam =
+    exams.find(
+      (exam) =>
+        exam.status?.toLowerCase() ===
+        "upcoming"
+    ) || null;
 
   return (
     <div className="exam-layout">
@@ -89,7 +156,9 @@ export default function Exams() {
           {/* HEADER */}
 
           <div className="exam-header">
+
             <div className="exam-header-left">
+
               <span className="exam-label">
                 🎓 Exam Center
               </span>
@@ -97,18 +166,35 @@ export default function Exams() {
               <h1>Exams</h1>
 
               <p>
-                Schedule, hall tickets, syllabus and your
-                results — all in one view.
+                Schedule,
+                hall tickets,
+                syllabus and your
+                results — all in
+                one view.
               </p>
+
             </div>
 
-            <button
-  className="download-btn"
-  onClick={handleDownloadPdf}
->
-  <Download size={18} />
-  Download timetable PDF
-</button>
+            <div className="header-actions">
+
+              <button className="ticket-btn">
+                Hall Ticket
+              </button>
+
+              <button
+                className="download-btn"
+                onClick={
+                  handleDownloadPdf
+                }
+              >
+                <Download
+                  size={18}
+                />
+                Download timetable PDF
+              </button>
+
+            </div>
+
           </div>
 
           {/* STATS */}
@@ -116,10 +202,12 @@ export default function Exams() {
           <div className="exam-stats">
 
             <div className="stat-card">
+
               <p>Next exam</p>
 
               <h3>
-                {nextExam?.subject || "No Upcoming Exam"}
+                {nextExam?.subject ||
+                  "No Upcoming Exam"}
               </h3>
 
               <span>
@@ -135,12 +223,15 @@ export default function Exams() {
               <div className="blue-text">
                 Upcoming
               </div>
+
             </div>
 
             <div className="stat-card">
+
               <p>CGPA</p>
 
               <div className="cgpa-score">
+
                 <span className="cgpa-number">
                   8.74
                 </span>
@@ -148,14 +239,17 @@ export default function Exams() {
                 <span className="cgpa-growth">
                   ↗ +0.21
                 </span>
+
               </div>
 
               <div className="progress-bar">
                 <div className="progress-fill" />
               </div>
+
             </div>
 
             <div className="stat-card">
+
               <p>This term</p>
 
               <h2>
@@ -168,6 +262,7 @@ export default function Exams() {
                   Exams Scheduled
                 </span>
               </div>
+
             </div>
 
           </div>
@@ -175,105 +270,148 @@ export default function Exams() {
           {/* TABS */}
 
           <div className="exam-tabs">
-            <button className="active">
+
+            <button
+              className={
+                activeTab ===
+                "upcoming"
+                  ? "active"
+                  : ""
+              }
+              onClick={() =>
+                setActiveTab(
+                  "upcoming"
+                )
+              }
+            >
               Upcoming
             </button>
 
-            <button>
+            <button
+              className={
+                activeTab ===
+                "past"
+                  ? "active"
+                  : ""
+              }
+              onClick={() =>
+                setActiveTab(
+                  "past"
+                )
+              }
+            >
               Past
             </button>
+
           </div>
 
-          {/* EXAM GRID */}
+          {/* EXAMS */}
 
           {loading ? (
             <div
               style={{
-                textAlign: "center",
-                padding: "40px",
+                textAlign:
+                  "center",
+                padding:
+                  "40px",
               }}
             >
               Loading exams...
             </div>
-          ) : exams.length === 0 ? (
+          ) : filteredExams.length ===
+            0 ? (
             <div
               style={{
-                textAlign: "center",
-                padding: "40px",
-                background: "white",
-                borderRadius: "24px",
+                textAlign:
+                  "center",
+                padding:
+                  "40px",
+                background:
+                  "white",
+                borderRadius:
+                  "24px",
               }}
             >
-              No exams found
+              No {activeTab} exams found
             </div>
           ) : (
             <div className="exam-grid">
 
-              {exams.map((exam) => (
+              {filteredExams.map(
+                (exam) => (
+                  <div
+                    key={exam.id}
+                    className={`exam-card ${getCardColor(
+                      exam.subject
+                    )}`}
+                  >
 
-                <div
-                  key={exam.id}
-                  className={`exam-card ${getCardColor(
-                    exam.subject
-                  )}`}
-                >
+                    <div className="duration">
+                      <span>
+                        {
+                          exam.duration
+                        }
+                      </span>
+                    </div>
 
-                  <div className="duration">
-                    <span>
-                      {exam.duration}
+                    <span className="exam-code">
+                      {exam.code} ·{" "}
+                      {exam.type}
                     </span>
-                  </div>
 
-                  <span className="exam-code">
-                    {exam.code} · {exam.type}
-                  </span>
+                    <h3>
+                      {
+                        exam.subject
+                      }
+                    </h3>
 
-                  <h3>
-                    {exam.subject}
-                  </h3>
+                    <div className="exam-row">
 
-                  <div className="exam-row">
+                      <div>
+                        <Calendar
+                          size={
+                            16
+                          }
+                        />
 
-                    <div>
-                      <Calendar size={16} />
+                        {new Date(
+                          exam.examDate
+                        ).toLocaleDateString()}
+                      </div>
 
-                      {new Date(
-                        exam.examDate
-                      ).toLocaleDateString()}
+                      <div>
+                        <Clock3
+                          size={
+                            16
+                          }
+                        />
+
+                        {
+                          exam.examTime
+                        }
+                      </div>
+
                     </div>
 
-                    <div>
-                      <Clock3 size={16} />
+                    <div className="exam-location">
+                      <MapPin
+                        size={
+                          16
+                        }
+                      />
 
-                      {exam.examTime}
+                      {
+                        exam.venue
+                      }
                     </div>
 
                   </div>
-
-                  <div className="exam-location">
-                    <MapPin size={16} />
-
-                    {exam.venue}
-                  </div>
-
-                  <div className="exam-footer">
-
-                    <button className="details-btn">
-                      View details ↗
-                    </button>
-
-                    <button className="ticket-btn">
-                      Hall Ticket
-                    </button>
-
-                  </div>
-
-                </div>
-
-              ))}
+                )
+              )}
 
             </div>
           )}
+
         </div>
       </div>
     </div>

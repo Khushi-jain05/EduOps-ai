@@ -17,8 +17,8 @@ model User {
   username    String
   assignments Assignment[]
   attendance  Attendance[]
-  timetable   Timetable[]
   exam        Exam[]
+  timetable   Timetable[]
 }
 
 model Attendance {
@@ -30,30 +30,19 @@ model Attendance {
 }
 
 model Assignment {
-  id          String   @id @default(uuid())
-
+  id          String   @id @default(dbgenerated("gen_random_uuid()"))
   title       String
   subject     String
-
-  description String?
-
-  faculty     String?
-
   dueDate     DateTime
-
   status      String
-
-  score       Int?
-
-  totalMarks  Int?
-
-  fileUrl     String?
-
   userId      String
-
-  user        User @relation(fields:[userId], references:[id])
-
   createdAt   DateTime @default(now())
+  description String?
+  faculty     String?
+  fileUrl     String?
+  score       Int?
+  totalMarks  Int?
+  user        User     @relation(fields: [userId], references: [id])
 }
 
 model Timetable {
@@ -86,19 +75,18 @@ model Message {
   createdAt DateTime @default(now())
   chat      Chat     @relation(fields: [chatId], references: [id])
 }
+
 model Exam {
-  id          String   @id @default(uuid())
-  subject     String
-  code        String
-  type        String
-  examDate    DateTime
-  examTime    String
-  venue       String
-  duration    String
-  status      String   @default("upcoming")
-
-  userId      String
-  user        User @relation(fields: [userId], references: [id])
-
-  createdAt   DateTime @default(now())
+  id        String    @id @default(uuid())
+  subject   String
+  code      String
+  type      String
+  examDate  DateTime  @db.Timestamp(6)
+  examTime  String
+  venue     String
+  duration  String
+  status    String?   @default("upcoming")
+  userId    String
+  createdAt DateTime? @default(now()) @db.Timestamp(6)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }

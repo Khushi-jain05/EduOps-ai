@@ -16,7 +16,28 @@
 .exam-wrapper{
   padding:36px;
 }
+.header-actions{
+  display:flex;
+  flex-direction:column;
+  /* gap:14px; */
+  align-items:flex-end;
+}
+.header-actions .ticket-btn,
+.header-actions .download-btn{
+  min-width:230px;
+}
+.exam-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+}
 
+.header-actions{
+  display:flex;
+  flex-direction:column;
+  /* gap:14px; */
+  align-items:flex-end;
+}
 .exam-header{
   display:flex;
   justify-content:space-between;
