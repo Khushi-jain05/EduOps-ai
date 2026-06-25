@@ -1,21 +1,18 @@
 import axios from "axios";
 
-export const sendMessage = async (
-  message
-) => {
+const API =
+  "http://localhost:8000/api/chat";
+
+export const getChats = async () => {
+
   const token =
     localStorage.getItem("token");
 
-  const response =
-    await axios.post(
-      "http://localhost:8000/api/chat/send",
-      { message },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+  const res = await axios.get(API, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 
-  return response.data;
+  return res.data;
 };

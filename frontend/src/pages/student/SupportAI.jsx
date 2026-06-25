@@ -1,104 +1,144 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
 import Sidebar from "../../components/layout/Sidebar";
 import Navbar from "../../components/layout/Navbar";
-import {
-  sendMessage as sendAIMessage
-} from "../../services/supportAI.service";
+
 import ChatSidebar from "../../components/supportAI/ChatSidebar";
 import ChatHeader from "../../components/supportAI/ChatHeader";
 import QuickActions from "../../components/supportAI/QuickActions";
 import ChatMessages from "../../components/supportAI/ChatMessages";
 import ChatInput from "../../components/supportAI/ChatInput";
 
+import {
+  sendMessage as sendAIMessage,
+  getChats,
+} from "../../services/supportAI.service";
+
 import "../../styles/support-ai.css";
 
 export default function SupportAI() {
+
   const [input, setInput] = useState("");
+
+  const [loading, setLoading] = useState(true);
+
+  const [chats, setChats] = useState([]);
 
   const [messages, setMessages] = useState([
     {
-      id:1,
+      id: 1,
       role: "assistant",
       content:
-        "Hi! I'm your Study Companion. Ask me anything from your syllabus, homework, doubts, revisions or exam prep."
+        "Hi! I'm your Study Companion. Ask me anything from your syllabus, homework, doubts, revisions or exam prep.",
+    },
+  ]);
+
+  useEffect(() => {
+    loadChats();
+  }, []);
+
+  const loadChats = async () => {
+    try {
+
+      const data = await getChats();
+
+      console.log("Chats:", data);
+
+      setChats(data || []);
+
+    } catch (error) {
+
+      console.log(error);
+
+    } finally {
+
+      setLoading(false);
+
     }
-  ]);
-
-  const [recentChats] = useState([
-    "Newton's third law examples",
-    "Quadratic equations practice",
-    "Photosynthesis short notes",
-    "Essay on climate change",
-    "Trigonometry identities",
-    "Python list comprehension"
-  ]);
-
-  const sendMessage = async () => {
-  if (!input.trim()) return;
-
-  const userMessage = {
-    role: "user",
-    content: input,
   };
 
-  setMessages((prev) => [
-    ...prev,
-    userMessage,
-  ]);
+  const sendMessage = async () => {
 
-  const currentInput = input;
-  setInput("");
+    if (!input.trim()) return;
 
-  try {
-    const response =
-      await sendAIMessage(
+    const currentInput = input;
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: Date.now(),
+        role: "user",
+        content: currentInput,
+      },
+    ]);
+
+    setInput("");
+
+    try {
+
+      const response = await sendAIMessage(
         "demo-chat-id",
         currentInput
       );
 
-    setMessages((prev) => [
-      ...prev,
-      {
-        role: "assistant",
-        content:
-          response.assistant?.content ||
-          "No response received",
-      },
-    ]);
-  } catch (error) {
-    console.log(error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now() + 1,
+          role: "assistant",
+          content:
+            response.reply ||
+            "No response received",
+        },
+      ]);
 
-    setMessages((prev) => [
-      ...prev,
-      {
-        role: "assistant",
-        content:
-          "Sorry, something went wrong.",
-      },
-    ]);
-  }
-};
+      loadChats();
+
+    } catch (error) {
+
+      console.log(error);
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now() + 2,
+          role: "assistant",
+          content:
+            "Sorry, something went wrong.",
+        },
+      ]);
+    }
+  };
 
   return (
     <div className="support-layout">
+
       <Sidebar />
 
       <div className="support-content">
+
         <Navbar />
 
         <div className="support-wrapper">
 
-          <ChatSidebar chats={recentChats} />
+          <ChatSidebar
+            chats={chats}
+            loading={loading}
+          />
 
           <div className="chat-main">
 
             <ChatHeader />
 
             {messages.length === 1 && (
-   <QuickActions setInput={setInput} />
-)}
+              <QuickActions
+                setInput={setInput}
+              />
+            )}
 
-            <ChatMessages messages={messages} />
+            <ChatMessages
+              messages={messages}
+            />
 
             <ChatInput
               input={input}
@@ -107,8 +147,11 @@ export default function SupportAI() {
             />
 
           </div>
+
         </div>
+
       </div>
+
     </div>
   );
 }

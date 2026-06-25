@@ -1,17 +1,22 @@
-const router =
-  require("express").Router();
+const express = require("express");
 
-const authMiddleware =
-  require("../middleware/auth.middleware");
+const router = express.Router();
+
+const authMiddleware = require("../middleware/auth.middleware");
 
 const {
   sendMessage,
-} = require(
-  "../controllers/chat.controller"
+  getChats,
+} = require("../controllers/chat.controller");
+
+router.get(
+  "/",
+  authMiddleware,
+  getChats
 );
 
 router.post(
-  "/send",
+  "/message",
   authMiddleware,
   sendMessage
 );
