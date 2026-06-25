@@ -6,6 +6,7 @@ import Timetable from "./pages/student/Timetable";
 import Assignments from "./pages/student/Assignments";
 import Exams from "./pages/student/Exams";
 import Subjects from './pages/student/SubjectAssistant';
+import Profile from "./pages/student/Profile";
 
 
 function App() {
@@ -26,6 +27,10 @@ function App() {
   path="/subject-assistant"
   element={<Subjects />}
 />  
+<Route
+  path="/profile"
+  element={<Profile />}
+/>
 
 <Route
   path="/timetable"

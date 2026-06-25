@@ -1,0 +1,25 @@
+.profile-layout{
+    display:flex;
+    height:100vh;
+    background:linear-gradient(
+        180deg,
+        #f8fbff,
+        #c7dcff
+    );
+}
+
+.profile-content{
+    flex:1;
+    overflow-y:auto;
+}
+
+.profile-wrapper{
+    padding:40px;
+}
+
+.profile-grid{
+    display:grid;
+    grid-template-columns:2fr 1fr;
+    gap:24px;
+    margin-top:24px;
+}
