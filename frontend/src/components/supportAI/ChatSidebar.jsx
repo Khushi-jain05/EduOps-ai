@@ -3,11 +3,12 @@ import { Plus, FileText } from "lucide-react";
 export default function ChatSidebar({
   chats,
   loading,
+  onStartNewChat
 }) {
   return (
     <div className="chat-sidebar">
 
-      <button className="new-chat-btn">
+      <button className="new-chat-btn" onClick={onStartNewChat}>
         <Plus size={18} />
         <span>New Chat</span>
       </button>

@@ -23,15 +23,15 @@ export default function ChatHeader() {
 
       <div className="chat-actions">
 
-        <button>
+        {/* <button>
           <GraduationCap size={16}/>
           Grade 12
-        </button>
+        </button> */}
 
-        <button>
+        {/* <button>
           <Lightbulb size={16}/>
           Explain Mode
-        </button>
+        </button> */}
 
       </div>
 

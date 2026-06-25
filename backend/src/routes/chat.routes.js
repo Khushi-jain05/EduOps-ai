@@ -7,12 +7,18 @@ const authMiddleware = require("../middleware/auth.middleware");
 const {
   sendMessage,
   getChats,
+  getChatMessages,
 } = require("../controllers/chat.controller");
 
 router.get(
   "/",
   authMiddleware,
   getChats
+);
+router.get(
+  "/:id",
+  authMiddleware,
+  getChatMessages
 );
 
 router.post(
