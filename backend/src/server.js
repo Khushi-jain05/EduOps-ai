@@ -6,6 +6,7 @@ const examRoutes =require("./routes/exam.routes");
 const subjectRoutes =
 require("./routes/subject.routes");
 
+
 const PORT = process.env.PORT || 8000;
 const studentRoutes = require("./routes/student.routes");
 app.use("/api/assignments",assignmentRoutes);
@@ -14,6 +15,7 @@ app.use(
 "/api/subjects",
 subjectRoutes
 );
+
 app.use("/api/student", studentRoutes);
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
