@@ -15,6 +15,15 @@ model User {
   password    String
   updatedAt   DateTime     @updatedAt
   username    String
+  phone       String?
+  dob         String?
+  city        String?
+  program     String?
+  semester    String?
+  studentId   String?
+  address     String?
+  about       String?
+  profilePic  String?
   assignments Assignment[]
   attendance  Attendance[]
   exam        Exam[]

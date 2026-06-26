@@ -1,42 +1,13 @@
 import {
-  BookOpen,
   FileText,
-  Brain,
-  CheckCircle,
-  Calendar,
 } from "lucide-react";
 
-const activities = [
-  {
-    id: 1,
-    title: "Assignment Submitted",
-    description: "Uploaded DBMS Assignment 4",
-    time: "2 hours ago",
-    icon: FileText,
-    color: "blue",
-  },
-  
-  {
-    id: 3,
-    title: "Attendance Updated",
-    description: "Operating Systems lecture",
-    time: "Yesterday",
-    icon: CheckCircle,
-    color: "green",
-  },
-  {
-    id: 4,
-    title: "Exam Scheduled",
-    description: "Data Structures Mid Semester",
-    time: "3 days ago",
-    icon: Calendar,
-    color: "orange",
-  },
- 
-];
+export default function RecentActivity({
+  activity = [],
+}) {
 
-export default function RecentActivity() {
   return (
+
     <div className="activity-card">
 
       <div className="card-header">
@@ -45,41 +16,43 @@ export default function RecentActivity() {
 
       <div className="activity-list">
 
-        {activities.map((activity) => {
+        {activity.length === 0 ? (
 
-          const Icon = activity.icon;
+          <p>No Activity Yet</p>
 
-          return (
+        ) : (
+
+          activity.map((item) => (
 
             <div
-              key={activity.id}
+              key={item.id}
               className="activity-item"
             >
 
-              <div
-                className={`activity-icon ${activity.color}`}
-              >
-                <Icon size={18} />
+              <div className="activity-icon blue">
+                <FileText size={18}/>
               </div>
 
               <div className="activity-content">
 
-                <h4>{activity.title}</h4>
+                <h4>{item.title}</h4>
 
-                <p>{activity.description}</p>
+                <p>{item.description}</p>
 
-                <span>{activity.time}</span>
+                <span>{item.time}</span>
 
               </div>
 
             </div>
 
-          );
+          ))
 
-        })}
+        )}
 
       </div>
 
     </div>
+
   );
+
 }

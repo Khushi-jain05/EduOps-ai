@@ -5,47 +5,47 @@ import {
   CalendarDays,
 } from "lucide-react";
 
-const stats = [
-  {
-    id: 1,
-    title: "Assignments",
-    value: "24",
-    icon: BookOpen,
-    color: "blue",
-  },
-  {
-    id: 2,
-    title: "Avg. Grade",
-    value: "A",
-    icon: Award,
-    color: "green",
-  },
-  {
-    id: 3,
-    title: "Attendance",
-    value: "92%",
-    icon: BadgeCheck,
-    color: "purple",
-  },
-  {
-    id: 4,
-    title: "Streak",
-    value: "18d",
-    icon: CalendarDays,
-    color: "orange",
-  },
-];
+export default function ProfileStats({ stats }) {
 
-export default function ProfileStats() {
+  const data = [
+    {
+      title: "Assignments",
+      value: stats?.assignments ?? 0,
+      icon: BookOpen,
+      color: "blue",
+    },
+    {
+      title: "Subjects",
+      value: stats?.subjects ?? 0,
+      icon: Award,
+      color: "green",
+    },
+    {
+      title: "Attendance",
+      value: `${stats?.attendance ?? 0}%`,
+      icon: BadgeCheck,
+      color: "purple",
+    },
+    {
+      title: "Exams",
+      value: stats?.exams ?? 0,
+      icon: CalendarDays,
+      color: "orange",
+    },
+  ];
+
   return (
+
     <div className="profile-stats">
 
-      {stats.map((stat) => {
+      {data.map((stat, index) => {
+
         const Icon = stat.icon;
 
         return (
+
           <div
-            key={stat.id}
+            key={index}
             className="stat-card"
           >
 
@@ -53,8 +53,10 @@ export default function ProfileStats() {
 
               <p>{stat.title}</p>
 
-              <div className={`stat-icon ${stat.color}`}>
-                <Icon size={20} />
+              <div
+                className={`stat-icon ${stat.color}`}
+              >
+                <Icon size={20}/>
               </div>
 
             </div>
@@ -62,9 +64,13 @@ export default function ProfileStats() {
             <h2>{stat.value}</h2>
 
           </div>
+
         );
+
       })}
 
     </div>
+
   );
+
 }

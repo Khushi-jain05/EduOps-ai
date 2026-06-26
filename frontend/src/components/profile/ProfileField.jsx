@@ -1,6 +1,9 @@
 export default function ProfileField({
   label,
+  name,
   value,
+  isEditing,
+  handleChange,
 }) {
   return (
     <div className="profile-field">
@@ -9,8 +12,11 @@ export default function ProfileField({
 
       <input
         type="text"
-        value={value}
-        readOnly
+        value={value || ""}
+        readOnly={!isEditing}
+        onChange={(e) =>
+          handleChange(name, e.target.value)
+        }
       />
 
     </div>

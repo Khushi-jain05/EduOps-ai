@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 import {
   FiGrid,
@@ -11,44 +11,97 @@ import {
 
 import { PiRobotBold } from "react-icons/pi";
 import { MdOutlineSupportAgent } from "react-icons/md";
+
 export default function Sidebar() {
+
   const navigate = useNavigate();
+  const location = useLocation();
 
   const user = JSON.parse(
     localStorage.getItem("user")
   );
 
   const handleLogout = () => {
+
     localStorage.removeItem("token");
     localStorage.removeItem("user");
 
     navigate("/");
+
   };
 
+  const menuItems = [
+
+    {
+      icon: <FiGrid />,
+      text: "Dashboard",
+      path: "/student",
+    },
+
+    {
+      icon: <MdOutlineSupportAgent />,
+      text: "Support AI",
+      path: "/support-ai",
+    },
+
+    {
+      icon: <FiCalendar />,
+      text: "Timetable",
+      path: "/timetable",
+    },
+
+    {
+      icon: <FiFileText />,
+      text: "Assignments",
+      path: "/assignments",
+    },
+
+    {
+      icon: <FiBook />,
+      text: "Exams",
+      path: "/exams",
+    },
+
+    {
+      icon: <PiRobotBold />,
+      text: "Subject Assistant",
+      path: "/subject-assistant",
+    },
+
+    {
+      icon: <FiUser />,
+      text: "Profile",
+      path: "/profile",
+    },
+
+  ];
+
   return (
+
     <div
       style={{
         width: "280px",
-        boxSizing: "border-box",
-        background: "#ffffff",
+        background: "#fff",
         borderRight: "1px solid #e5e7eb",
         height: "100vh",
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
         padding: "20px",
+        boxSizing: "border-box",
       }}
     >
-      {/* Logo */}
+
       <div>
+
         <div style={{ marginBottom: "40px" }}>
+
           <h2
             style={{
               color: "#2563eb",
               margin: 0,
             }}
           >
-           
             EduOps AI
           </h2>
 
@@ -62,9 +115,9 @@ export default function Sidebar() {
           >
             EDUCATION OPERATIONS
           </p>
+
         </div>
 
-        {/* Navigation */}
         <p
           style={{
             color: "#9ca3af",
@@ -76,51 +129,39 @@ export default function Sidebar() {
           LEARN
         </p>
 
-        <div style={{background:
-      "linear-gradient(135deg,#2563eb,#60a5fa)",
-      
-    color: "white",
-    padding: "14px",
-    borderRadius: "14px",
-    marginBottom: "12px",
-    cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-  }}  onClick={() => navigate("/student")}
->
-  <FiGrid />
-  Dashboard
-</div>
+        {menuItems.slice(0, 6).map((item) => (
 
+          <div
+            key={item.path}
+            onClick={() => navigate(item.path)}
+            style={{
+              ...menuItem,
 
-  <div style={menuItem} onClick={() => navigate("/support-ai")}>
+              background:
+                location.pathname === item.path
+                  ? "linear-gradient(135deg,#2563eb,#60a5fa)"
+                  : "transparent",
 
-    <MdOutlineSupportAgent />
-    Support AI
-    
-  </div>
+              color:
+                location.pathname === item.path
+                  ? "white"
+                  : "#374151",
 
+              boxShadow:
+                location.pathname === item.path
+                  ? "0 8px 18px rgba(37,99,235,.25)"
+                  : "none",
 
-<div style={menuItem}  onClick={() => navigate("/timetable")}>
-  <FiCalendar />
-  Timetable
-</div>
+            }}
+          >
 
-<div style={menuItem} onClick={() => navigate("/assignments")}>
-  <FiFileText />
-  Assignments
-</div>
+            {item.icon}
 
-<div style={menuItem} onClick={() => navigate("/exams")}>
-  <FiBook />
-  Exams
-</div>
+            {item.text}
 
-<div style={menuItem} onClick={() => navigate("/subject-assistant")}>
-  <PiRobotBold />
-  Subject Assistant
-</div>
+          </div>
+
+        ))}
 
         <p
           style={{
@@ -134,14 +175,44 @@ export default function Sidebar() {
           ACCOUNT
         </p>
 
-       <div style={menuItem} onClick={() => navigate("/profile")}>
-  <FiUser />
-  Profile
-</div>
+        {menuItems.slice(6).map((item) => (
+
+          <div
+            key={item.path}
+            onClick={() => navigate(item.path)}
+            style={{
+              ...menuItem,
+
+              background:
+                location.pathname === item.path
+                  ? "linear-gradient(135deg,#2563eb,#60a5fa)"
+                  : "transparent",
+
+              color:
+                location.pathname === item.path
+                  ? "white"
+                  : "#374151",
+
+              boxShadow:
+                location.pathname === item.path
+                  ? "0 8px 18px rgba(37,99,235,.25)"
+                  : "none",
+
+            }}
+          >
+
+            {item.icon}
+
+            {item.text}
+
+          </div>
+
+        ))}
+
       </div>
 
-      {/* Bottom Section */}
       <div>
+
         <div
           style={{
             border: "1px solid #e5e7eb",
@@ -151,6 +222,7 @@ export default function Sidebar() {
             background: "#f8fafc",
           }}
         >
+
           <p
             style={{
               margin: 0,
@@ -165,7 +237,7 @@ export default function Sidebar() {
               display: "inline-block",
               marginTop: "10px",
               background: "#2563eb",
-              color: "white",
+              color: "#fff",
               padding: "4px 10px",
               borderRadius: "20px",
               fontSize: "12px",
@@ -174,39 +246,56 @@ export default function Sidebar() {
           >
             {user?.role}
           </span>
+
         </div>
 
         <button
-  onClick={handleLogout}
-  style={{
-    width: "100%",
-    padding: "14px",
-    borderRadius: "14px",
-    border: "1px solid #e5e7eb",
-    background: "#fff",
-    cursor: "pointer",
-    fontWeight: "600",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: "8px",
-  }}
->
-  <FiLogOut />
-  Sign Out
-</button>
+          onClick={handleLogout}
+          style={{
+            width: "100%",
+            padding: "14px",
+            borderRadius: "14px",
+            border: "1px solid #e5e7eb",
+            background: "#fff",
+            cursor: "pointer",
+            fontWeight: "600",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "8px",
+          }}
+        >
+
+          <FiLogOut />
+
+          Sign Out
+
+        </button>
+
       </div>
+
     </div>
+
   );
+
 }
 
 const menuItem = {
+
   display: "flex",
+
   alignItems: "center",
+
   gap: "10px",
+
   padding: "14px",
+
   borderRadius: "14px",
+
   cursor: "pointer",
-  color: "#374151",
+
   marginBottom: "8px",
+
+  transition: "all .25s ease",
+
 };

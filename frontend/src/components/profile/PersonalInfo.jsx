@@ -1,73 +1,85 @@
 import ProfileField from "./ProfileField";
 
-export default function PersonalInfo() {
+export default function PersonalInfo({
+  user,
+  isEditing,
+  handleChange,
+}) {
 
-  const user = {
-    fullName: "Khushi Jain",
-    email: "khushi@gmail.com",
-    phone: "+91 9876543210",
-    dob: "10 Aug 2005",
-    city: "Delhi",
-    program: "B.Tech CSE",
-    studentId: "RU20240012",
-    semester: "4th Semester",
-    address: "New Delhi, India",
-    about:
-      "Passionate Computer Science student interested in AI, Full Stack Development and Data Analytics.",
-  };
+  if (!user) return null;
 
   return (
 
     <div className="personal-card">
 
       <div className="card-header">
-
-        <h2>
-          Personal Information
-        </h2>
-
+        <h2>Personal Information</h2>
       </div>
 
       <div className="info-grid">
 
         <ProfileField
           label="Full Name"
-          value={user.fullName}
+          name="username"
+          value={user.username || ""}
+          isEditing={isEditing}
+          handleChange={handleChange}
         />
 
         <ProfileField
           label="Email"
-          value={user.email}
+          name="email"
+          value={user.email || ""}
+          isEditing={isEditing}
+          handleChange={handleChange}
         />
 
         <ProfileField
           label="Phone"
-          value={user.phone}
+          name="phone"
+          value={user.phone || ""}
+          isEditing={isEditing}
+          handleChange={handleChange}
         />
 
         <ProfileField
           label="Date of Birth"
-          value={user.dob}
+          name="dob"
+          value={user.dob || ""}
+          isEditing={isEditing}
+          handleChange={handleChange}
         />
 
         <ProfileField
           label="City"
-          value={user.city}
+          name="city"
+          value={user.city || ""}
+          isEditing={isEditing}
+          handleChange={handleChange}
         />
 
         <ProfileField
           label="Program"
-          value={user.program}
+          name="program"
+          value={user.program || ""}
+          isEditing={isEditing}
+          handleChange={handleChange}
         />
 
         <ProfileField
           label="Student ID"
-          value={user.studentId}
+          name="studentId"
+          value={user.studentId || ""}
+          isEditing={isEditing}
+          handleChange={handleChange}
         />
 
         <ProfileField
           label="Semester"
-          value={user.semester}
+          name="semester"
+          value={user.semester || ""}
+          isEditing={isEditing}
+          handleChange={handleChange}
         />
 
       </div>
@@ -77,8 +89,11 @@ export default function PersonalInfo() {
         <label>Address</label>
 
         <textarea
-          readOnly
-          value={user.address}
+          value={user.address || ""}
+          readOnly={!isEditing}
+          onChange={(e) =>
+            handleChange("address", e.target.value)
+          }
         />
 
       </div>
@@ -88,8 +103,11 @@ export default function PersonalInfo() {
         <label>About Me</label>
 
         <textarea
-          readOnly
-          value={user.about}
+          value={user.about || ""}
+          readOnly={!isEditing}
+          onChange={(e) =>
+            handleChange("about", e.target.value)
+          }
         />
 
       </div>
@@ -97,4 +115,5 @@ export default function PersonalInfo() {
     </div>
 
   );
+
 }

@@ -2,9 +2,39 @@ import {
   Mail,
   Camera,
   Pencil,
+  Save,
 } from "lucide-react";
 
-export default function ProfileBanner() {
+export default function ProfileBanner({
+  user,
+  isEditing,
+  setIsEditing,
+  handleSave,
+}) {
+
+  if (!user) return null;
+
+  const initials =
+    user.username
+      ?.split(" ")
+      .map((word) => word[0])
+      .join("")
+      .toUpperCase() || "U";
+
+  const handleButtonClick = () => {
+
+    if (isEditing) {
+
+      handleSave();
+
+    } else {
+
+      setIsEditing(true);
+
+    }
+
+  };
+
   return (
     <div className="profile-banner">
 
@@ -16,11 +46,26 @@ export default function ProfileBanner() {
 
           <div className="profile-avatar">
 
-            <div className="avatar-text">
-              KJ
-            </div>
+            {user.profilePic ? (
 
-            <button className="camera-btn">
+              <img
+                src={user.profilePic}
+                alt="Profile"
+                className="avatar-image"
+              />
+
+            ) : (
+
+              <div className="avatar-text">
+                {initials}
+              </div>
+
+            )}
+
+            <button
+              className="camera-btn"
+              disabled={!isEditing}
+            >
               <Camera size={16} />
             </button>
 
@@ -28,17 +73,22 @@ export default function ProfileBanner() {
 
           <div className="profile-details">
 
-            <h2>Khushi Jain</h2>
+            <h2>
+              {user.username || "Student"}
+            </h2>
 
             <div className="profile-meta">
 
               <span className="member-badge">
-                Member
+                {user.role || "Student"}
               </span>
 
               <span className="email">
+
                 <Mail size={15} />
-                kj5369227@gmail.com
+
+                {user.email}
+
               </span>
 
             </div>
@@ -47,11 +97,22 @@ export default function ProfileBanner() {
 
         </div>
 
-        <button className="edit-profile-btn">
+        <button
+          className="edit-profile-btn"
+          onClick={handleButtonClick}
+        >
 
-          <Pencil size={18} />
-
-          Edit Profile
+          {isEditing ? (
+            <>
+              <Save size={18} />
+              Save Profile
+            </>
+          ) : (
+            <>
+              <Pencil size={18} />
+              Edit Profile
+            </>
+          )}
 
         </button>
 
