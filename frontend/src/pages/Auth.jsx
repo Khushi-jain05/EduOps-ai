@@ -57,7 +57,13 @@ const [loginData, setLoginData] = useState({
     console.log(response);
 
     alert("Registration Successful");
-    navigate("/student");
+    if (response.user.role === "student") {
+      navigate("/student");
+    } else if (response.user.role === "faculty") {
+      navigate("/faculty");
+    } else {
+      navigate("/admin");
+    }
 
   } catch (error) {
     console.error(error);
