@@ -7,8 +7,10 @@ import Assignments from "./pages/student/Assignments";
 import Exams from "./pages/student/Exams";
 import Subjects from './pages/student/SubjectAssistant';
 import Profile from "./pages/student/Profile";
+import FacultyDashboard from "./pages/faculty/FacultyDashboard";
 
-
+import Assignments1 from "./pages/faculty/Assignments1";
+import Analytics from "./pages/faculty/Analytics";
 function App() {
   return (
     <BrowserRouter>
@@ -20,12 +22,25 @@ function App() {
           element={<StudentDashboard />}
         />
         <Route
+  path="/faculty"
+  element={<FacultyDashboard />}
+/>
+        <Route
   path="/support-ai"
   element={<SupportAI />}
 />
 <Route
   path="/subject-assistant"
   element={<Subjects />}
+/>  
+
+<Route
+  path="/faculty/assignments"
+  element={<Assignments1 />}
+/>
+<Route
+  path="/faculty/analytics"
+  element={<Analytics />}
 />  
 <Route
   path="/profile"

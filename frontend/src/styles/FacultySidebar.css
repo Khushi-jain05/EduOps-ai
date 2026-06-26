@@ -1,0 +1,80 @@
+.faculty-sidebar{
+    width:260px;
+    height:100vh;
+    background:#13294B;
+    color:white;
+
+    display:flex;
+    flex-direction:column;
+
+    justify-content:space-between;
+
+    padding:30px;
+
+    position:fixed;
+
+    left:0;
+    top:0;
+}
+
+.faculty-logo h2{
+    margin:0;
+    font-size:28px;
+}
+
+.faculty-logo p{
+    margin-top:6px;
+    color:#B9C3D1;
+}
+
+.faculty-menu{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+}
+
+.faculty-link{
+    display:flex;
+    align-items:center;
+    gap:14px;
+
+    color:white;
+    text-decoration:none;
+
+    padding:14px;
+
+    border-radius:12px;
+
+    transition:.3s;
+}
+
+.faculty-link:hover{
+    background:#1F4E8C;
+}
+
+.faculty-link.active{
+    background:#2563EB;
+}
+
+.logout-btn{
+
+    border:none;
+
+    background:#2563EB;
+
+    color:white;
+
+    padding:14px;
+
+    border-radius:12px;
+
+    cursor:pointer;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    gap:10px;
+}

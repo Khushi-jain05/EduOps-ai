@@ -1,0 +1,11 @@
+.faculty-dashboard{
+    display:flex;
+    min-height:100vh;
+    background:#F4F8FC;
+}
+
+.faculty-main{
+    flex:1;
+    padding:35px;
+    margin-left:280px; /* Remove if sidebar isn't fixed */
+}

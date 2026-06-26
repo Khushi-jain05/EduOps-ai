@@ -7,77 +7,117 @@ import {
   FiFileText,
   FiUser,
   FiLogOut,
+  FiBarChart2,
 } from "react-icons/fi";
 
 import { PiRobotBold } from "react-icons/pi";
 import { MdOutlineSupportAgent } from "react-icons/md";
 
 export default function Sidebar() {
-
   const navigate = useNavigate();
   const location = useLocation();
 
-  const user = JSON.parse(
-    localStorage.getItem("user")
-  );
+  const user = JSON.parse(localStorage.getItem("user")) || {};
+
+  // Detect faculty pages automatically
+  const isFaculty = location.pathname.startsWith("/faculty");
 
   const handleLogout = () => {
-
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-
     navigate("/");
-
   };
 
-  const menuItems = [
+  // -------------------------
+  // STUDENT MENU
+  // -------------------------
 
+  const studentMenu = [
     {
       icon: <FiGrid />,
       text: "Dashboard",
       path: "/student",
     },
-
     {
       icon: <MdOutlineSupportAgent />,
       text: "Support AI",
       path: "/support-ai",
     },
-
     {
       icon: <FiCalendar />,
       text: "Timetable",
       path: "/timetable",
     },
-
     {
       icon: <FiFileText />,
       text: "Assignments",
       path: "/assignments",
     },
-
     {
       icon: <FiBook />,
       text: "Exams",
       path: "/exams",
     },
-
     {
       icon: <PiRobotBold />,
       text: "Subject Assistant",
       path: "/subject-assistant",
     },
+  ];
 
+  // -------------------------
+  // FACULTY MENU
+  // -------------------------
+
+  const facultyMenu = [
+    {
+      icon: <FiGrid />,
+      text: "Dashboard",
+      path: "/faculty",
+    },
+    {
+      icon: <FiFileText />,
+      text: "Question Paper",
+      path: "/faculty/question-paper",
+    },
+    {
+      icon: <PiRobotBold />,
+      text: "MCQ Generator",
+      path: "/faculty/mcq",
+    },
+    {
+      icon: <FiCalendar />,
+      text: "Lesson Plans",
+      path: "/faculty/lesson-plan",
+    },
+    {
+      icon: <FiFileText />,
+      text: "Assignments",
+      path: "/faculty/assignments",
+    },
+    {
+      icon: <FiBook />,
+      text: "Subjects",
+      path: "/faculty/subjects",
+    },
+    {
+      icon: <FiBarChart2 />,
+      text: "Analytics",
+      path: "/faculty/analytics",
+    },
+  ];
+
+  const accountMenu = [
     {
       icon: <FiUser />,
       text: "Profile",
-      path: "/profile",
+      path: isFaculty ? "/faculty/profile" : "/profile",
     },
-
   ];
 
-  return (
+  const menuItems = isFaculty ? facultyMenu : studentMenu;
 
+  return (
     <div
       style={{
         width: "280px",
@@ -91,11 +131,10 @@ export default function Sidebar() {
         boxSizing: "border-box",
       }}
     >
-
       <div>
+        {/* Logo */}
 
         <div style={{ marginBottom: "40px" }}>
-
           <h2
             style={{
               color: "#2563eb",
@@ -115,8 +154,9 @@ export default function Sidebar() {
           >
             EDUCATION OPERATIONS
           </p>
-
         </div>
+
+        {/* Section */}
 
         <p
           style={{
@@ -126,17 +166,15 @@ export default function Sidebar() {
             marginBottom: "15px",
           }}
         >
-          LEARN
+          {isFaculty ? "TEACH" : "LEARN"}
         </p>
 
-        {menuItems.slice(0, 6).map((item) => (
-
+        {menuItems.map((item) => (
           <div
             key={item.path}
             onClick={() => navigate(item.path)}
             style={{
               ...menuItem,
-
               background:
                 location.pathname === item.path
                   ? "linear-gradient(135deg,#2563eb,#60a5fa)"
@@ -144,24 +182,21 @@ export default function Sidebar() {
 
               color:
                 location.pathname === item.path
-                  ? "white"
+                  ? "#fff"
                   : "#374151",
 
               boxShadow:
                 location.pathname === item.path
                   ? "0 8px 18px rgba(37,99,235,.25)"
                   : "none",
-
             }}
           >
-
             {item.icon}
-
             {item.text}
-
           </div>
-
         ))}
+
+        {/* Account */}
 
         <p
           style={{
@@ -175,14 +210,12 @@ export default function Sidebar() {
           ACCOUNT
         </p>
 
-        {menuItems.slice(6).map((item) => (
-
+        {accountMenu.map((item) => (
           <div
             key={item.path}
             onClick={() => navigate(item.path)}
             style={{
               ...menuItem,
-
               background:
                 location.pathname === item.path
                   ? "linear-gradient(135deg,#2563eb,#60a5fa)"
@@ -190,29 +223,24 @@ export default function Sidebar() {
 
               color:
                 location.pathname === item.path
-                  ? "white"
+                  ? "#fff"
                   : "#374151",
 
               boxShadow:
                 location.pathname === item.path
                   ? "0 8px 18px rgba(37,99,235,.25)"
                   : "none",
-
             }}
           >
-
             {item.icon}
-
             {item.text}
-
           </div>
-
         ))}
-
       </div>
 
-      <div>
+      {/* Bottom */}
 
+      <div>
         <div
           style={{
             border: "1px solid #e5e7eb",
@@ -222,14 +250,13 @@ export default function Sidebar() {
             background: "#f8fafc",
           }}
         >
-
           <p
             style={{
               margin: 0,
               fontWeight: "600",
             }}
           >
-            {user?.email}
+            {user?.email || "Guest"}
           </p>
 
           <span
@@ -244,9 +271,8 @@ export default function Sidebar() {
               textTransform: "uppercase",
             }}
           >
-            {user?.role}
+            {isFaculty ? "FACULTY" : "STUDENT"}
           </span>
-
         </div>
 
         <button
@@ -265,37 +291,21 @@ export default function Sidebar() {
             gap: "8px",
           }}
         >
-
           <FiLogOut />
-
           Sign Out
-
         </button>
-
       </div>
-
     </div>
-
   );
-
 }
 
 const menuItem = {
-
   display: "flex",
-
   alignItems: "center",
-
   gap: "10px",
-
   padding: "14px",
-
   borderRadius: "14px",
-
   cursor: "pointer",
-
   marginBottom: "8px",
-
   transition: "all .25s ease",
-
 };
