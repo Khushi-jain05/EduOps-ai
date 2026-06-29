@@ -1,8 +1,9 @@
 import { FiPlus } from "react-icons/fi";
 
-export default function NewPaperCard() {
+export default function NewPaperCard({ onClick }) {
   return (
     <div
+      onClick={onClick}
       style={{
         border: "2px dashed #8BD2FF",
         borderRadius: "28px",

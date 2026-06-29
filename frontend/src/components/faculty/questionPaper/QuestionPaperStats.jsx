@@ -24,12 +24,12 @@ const stats = [
     icon: <FiEdit3 size={22} />,
     color: "#F97316",
   },
-  {
-    title: "Avg. marks",
-    value: 53,
-    icon: <FiAward size={22} />,
-    color: "#A855F7",
-  },
+//   {
+//     title: "Avg. marks",
+//     value: 53,
+//     icon: <FiAward size={22} />,
+//     color: "#A855F7",
+//   },
 ];
 
 export default function QuestionPaperStats() {
@@ -37,7 +37,7 @@ export default function QuestionPaperStats() {
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "repeat(4,1fr)",
+        gridTemplateColumns: "repeat(3,1fr)",
         gap: "20px",
         marginTop: "25px",
         marginBottom: "25px",

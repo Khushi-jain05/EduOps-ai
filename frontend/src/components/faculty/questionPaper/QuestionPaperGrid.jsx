@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import QuestionPaperCard from "./QuestionPaperCard";
 import NewPaperCard from "./NewPaperCard";
 
@@ -53,6 +54,7 @@ const papers = [
 ];
 
 export default function QuestionPaperGrid() {
+  const [openModal, setOpenModal] = useState(false);
   return (
     <div
       style={{
@@ -70,7 +72,9 @@ export default function QuestionPaperGrid() {
         />
       ))}
 
-      <NewPaperCard />
+      <NewPaperCard
+  onClick={() => setOpenModal(true)}
+/>
     </div>
   );
 }

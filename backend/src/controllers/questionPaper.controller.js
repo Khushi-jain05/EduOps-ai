@@ -1,11 +1,8 @@
-import {
-  generatePaper,
-  fetchPapers,
-} from "../services/questionPaper.service.js";
+import * as QuestionPaperService from "../services/questionPaper.service.js";
 
-export const generateQuestionPaper = async (req, res) => {
+export const generatePaper = async (req, res) => {
   try {
-    const paper = await generatePaper(req.body);
+    const paper = await QuestionPaperService.generatePaper(req.body);
 
     res.status(201).json(paper);
   } catch (err) {
@@ -17,11 +14,42 @@ export const generateQuestionPaper = async (req, res) => {
   }
 };
 
-export const getQuestionPapers = async (req, res) => {
+export const getAllPapers = async (req, res) => {
   try {
-    const papers = await fetchPapers();
+    const papers = await QuestionPaperService.getAllPapers();
 
     res.json(papers);
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+    });
+  }
+};
+
+export const getPaperById = async (req, res) => {
+  try {
+    const paper =
+      await QuestionPaperService.getPaperById(
+        req.params.id
+      );
+
+    res.json(paper);
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+    });
+  }
+};
+
+export const deletePaper = async (req, res) => {
+  try {
+    await QuestionPaperService.deletePaper(
+      req.params.id
+    );
+
+    res.json({
+      message: "Deleted",
+    });
   } catch (err) {
     res.status(500).json({
       message: err.message,

@@ -146,7 +146,7 @@ export default function QuestionPaperCard({ paper }) {
             <FiDownload />
           </CircleIcon>
 
-          <button
+          {/* <button
             style={{
               background: "#111827",
               color: "#fff",
@@ -161,7 +161,7 @@ export default function QuestionPaperCard({ paper }) {
           >
             Open
             <FiArrowRight />
-          </button>
+          </button> */}
         </div>
       </div>
     </div>
