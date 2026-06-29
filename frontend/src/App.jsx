@@ -8,6 +8,8 @@ import Exams from "./pages/student/Exams";
 import Subjects from './pages/student/SubjectAssistant';
 import Profile from "./pages/student/Profile";
 import FacultyDashboard from "./pages/faculty/FacultyDashboard";
+import QuestionPaper from "./pages/faculty/QuestionPaper";
+
 
 import Assignments1 from "./pages/faculty/Assignments1";
 import Analytics from "./pages/faculty/Analytics";
@@ -28,6 +30,10 @@ function App() {
         <Route
   path="/support-ai"
   element={<SupportAI />}
+/>
+<Route
+  path="/faculty/question-paper"
+  element={<QuestionPaper />}
 />
 <Route
   path="/subject-assistant"

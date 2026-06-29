@@ -5,6 +5,9 @@ const assignmentRoutes =require("./routes/assignment.routes");
 const examRoutes =require("./routes/exam.routes");
 const subjectRoutes =
 require("./routes/subject.routes");
+import questionPaperRoutes from "./routes/questionPaper.routes.js";
+
+app.use("/api/question-paper", questionPaperRoutes);
 
 
 const PORT = process.env.PORT || 8000;

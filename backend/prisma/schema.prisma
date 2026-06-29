@@ -8,26 +8,27 @@ datasource db {
 }
 
 model User {
-  id          String       @id @default(cuid())
-  email       String       @unique
-  role        String       @default("student")
-  createdAt   DateTime     @default(now())
-  password    String
-  updatedAt   DateTime     @updatedAt
-  username    String
-  phone       String?
-  dob         String?
-  city        String?
-  program     String?
-  semester    String?
-  studentId   String?
-  address     String?
-  about       String?
-  profilePic  String?
-  assignments Assignment[]
-  attendance  Attendance[]
-  exam        Exam[]
-  timetable   Timetable[]
+  id              String            @id @default(cuid())
+  email           String            @unique
+  role            String            @default("student")
+  createdAt       DateTime          @default(now())
+  password        String
+  updatedAt       DateTime          @updatedAt
+  username        String
+  phone           String?
+  dob             String?
+  city            String?
+  program         String?
+  semester        String?
+  studentId       String?
+  address         String?
+  about           String?
+  profilePic      String?
+  assignments     Assignment[]
+  attendance      Attendance[]
+  exam            Exam[]
+  timetable       Timetable[]
+  question_papers question_papers[]
 }
 
 model Attendance {
@@ -102,14 +103,51 @@ model Exam {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model Subject {
-  id        String    @id
-  code      String
-  name      String
-  faculty   String
-  topics    Int?      @default(0)
-  progress  Int?      @default(0)
-  createdAt DateTime? @default(now()) @db.Timestamp(6)
-  color     String?   @default("blue")
-  userId    String?
-  icon      String?
+  id              String            @id
+  code            String
+  name            String
+  faculty         String
+  topics          Int?              @default(0)
+  progress        Int?              @default(0)
+  createdAt       DateTime?         @default(now()) @db.Timestamp(6)
+  color           String?           @default("blue")
+  userId          String?
+  icon            String?
+  question_papers question_papers[]
+  units           Unit[]
+}
+
+model Unit {
+  id         String @id
+  title      String
+  unitNumber Int
+
+  subjectId String
+
+  createdAt DateTime @default(now())
+
+  subject Subject @relation(fields: [subjectId], references: [id])
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model question_papers {
+  id                String    @id
+  title             String    @db.VarChar(255)
+  subject_id        String
+  faculty_id        String
+  exam_type         String?   @db.VarChar(50)
+  semester          Int?
+  academic_year     String?   @db.VarChar(20)
+  total_marks       Int
+  duration          String?   @db.VarChar(50)
+  difficulty        String?   @db.VarChar(20)
+  bloom_level       String?   @db.VarChar(50)
+  instructions      String?
+  question_count    Int?
+  generated_content Json?
+  status            String?   @default("draft") @db.VarChar(20)
+  created_at        DateTime? @default(now()) @db.Timestamp(6)
+  updated_at        DateTime? @default(now()) @db.Timestamp(6)
+  User              User      @relation(fields: [faculty_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_faculty")
+  Subject           Subject   @relation(fields: [subject_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_subject")
 }
