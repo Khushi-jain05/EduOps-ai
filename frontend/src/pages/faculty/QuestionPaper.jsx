@@ -1,12 +1,15 @@
 import Sidebar from "../../components/layout/Sidebar";
 import Navbar from "../../components/layout/Navbar";
-
-import QuestionPaperHeader from "../../components/faculty/questionPaper/QuestionPaperHeader";
+import { useState } from "react";
+// import QuestionPaperHeader from "../../components/faculty/questionPaper/QuestionPaperHeader";
 import QuestionPaperStats from "../../components/faculty/questionPaper/QuestionPaperStats";
-import SearchFilter from "../../components/faculty/questionPaper/SearchFilter";
-import PaperGrid from "../../components/faculty/questionPaper/PaperGrid";
+// import SearchFilter from "../../components/faculty/questionPaper/SearchFilter";
+// import PaperGrid from "../../components/faculty/questionPaper/PaperGrid";
+import QuestionPaperSearch from "../../components/faculty/questionPaper/QuestionPaperSearch";
+import QuestionPaperGrid from "../../components/faculty/questionPaper/QuestionPaperGrid";
 
 export default function QuestionPaper() {
+   const [openModal, setOpenModal] = useState(false);
   return (
     <div
       style={{
@@ -34,13 +37,11 @@ export default function QuestionPaper() {
             padding: "35px",
           }}
         >
-          <QuestionPaperHeader />
+          {/* <QuestionPaperHeader /> */}
 
           <QuestionPaperStats />
-
-          <SearchFilter />
-
-          <PaperGrid />
+          <QuestionPaperSearch />
+          <QuestionPaperGrid />
         </div>
       </div>
     </div>
