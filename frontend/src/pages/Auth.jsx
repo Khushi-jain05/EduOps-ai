@@ -73,10 +73,11 @@ const [loginData, setLoginData] = useState({
 const handleLogin = async () => {
   try {
     const response = await loginUser({
-      email: loginData.email,
-      password: loginData.password,
-    });
+  email: loginData.email,
+  password: loginData.password,
+});
 
+console.log("LOGIN RESPONSE:", response);
     localStorage.setItem("token", response.token);
 
     localStorage.setItem(

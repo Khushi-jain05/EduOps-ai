@@ -95,11 +95,7 @@ export default function Sidebar() {
       text: "Assignments",
       path: "/faculty/assignments",
     },
-    {
-      icon: <FiBook />,
-      text: "Subjects",
-      path: "/faculty/subjects",
-    },
+    
     {
       icon: <FiBarChart2 />,
       text: "Analytics",
@@ -111,7 +107,7 @@ export default function Sidebar() {
     {
       icon: <FiUser />,
       text: "Profile",
-      path: isFaculty ? "/faculty/profile" : "/profile",
+      path: "faculty/profile",
     },
   ];
 
