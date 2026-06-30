@@ -1,4 +1,5 @@
 const express = require("express");
+const auth = require("../middleware/auth.middleware");
 
 const {
   generatePaper,
@@ -9,12 +10,12 @@ const {
 
 const router = express.Router();
 
-router.post("/generate", generatePaper);
+router.post("/generate", auth, generatePaper);
 
-router.get("/", getAllPapers);
+router.get("/", auth, getAllPapers);
 
-router.get("/:id", getPaperById);
+router.get("/:id", auth, getPaperById);
 
-router.delete("/:id", deletePaper);
+router.delete("/:id", auth, deletePaper);
 
 module.exports = router;

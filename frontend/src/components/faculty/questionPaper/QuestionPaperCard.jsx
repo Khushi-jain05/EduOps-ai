@@ -6,7 +6,7 @@ import {
   FiAward,
 } from "react-icons/fi";
 
-export default function QuestionPaperCard({ paper }) {
+export default function QuestionPaperCard({ paper, onOpen }) {
   const colors = {
     blue: "#DFF0FF",
     purple: "#EEE6FF",
@@ -146,7 +146,8 @@ export default function QuestionPaperCard({ paper }) {
             <FiDownload />
           </CircleIcon>
 
-          {/* <button
+          <button
+            onClick={() => onOpen?.()}
             style={{
               background: "#111827",
               color: "#fff",
@@ -161,7 +162,7 @@ export default function QuestionPaperCard({ paper }) {
           >
             Open
             <FiArrowRight />
-          </button> */}
+          </button>
         </div>
       </div>
     </div>

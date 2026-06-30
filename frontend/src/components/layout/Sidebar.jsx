@@ -17,10 +17,9 @@ export default function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const user = JSON.parse(localStorage.getItem("user")) || {};
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
 
-  // Detect faculty pages automatically
-  const isFaculty = location.pathname.startsWith("/faculty");
+  const isFaculty = user.role === "faculty";
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -107,7 +106,7 @@ export default function Sidebar() {
     {
       icon: <FiUser />,
       text: "Profile",
-      path: "faculty/profile",
+      path: isFaculty ? "/faculty/profile" : "/profile",
     },
   ];
 
@@ -267,7 +266,7 @@ export default function Sidebar() {
               textTransform: "uppercase",
             }}
           >
-            {isFaculty ? "FACULTY" : "STUDENT"}
+            {user.role || "guest"}
           </span>
         </div>
 

@@ -1,6 +1,26 @@
 import { FiSearch, FiFilter } from "react-icons/fi";
 
-export default function QuestionPaperSearch() {
+export default function QuestionPaperSearch({
+  search,
+  onSearchChange,
+  subjectFilter,
+  onSubjectFilterChange,
+  typeFilter,
+  onTypeFilterChange,
+  dateFilter,
+  onDateFilterChange,
+  subjects = [],
+  types = [],
+}) {
+  const selectStyle = {
+    border: "none",
+    outline: "none",
+    background: "transparent",
+    color: "#64748B",
+    fontSize: "15px",
+    cursor: "pointer",
+  };
+
   return (
     <div
       style={{
@@ -34,6 +54,8 @@ export default function QuestionPaperSearch() {
         <input
           type="text"
           placeholder="Search papers..."
+          value={search}
+          onChange={(e) => onSearchChange(e.target.value)}
           style={{
             border: "none",
             outline: "none",
@@ -57,33 +79,46 @@ export default function QuestionPaperSearch() {
       >
         <FiFilter />
 
-        <span
-          style={{
-            cursor: "pointer",
-          }}
+        <select
+          value={subjectFilter}
+          onChange={(e) => onSubjectFilterChange(e.target.value)}
+          style={selectStyle}
         >
-          All Subjects
-        </span>
+          <option value="all">All Subjects</option>
+          {subjects.map((subject) => (
+            <option key={subject.id} value={subject.id}>
+              {subject.code || subject.name}
+            </option>
+          ))}
+        </select>
 
         <span>•</span>
 
-        <span
-          style={{
-            cursor: "pointer",
-          }}
+        <select
+          value={typeFilter}
+          onChange={(e) => onTypeFilterChange(e.target.value)}
+          style={selectStyle}
         >
-          All Types
-        </span>
+          <option value="all">All Types</option>
+          {types.map((type) => (
+            <option key={type} value={type}>
+              {type}
+            </option>
+          ))}
+        </select>
 
         <span>•</span>
 
-        <span
-          style={{
-            cursor: "pointer",
-          }}
+        <select
+          value={dateFilter}
+          onChange={(e) => onDateFilterChange(e.target.value)}
+          style={selectStyle}
         >
-          Last 30 Days
-        </span>
+          <option value="all">All Dates</option>
+          <option value="7">Last 7 Days</option>
+          <option value="30">Last 30 Days</option>
+          <option value="90">Last 90 Days</option>
+        </select>
       </div>
     </div>
   );

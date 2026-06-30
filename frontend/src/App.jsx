@@ -9,6 +9,7 @@ import Subjects from './pages/student/SubjectAssistant';
 import Profile from "./pages/student/Profile";
 import FacultyDashboard from "./pages/faculty/FacultyDashboard";
 import QuestionPaper from "./pages/faculty/QuestionPaper";
+import ProtectedRoute from "./components/common/ProtectedRoute";
 
 
 import Assignments1 from "./pages/faculty/Assignments1";
@@ -21,49 +22,93 @@ function App() {
 
         <Route
           path="/student"
-          element={<StudentDashboard />}
+          element={
+            <ProtectedRoute allowedRoles={["student"]}>
+              <StudentDashboard />
+            </ProtectedRoute>
+          }
         />
         <Route
   path="/faculty"
-  element={<FacultyDashboard />}
+  element={
+    <ProtectedRoute allowedRoles={["faculty"]}>
+      <FacultyDashboard />
+    </ProtectedRoute>
+  }
 />
         <Route
   path="/support-ai"
-  element={<SupportAI />}
+  element={
+    <ProtectedRoute allowedRoles={["student"]}>
+      <SupportAI />
+    </ProtectedRoute>
+  }
 />
 <Route
   path="/faculty/question-paper"
-  element={<QuestionPaper />}
+  element={
+    <ProtectedRoute allowedRoles={["faculty"]}>
+      <QuestionPaper />
+    </ProtectedRoute>
+  }
 />
 <Route
   path="/subject-assistant"
-  element={<Subjects />}
+  element={
+    <ProtectedRoute allowedRoles={["student"]}>
+      <Subjects />
+    </ProtectedRoute>
+  }
 />  
 
 <Route
   path="/faculty/assignments"
-  element={<Assignments1 />}
+  element={
+    <ProtectedRoute allowedRoles={["faculty"]}>
+      <Assignments1 />
+    </ProtectedRoute>
+  }
 />
 <Route
   path="/faculty/analytics"
-  element={<Analytics />}
+  element={
+    <ProtectedRoute allowedRoles={["faculty"]}>
+      <Analytics />
+    </ProtectedRoute>
+  }
 />  
 <Route
   path="/profile"
-  element={<Profile />}
+  element={
+    <ProtectedRoute allowedRoles={["student"]}>
+      <Profile />
+    </ProtectedRoute>
+  }
 />
 
 <Route
   path="/timetable"
-  element={<Timetable />}
+  element={
+    <ProtectedRoute allowedRoles={["student"]}>
+      <Timetable />
+    </ProtectedRoute>
+  }
 />
 <Route
   path="/assignments"
-  element={<Assignments />}
+  element={
+    <ProtectedRoute allowedRoles={["student"]}>
+      <Assignments />
+    </ProtectedRoute>
+  }
 />
 <Route
   path="/exams"
-  element={<Exams />}
+  element={
+    <ProtectedRoute allowedRoles={["student"]}>
+      <Exams />
+    </ProtectedRoute>
+  }
 />
       </Routes>
     </BrowserRouter>

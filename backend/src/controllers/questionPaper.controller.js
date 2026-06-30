@@ -2,7 +2,10 @@ const QuestionPaperService = require("../services/questionPaper.service");
 
 const generatePaper = async (req, res) => {
   try {
-    const paper = await QuestionPaperService.generatePaper(req.body);
+    const paper = await QuestionPaperService.generatePaper({
+      ...req.body,
+      facultyId: req.user.id,
+    });
 
     res.status(201).json(paper);
   } catch (err) {
@@ -16,7 +19,9 @@ const generatePaper = async (req, res) => {
 
 const getAllPapers = async (req, res) => {
   try {
-    const papers = await QuestionPaperService.getAllPapers();
+    const papers = await QuestionPaperService.getAllPapers(
+      req.user.id
+    );
 
     res.json(papers);
   } catch (err) {

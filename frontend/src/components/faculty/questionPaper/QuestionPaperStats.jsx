@@ -32,7 +32,30 @@ const stats = [
 //   },
 ];
 
-export default function QuestionPaperStats() {
+export default function QuestionPaperStats({ papers = [] }) {
+  const computedStats = [
+    {
+      ...stats[0],
+      value: papers.length,
+    },
+    {
+      ...stats[1],
+      value: papers.filter(
+        (paper) =>
+          paper.status === "published" ||
+          paper.is_published
+      ).length,
+    },
+    {
+      ...stats[2],
+      value: papers.filter(
+        (paper) =>
+          paper.status !== "published" &&
+          !paper.is_published
+      ).length,
+    },
+  ];
+
   return (
     <div
       style={{
@@ -43,7 +66,7 @@ export default function QuestionPaperStats() {
         marginBottom: "25px",
       }}
     >
-      {stats.map((item) => (
+      {computedStats.map((item) => (
         <div
           key={item.title}
           style={{
