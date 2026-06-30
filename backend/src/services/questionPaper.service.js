@@ -335,6 +335,55 @@ const getPaperById = async (id) => {
   });
 };
 
+const getPaperByShareToken = async (shareToken) => {
+  return await prisma.question_papers.findFirst({
+    where: {
+      share_token: shareToken,
+      is_published: true,
+    },
+    include: {
+      Subject: true,
+      User: true,
+    },
+  });
+};
+
+const { randomUUID } = require("crypto");
+
+const updatePaperPublishStatus = async ({
+  id,
+  facultyId,
+  publish,
+}) => {
+  const paper = await prisma.question_papers.findFirst({
+    where: {
+      id,
+      faculty_id: facultyId,
+    },
+  });
+
+  if (!paper) {
+    return { count: 0 };
+  }
+
+  return await prisma.question_papers.updateMany({
+    where: {
+      id,
+      faculty_id: facultyId,
+    },
+    data: {
+      status: publish ? "published" : "draft",
+      is_published: publish,
+
+      share_token:
+        publish && !paper.share_token
+          ? randomUUID()
+          : paper.share_token,
+
+      updated_at: new Date(),
+    },
+  });
+};
 const deletePaper = async (id) => {
   return await prisma.question_papers.delete({
     where: {
@@ -347,5 +396,7 @@ module.exports = {
   generatePaper,
   getAllPapers,
   getPaperById,
+  getPaperByShareToken,
+  updatePaperPublishStatus,
   deletePaper,
 };

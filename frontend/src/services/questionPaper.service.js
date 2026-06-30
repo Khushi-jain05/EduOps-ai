@@ -22,6 +22,26 @@ export const getQuestionPapers = async () => {
   return response.data;
 };
 
+export const updateQuestionPaperPublishStatus = async (
+  id,
+  publish
+) => {
+  const response = await axios.patch(
+    `${API}/${id}/publish`,
+    { publish },
+    authHeaders()
+  );
+  return response.data;
+};
+
+export const downloadQuestionPaper = async (id) => {
+  const response = await axios.get(`${API}/${id}/download`, {
+    ...authHeaders(),
+    responseType: "blob",
+  });
+  return response.data;
+};
+
 export const deleteQuestionPaper = async (id) => {
   await axios.delete(`${API}/${id}`, authHeaders());
 };

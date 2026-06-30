@@ -28,6 +28,7 @@ model User {
   attendance      Attendance[]
   exam            Exam[]
   timetable       Timetable[]
+  mcq_sets        mcq_sets[]
   question_bank   question_bank[]
   question_papers question_papers[]
 }
@@ -114,6 +115,7 @@ model Subject {
   color           String?           @default("blue")
   userId          String?
   icon            String?
+  mcq_sets        mcq_sets[]
   question_bank   question_bank[]
   question_papers question_papers[]
   units           units[]
@@ -148,6 +150,41 @@ model question_papers {
   ai_response       Json?
   User              User      @relation(fields: [faculty_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_faculty")
   Subject           Subject   @relation(fields: [subject_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_subject")
+}
+
+model mcq_sets {
+  id                String          @id @default(dbgenerated("(gen_random_uuid())::text"))
+  title             String          @db.VarChar(255)
+  subject_id        String
+  faculty_id        String
+  topic             String?         @db.VarChar(255)
+  difficulty        String?         @db.VarChar(20)
+  bloom_level       String?         @db.VarChar(50)
+  question_count    Int             @default(0)
+  generated_content Json?
+  status            String?         @default("draft") @db.VarChar(20)
+  created_at        DateTime?       @default(now()) @db.Timestamp(6)
+  updated_at        DateTime?       @default(now()) @db.Timestamp(6)
+  ai_prompt         String?
+  share_token       String?         @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  is_published      Boolean?        @default(false)
+  User              User            @relation(fields: [faculty_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_mcq_faculty")
+  Subject           Subject         @relation(fields: [subject_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_mcq_subject")
+  mcq_questions     mcq_questions[]
+}
+
+model mcq_questions {
+  id             String    @id @default(dbgenerated("(gen_random_uuid())::text"))
+  mcq_set_id     String
+  question       String
+  options        Json
+  correct_answer String
+  explanation    String?
+  difficulty     String?   @db.VarChar(20)
+  bloom_level    String?   @db.VarChar(50)
+  marks          Int?      @default(1)
+  created_at     DateTime? @default(now()) @db.Timestamp(6)
+  mcq_sets       mcq_sets  @relation(fields: [mcq_set_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_mcq_question_set")
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.

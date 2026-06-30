@@ -22,32 +22,43 @@ export default function QuestionPaperGrid({
             key={paper.id}
             onOpen={() => onOpenPaper?.(paper)}
             paper={{
-              id: paper.id,
-              code: `${paper.Subject?.code || ""} • ${
-                paper.Subject?.name || "Unknown Subject"
-              }`,
-              title: paper.title,
-              type: paper.exam_type,
-              duration: paper.duration,
-              marks: paper.total_marks,
-              status:
-                paper.status === "published"
-                  ? "Published"
-                  : "Draft",
-              updated: new Date(
-                paper.updated_at
-              ).toLocaleDateString(),
+  id: paper.id,
 
-              color:
-                paper.status === "published"
-                  ? "blue"
-                  : "green",
+  code: `${paper.Subject?.code || ""} • ${
+    paper.Subject?.name || "Unknown Subject"
+  }`,
 
-              border:
-                paper.status === "published"
-                  ? "#7CC5FF"
-                  : "#8AE6D1",
-            }}
+  title: paper.title,
+
+  type: paper.exam_type,
+
+  duration: paper.duration,
+
+  marks: paper.total_marks,
+
+  status:
+    paper.status === "published"
+      ? "Published"
+      : "Draft",
+
+  updated: new Date(
+    paper.updated_at
+  ).toLocaleDateString(),
+
+  color:
+    paper.status === "published"
+      ? "blue"
+      : "green",
+
+  border:
+    paper.status === "published"
+      ? "#7CC5FF"
+      : "#8AE6D1",
+
+  // ✅ ADD THESE
+  share_token: paper.share_token,
+  is_published: paper.is_published,
+}}
           />
         ))
       ) : (
