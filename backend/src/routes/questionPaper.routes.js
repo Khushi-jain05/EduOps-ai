@@ -1,10 +1,11 @@
-import express from "express";
-import {
+const express = require("express");
+
+const {
   generatePaper,
   getAllPapers,
   getPaperById,
   deletePaper,
-} from "../controllers/questionPaper.controller.js";
+} = require("../controllers/questionPaper.controller");
 
 const router = express.Router();
 
@@ -16,4 +17,4 @@ router.get("/:id", getPaperById);
 
 router.delete("/:id", deletePaper);
 
-export default router;
+module.exports = router;

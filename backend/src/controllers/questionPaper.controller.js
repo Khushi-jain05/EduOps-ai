@@ -1,6 +1,6 @@
-import * as QuestionPaperService from "../services/questionPaper.service.js";
+const QuestionPaperService = require("../services/questionPaper.service");
 
-export const generatePaper = async (req, res) => {
+const generatePaper = async (req, res) => {
   try {
     const paper = await QuestionPaperService.generatePaper(req.body);
 
@@ -14,7 +14,7 @@ export const generatePaper = async (req, res) => {
   }
 };
 
-export const getAllPapers = async (req, res) => {
+const getAllPapers = async (req, res) => {
   try {
     const papers = await QuestionPaperService.getAllPapers();
 
@@ -26,12 +26,11 @@ export const getAllPapers = async (req, res) => {
   }
 };
 
-export const getPaperById = async (req, res) => {
+const getPaperById = async (req, res) => {
   try {
-    const paper =
-      await QuestionPaperService.getPaperById(
-        req.params.id
-      );
+    const paper = await QuestionPaperService.getPaperById(
+      req.params.id
+    );
 
     res.json(paper);
   } catch (err) {
@@ -41,11 +40,9 @@ export const getPaperById = async (req, res) => {
   }
 };
 
-export const deletePaper = async (req, res) => {
+const deletePaper = async (req, res) => {
   try {
-    await QuestionPaperService.deletePaper(
-      req.params.id
-    );
+    await QuestionPaperService.deletePaper(req.params.id);
 
     res.json({
       message: "Deleted",
@@ -55,4 +52,11 @@ export const deletePaper = async (req, res) => {
       message: err.message,
     });
   }
+};
+
+module.exports = {
+  generatePaper,
+  getAllPapers,
+  getPaperById,
+  deletePaper,
 };

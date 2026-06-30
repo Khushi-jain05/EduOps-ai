@@ -1,9 +1,35 @@
 import { useState } from "react";
-
+import { createQuestionPaper } from "../../../services/questionPaper.service";
 export default function GeneratePaperModal({
   open,
   onClose,
 }) {
+    const handleGenerate = async () => {
+  try {
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    await createQuestionPaper({
+      title: formData.title,
+      subjectId: formData.subject,
+      facultyId: user.id,
+      examType: formData.examType,
+      semester: Number(formData.semester),
+      academicYear: formData.academicYear,
+      duration: formData.duration,
+      totalMarks: Number(formData.totalMarks),
+      difficulty: formData.difficulty,
+      bloomLevel: formData.bloomLevel,
+      instructions: formData.instructions,
+    });
+
+    alert("Question Paper Created Successfully");
+
+    onClose();
+  } catch (err) {
+    console.error(err);
+    alert("Something went wrong");
+  }
+};
   const [formData, setFormData] = useState({
     title: "",
     subject: "",
@@ -256,7 +282,7 @@ export default function GeneratePaperModal({
               background: "#2563EB",
               color: "#fff",
               cursor: "pointer",
-            }}
+            }} onClick={handleGenerate}
           >
             Generate with AI
           </button>
