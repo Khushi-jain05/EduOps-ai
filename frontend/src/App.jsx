@@ -10,7 +10,7 @@ import Profile from "./pages/student/Profile";
 import FacultyDashboard from "./pages/faculty/FacultyDashboard";
 import QuestionPaper from "./pages/faculty/QuestionPaper";
 import ProtectedRoute from "./components/common/ProtectedRoute";
-
+import McqGenerator from "./pages/faculty/McqGenerator";
 import McqPreview from "./components/faculty/mcq/McqPreview";
 import Assignments1 from "./pages/faculty/Assignments1";
 import Analytics from "./pages/faculty/Analytics";
@@ -34,6 +34,10 @@ path="/faculty/mcq/:id"
 
 element={<McqPreview/>}
 
+/>
+<Route
+  path="/faculty/mcq"
+  element={<McqGenerator />}
 />
         <Route
   path="/faculty"

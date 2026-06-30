@@ -160,7 +160,7 @@ model mcq_sets {
   topic             String?         @db.VarChar(255)
   difficulty        String?         @db.VarChar(20)
   bloom_level       String?         @db.VarChar(50)
-  question_count    Int             @default(0)
+  question_count    Int?            @default(0)
   generated_content Json?
   status            String?         @default("draft") @db.VarChar(20)
   created_at        DateTime?       @default(now()) @db.Timestamp(6)
@@ -168,9 +168,9 @@ model mcq_sets {
   ai_prompt         String?
   share_token       String?         @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   is_published      Boolean?        @default(false)
+  mcq_questions     mcq_questions[]
   User              User            @relation(fields: [faculty_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_mcq_faculty")
   Subject           Subject         @relation(fields: [subject_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_mcq_subject")
-  mcq_questions     mcq_questions[]
 }
 
 model mcq_questions {

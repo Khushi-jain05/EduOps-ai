@@ -9,7 +9,7 @@ const studentRoutes = require("./routes/student.routes");
 const questionPaperRoutes = require("./routes/questionPaper.routes");
 const uploadRoutes = require("./routes/upload.routes");
 const mcqRoutes = require("./routes/mcq.routes");
-
+const authRoutes = require("./routes/auth.routes");
 const PORT = process.env.PORT || 8000;
 app.use("/api/auth", authRoutes);
 app.use("/api/question-paper", questionPaperRoutes);

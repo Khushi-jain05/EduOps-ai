@@ -84,9 +84,19 @@ Return ONLY JSON.
 
   const response = await askGemini(prompt);
 
-  const questions = JSON.parse(
-    response.replace(/```json/g, "").replace(/```/g, "")
+let questions;
+
+try {
+  questions = JSON.parse(
+    response
+      .replace(/```json/g, "")
+      .replace(/```/g, "")
+      .trim()
   );
+} catch (err) {
+  console.log(response);
+  throw new Error("Invalid AI response");
+}
 
   const mcqSet = await prisma.mcq_sets.create({
     data: {
@@ -136,9 +146,10 @@ const getAllMcqSets = async (facultyId) => {
 const { randomUUID } = require("crypto");
 
 const publishMcq = async (id, facultyId) => {
-  return prisma.mcq_sets.update({
+  return prisma.mcq_sets.updateMany({
     where: {
       id,
+      faculty_id: facultyId,
     },
     data: {
       status: "published",
@@ -171,4 +182,7 @@ const getMcqById = async (id) => {
 module.exports = {
   generateMcqSet,
   getAllMcqSets,
+  publishMcq,
+  deleteMcq,
+  getMcqById,
 };

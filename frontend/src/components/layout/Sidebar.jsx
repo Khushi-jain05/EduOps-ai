@@ -95,11 +95,7 @@ export default function Sidebar() {
       path: "/faculty/assignments",
     },
     
-    {
-      icon: <FiBarChart2 />,
-      text: "Analytics",
-      path: "/faculty/analytics",
-    },
+    
   ];
 
   const accountMenu = [

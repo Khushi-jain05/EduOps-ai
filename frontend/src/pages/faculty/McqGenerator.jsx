@@ -10,16 +10,21 @@ import { getMcqSets } from "../../services/mcq.service";
 
 export default function McqGenerator() {
   const [mcqs, setMcqs] = useState([]);
-
+  const [loading, setLoading] = useState(true);
   const [openModal, setOpenModal] = useState(false);
 
   const loadMcqs = async () => {
     try {
+      setLoading(true);
+
       const data = await getMcqSets();
 
-      setMcqs(data);
+      setMcqs(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error(err);
+      console.error("Failed to load MCQs:", err);
+      setMcqs([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -54,10 +59,14 @@ export default function McqGenerator() {
             padding: "35px",
           }}
         >
-          <McqGrid
-            mcqs={mcqs}
-            onNewClick={() => setOpenModal(true)}
-          />
+          {loading ? (
+            <h2>Loading MCQs...</h2>
+          ) : (
+            <McqGrid
+              mcqs={mcqs}
+              onNewClick={() => setOpenModal(true)}
+            />
+          )}
         </div>
       </div>
 
