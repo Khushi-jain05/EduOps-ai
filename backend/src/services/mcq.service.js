@@ -2,7 +2,20 @@ const prisma = require("../config/prisma");
 const { askGemini } = require("./gemini.service");
 
 const generateMcqSet = async (data) => {
-  const selectedUnits = data.selectedUnits || [];
+  const selectedUnits = Array.isArray(data.selectedUnits)
+  ? data.selectedUnits.map(Number).filter((n) => !isNaN(n))
+  : [];
+
+console.log("Subject ID:", data.subjectId);
+console.log("Selected Units:", selectedUnits);
+
+if (!data.subjectId) {
+  throw new Error("Subject is required");
+}
+
+if (selectedUnits.length === 0) {
+  throw new Error("Please select at least one unit");
+}
 
   const subject = await prisma.subject.findUnique({
     where: {
@@ -14,7 +27,10 @@ const generateMcqSet = async (data) => {
     throw new Error("Subject not found");
   }
 
-  const units = await prisma.units.findMany({
+  let units = [];
+
+try {
+  units = await prisma.units.findMany({
     where: {
       subject_id: data.subjectId,
       unit_number: {
@@ -25,6 +41,12 @@ const generateMcqSet = async (data) => {
       unit_number: "asc",
     },
   });
+
+  console.log("Units Found:", units);
+} catch (err) {
+  console.error("Units Query Error:", err);
+  throw err;
+}
 
   const questionBank = await prisma.question_bank.findMany({
     where: {
@@ -82,22 +104,28 @@ Return ONLY JSON.
 ]
 `;
 
-  const response = await askGemini(prompt);
+ const response = await askGemini(prompt);
 
 let questions;
 
 try {
-  questions = JSON.parse(
-    response
-      .replace(/```json/g, "")
-      .replace(/```/g, "")
-      .trim()
-  );
-} catch (err) {
-  console.log(response);
-  throw new Error("Invalid AI response");
-}
+  const clean = response
+    .replace(/```json/gi, "")
+    .replace(/```/g, "")
+    .trim();
 
+  questions = JSON.parse(clean);
+
+  if (!Array.isArray(questions)) {
+    throw new Error();
+  }
+} catch (err) {
+  console.error("Gemini Response:", response);
+  throw new Error("AI returned invalid JSON");
+}
+if (questions.length === 0) {
+  throw new Error("No MCQs generated");
+}
   const mcqSet = await prisma.mcq_sets.create({
     data: {
       title: data.title,

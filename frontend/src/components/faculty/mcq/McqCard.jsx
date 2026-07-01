@@ -133,6 +133,23 @@ export default function McqCard({ mcq }) {
               Publish
             </button>
           )}
+          <button
+            style={{
+              background: "#111827",
+              color: "#fff",
+              border: "none",
+              borderRadius: "20px",
+              padding: "10px 18px",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              cursor: "pointer",
+            }}
+          >
+            Delete
+            
+          </button>
+        
 
           <button
             style={{

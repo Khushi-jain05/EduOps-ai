@@ -260,7 +260,12 @@ export default function GenerateMcqModal({
             marginTop: "20px",
           }}
         >
-          <button onClick={onClose}>
+          <button onClick={onClose}  style={{
+              padding: "12px 22px",
+              borderRadius: "12px",
+              border: "none",
+              cursor: "pointer",
+            }}>
             Cancel
           </button>
 
