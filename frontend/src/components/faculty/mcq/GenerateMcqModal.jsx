@@ -23,22 +23,6 @@ export default function GenerateMcqModal({ open, onClose, onSuccess }) {
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    if (open) {
-      loadSubjects();
-      setError("");
-    }
-  }, [open]);
-
-  useEffect(() => {
-    if (formData.subject) {
-      loadUnits(formData.subject);
-    } else {
-      setUnits([]);
-      setSelectedUnits([]);
-    }
-  }, [formData.subject]);
-
   const loadSubjects = async () => {
     try {
       const data = await getSubjects();
@@ -58,6 +42,29 @@ export default function GenerateMcqModal({ open, onClose, onSuccess }) {
       setUnits([]);
     }
   };
+
+  useEffect(() => {
+    if (open) {
+      const timer = window.setTimeout(() => {
+        loadSubjects();
+      }, 0);
+
+      return () => window.clearTimeout(timer);
+    }
+  }, [open]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      if (formData.subject) {
+        loadUnits(formData.subject);
+      } else {
+        setUnits([]);
+        setSelectedUnits([]);
+      }
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, [formData.subject]);
 
   const closeModal = (force = false) => {
     if (generating && !force) return;

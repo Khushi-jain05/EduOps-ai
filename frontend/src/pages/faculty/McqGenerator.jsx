@@ -42,7 +42,11 @@ export default function McqGenerator() {
   };
 
   useEffect(() => {
-    loadMcqs();
+    const timer = window.setTimeout(() => {
+      loadMcqs();
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, []);
 
   const handlePublish = async (id) => {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   FiArrowLeft,
@@ -28,13 +28,9 @@ export default function McqPreview({ shared = false }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    loadMcq();
-  }, [id, token]);
-
   const questions = useMemo(() => mcq?.mcq_questions || [], [mcq]);
 
-  const loadMcq = async () => {
+  const loadMcq = useCallback(async () => {
     try {
       setLoading(true);
       setError("");
@@ -47,7 +43,15 @@ export default function McqPreview({ shared = false }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, shared, token]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      loadMcq();
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, [loadMcq]);
 
   const getOptions = (question) => {
     if (Array.isArray(question.options)) return question.options;
