@@ -19,48 +19,47 @@ export default function LessonHero({
       {/* Badge */}
 
       <div
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          background: "rgba(255,255,255,.18)",
-          padding: "8px 18px",
-          borderRadius: "40px",
-          fontSize: "15px",
-          marginBottom: "20px",
-          backdropFilter: "blur(12px)",
-        }}
-      >
-        Faculty • Lesson Plans
-      </div>
+  style={{
+    display: "inline-block",
+    padding: "8px 18px",
+    borderRadius: "999px",
+    background: "rgba(255,255,255,.15)",
+    color: "#fff",
+    fontSize: "16px",
+    fontWeight: 300,
+    marginBottom: "20px",
+  }}
+>
+  Faculty • Lesson Plans
+</div>
 
       {/* Heading */}
 
       <h1
-        style={{
-          margin: 0,
-          fontSize: "60px",
-          fontWeight: 700,
-          letterSpacing: "-1px",
-        }}
-      >
-        Lesson Plans
-      </h1>
+  style={{
+    margin: 0,
+    color: "#fff",
+    fontSize: "45px",
+    fontWeight: 600,
+    lineHeight: 1.1,
+  }}
+>
+  Lesson Plans
+</h1>
 
       <p
-        style={{
-          marginTop: "16px",
-          marginBottom: "34px",
-          fontSize: "24px",
-          opacity: 0.95,
-          maxWidth: "980px",
-          lineHeight: 1.6,
-        }}
-      >
-        Plan units, sessions and learning outcomes.
-        AI helps organize your syllabus week by week
-        and automatically syncs lessons with the
-        student timetable.
-      </p>
+  style={{
+    color: "rgba(255,255,255,.92)",
+    fontSize: "18px",
+    lineHeight: "34px",
+    maxWidth: "900px",
+    marginTop: "18px",
+    marginBottom: "40px",
+  }}
+>
+  Plan units, sessions and learning outcomes. AI helps organize your syllabus
+  week by week and automatically syncs lessons with the student timetable.
+</p>
 
       {/* Search + Button */}
 
@@ -78,7 +77,7 @@ export default function LessonHero({
             flex: 1,
             background: "#fff",
             borderRadius: "18px",
-            height: "66px",
+            height: "55px",
             display: "flex",
             alignItems: "center",
             padding: "0 22px",
@@ -106,14 +105,14 @@ export default function LessonHero({
         <button
           onClick={onNewClick}
           style={{
-            height: "66px",
-            padding: "0 34px",
+            height: "55px",
+            padding: "0 24px",
             borderRadius: "18px",
             border: "none",
             background: "#fff",
             color: "#2563EB",
             fontWeight: 700,
-            fontSize: "18px",
+            fontSize: "13px",
             cursor: "pointer",
             display: "flex",
             alignItems: "center",

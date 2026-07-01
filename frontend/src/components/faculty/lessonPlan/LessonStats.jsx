@@ -73,8 +73,8 @@ function StatCard({
     >
       <div
         style={{
-          width: "72px",
-          height: "72px",
+          width: "62px",
+          height: "62px",
 
           borderRadius: "22px",
 
@@ -85,7 +85,7 @@ function StatCard({
           justifyContent: "center",
           alignItems: "center",
 
-          fontSize: "32px",
+          fontSize: "24px",
 
           color: "#2563EB",
         }}
@@ -96,7 +96,7 @@ function StatCard({
       <div>
         <div
           style={{
-            fontSize: "44px",
+            fontSize: "24px",
             fontWeight: 700,
             color: "#172554",
             lineHeight: 1,
@@ -109,7 +109,7 @@ function StatCard({
           style={{
             marginTop: "10px",
             color: "#64748B",
-            fontSize: "22px",
+            fontSize: "18px",
           }}
         >
           {label}

@@ -48,7 +48,7 @@ element={
     </ProtectedRoute>
   }
 />
-<Route path="/faculty/lesson-plans" element={
+<Route path="/faculty/lesson-plan" element={
   <ProtectedRoute allowedRoles={["faculty"]}>
     <LessonPlans />
   </ProtectedRoute>

@@ -9,7 +9,7 @@ import LessonSearch from "../../components/faculty/lessonPlan/LessonSearch";
 import LessonGrid from "../../components/faculty/lessonPlan/LessonGrid";
 import GenerateLessonModal from "../../components/faculty/lessonPlan/GenerateLessonModal";
 
-import { getLessonPlans } from "../../services/lessonPlan.service";
+// import { getLessonPlans } from "../../services/lessonPlan.service";
 
 export default function LessonPlans() {
   const [plans, setPlans] = useState([]);

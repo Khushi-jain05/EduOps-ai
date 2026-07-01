@@ -42,8 +42,8 @@ export default function NewLessonCard({ onClick }) {
     >
       <div
         style={{
-          width: "95px",
-          height: "95px",
+          width: "75px",
+          height: "75px",
 
           borderRadius: "50%",
 
@@ -56,10 +56,11 @@ export default function NewLessonCard({ onClick }) {
 
           color: "#fff",
 
-          fontSize: "44px",
+          fontSize: "34px",
 
           boxShadow:
             "0 15px 35px rgba(37,99,235,.35)",
+          marginTop: "30px",
 
           marginBottom: "30px",
         }}
@@ -100,7 +101,9 @@ export default function NewLessonCard({ onClick }) {
 
       <button
         style={{
-          marginTop: "32px",
+          marginTop: "22px",
+          marginBottom: "22px",
+
 
           background:
             "linear-gradient(135deg,#2563EB,#4F8EF7)",
@@ -115,7 +118,7 @@ export default function NewLessonCard({ onClick }) {
 
           fontSize: "16px",
 
-          fontWeight: 600,
+          fontWeight: 400,
 
           cursor: "pointer",
 
