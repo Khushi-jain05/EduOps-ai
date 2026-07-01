@@ -14,6 +14,7 @@ import McqGenerator from "./pages/faculty/McqGenerator";
 import McqPreview from "./components/faculty/mcq/McqPreview";
 import Assignments1 from "./pages/faculty/Assignments1";
 import Analytics from "./pages/faculty/Analytics";
+import LessonPlans from "./pages/faculty/LessonPlans";
 function App() {
   return (
     <BrowserRouter>
@@ -46,6 +47,12 @@ element={
       <McqGenerator />
     </ProtectedRoute>
   }
+/>
+<Route path="/faculty/lesson-plans" element={
+  <ProtectedRoute allowedRoles={["faculty"]}>
+    <LessonPlans />
+  </ProtectedRoute>
+}
 />
 <Route
   path="/mcq/share/:token"
