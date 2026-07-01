@@ -1,22 +1,33 @@
 import McqCard from "./McqCard";
-import NewPaperCard from "../questionPaper/NewPaperCard";
+import NewPaperCard from "../mcq/NewMcqCard";
 
 export default function McqGrid({
   mcqs,
   onNewClick,
+  search = "",
 }) {
+  const filteredMcqs = mcqs.filter((mcq) => {
+    const keyword = search.toLowerCase();
+
+    return (
+      mcq.title?.toLowerCase().includes(keyword) ||
+      mcq.Subject?.name?.toLowerCase().includes(keyword) ||
+      mcq.Subject?.code?.toLowerCase().includes(keyword)
+    );
+  });
+
   return (
     <div
       style={{
         display: "grid",
-        gridTemplateColumns:
-          "repeat(auto-fit,minmax(420px,1fr))",
-        gap: "22px",
-        marginTop: "30px",
+        gridTemplateColumns: "repeat(auto-fill,minmax(420px,1fr))",
+        gap: "26px",
+        marginTop: "35px",
+        alignItems: "stretch",
       }}
     >
-      {mcqs.length > 0 ? (
-        mcqs.map((mcq) => (
+      {filteredMcqs.length > 0 ? (
+        filteredMcqs.map((mcq) => (
           <McqCard
             key={mcq.id}
             mcq={mcq}
@@ -25,19 +36,35 @@ export default function McqGrid({
       ) : (
         <div
           style={{
-            gridColumn: "1/-1",
+            gridColumn: "1 / -1",
+            background: "#fff",
+            borderRadius: "24px",
+            padding: "70px",
             textAlign: "center",
-            color: "#64748B",
-            padding: "60px",
+            border: "1px dashed #C7D2FE",
           }}
         >
-          No MCQ Sets Found
+          <h2
+            style={{
+              marginBottom: "12px",
+              color: "#1E293B",
+            }}
+          >
+            No MCQ Sets Found
+          </h2>
+
+          <p
+            style={{
+              color: "#64748B",
+              margin: 0,
+            }}
+          >
+            Generate your first AI MCQ set.
+          </p>
         </div>
       )}
 
-      <NewPaperCard
-        onClick={onNewClick}
-      />
+      <NewPaperCard onClick={onNewClick} />
     </div>
   );
 }

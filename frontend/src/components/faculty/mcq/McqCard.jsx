@@ -1,67 +1,114 @@
 import {
-  FiAward,
+  FiArrowRight,
+  FiBookOpen,
   FiShare2,
   FiDownload,
-  FiArrowRight,
+  FiTrendingUp,
 } from "react-icons/fi";
 
-import { publishMcq } from "../../../services/mcq.service";
+import { useNavigate } from "react-router-dom";
 
 export default function McqCard({ mcq }) {
-  const handlePublish = async () => {
-    try {
-      await publishMcq(mcq.id);
+  const navigate = useNavigate();
 
-      alert("MCQ Published");
-
-      window.location.reload();
-
-    } catch (err) {
-      console.error(err);
-
-      alert("Failed to publish");
-    }
+  const difficultyColor = {
+    Easy: "#22C55E",
+    Medium: "#F59E0B",
+    Hard: "#EF4444",
   };
 
-  const handleShare = async () => {
-    if (!mcq.share_token) {
-      return alert("Publish the MCQ first.");
-    }
-
-    const url =
-      `${window.location.origin}/shared-mcq/${mcq.share_token}`;
-
-    await navigator.clipboard.writeText(url);
-
-    alert("Share link copied!");
-  };
+  const progress =
+    Math.min(
+      100,
+      ((mcq.question_count || 0) / 30) * 100
+    ) || 0;
 
   return (
     <div
       style={{
-        background: "#EAF4FF",
-        border: "1px solid #7CC5FF",
-        borderRadius: "24px",
-        padding: "22px",
+        background: "#fff",
+        borderRadius: "26px",
+        padding: "26px",
+        border: "1px solid #E2E8F0",
+        boxShadow:
+          "0 10px 30px rgba(15,23,42,.05)",
+        transition: ".25s",
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
-        minHeight: "250px",
+        minHeight: "340px",
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform =
+          "translateY(-6px)";
+        e.currentTarget.style.boxShadow =
+          "0 18px 45px rgba(99,102,241,.18)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform =
+          "translateY(0)";
+        e.currentTarget.style.boxShadow =
+          "0 10px 30px rgba(15,23,42,.05)";
       }}
     >
+      {/* Top */}
+
       <div>
-        <small
+
+        <div
           style={{
-            color: "#64748B",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "20px",
           }}
         >
-          {mcq.Subject?.code} • {mcq.Subject?.name}
-        </small>
+          <div>
+
+            <small
+              style={{
+                color: "#2563eb",
+                fontWeight: 700,
+                letterSpacing: ".5px",
+              }}
+            >
+              {mcq.Subject?.code}
+            </small>
+
+            <div
+              style={{
+                color: "#64748B",
+                fontSize: "13px",
+              }}
+            >
+              {mcq.Subject?.name}
+            </div>
+
+          </div>
+
+          <span
+            style={{
+              background:
+                difficultyColor[mcq.difficulty] +
+                "20",
+              color:
+                difficultyColor[mcq.difficulty],
+              padding: "7px 14px",
+              borderRadius: "20px",
+              fontSize: "13px",
+              fontWeight: 600,
+            }}
+          >
+            {mcq.difficulty}
+          </span>
+
+        </div>
 
         <h2
           style={{
-            marginTop: "12px",
-            marginBottom: "20px",
+            margin: 0,
+            color: "#0F172A",
+            fontSize: "24px",
           }}
         >
           {mcq.title}
@@ -69,153 +116,158 @@ export default function McqCard({ mcq }) {
 
         <div
           style={{
+            marginTop: "26px",
             display: "flex",
-            gap: "12px",
+            justifyContent:
+              "space-between",
+            alignItems: "center",
           }}
         >
-          <InfoBox
-            title="Questions"
-            value={mcq.question_count}
-          />
+          <div>
 
-          <InfoBox
-            title="Difficulty"
-            value={mcq.difficulty}
-          />
+            <div
+              style={{
+                fontSize: "48px",
+                fontWeight: 700,
+                color: "#0F172A",
+              }}
+            >
+              {mcq.question_count}
+            </div>
 
-          <InfoBox
-            title="Bloom"
-            value={mcq.bloom_level}
-          />
+            <div
+              style={{
+                color: "#64748B",
+              }}
+            >
+              Questions Generated
+            </div>
+
+          </div>
+
+          <div
+            style={{
+              width: "80px",
+              height: "80px",
+              borderRadius: "22px",
+              background:
+                "linear-gradient(135deg,#EEF2FF,#C7D2FE)",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              color: "#2563eb",
+              fontSize: "34px",
+            }}
+          >
+            <FiBookOpen />
+          </div>
+
         </div>
+
       </div>
+
+      {/* Progress */}
 
       <div
         style={{
-          marginTop: "24px",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
+          marginTop: "26px",
         }}
       >
-        <span>
-          {mcq.status}
-        </span>
-
         <div
           style={{
             display: "flex",
-            gap: "10px",
+            justifyContent:
+              "space-between",
+            marginBottom: "8px",
+            color: "#64748B",
+            fontSize: "14px",
           }}
         >
-          <CircleIcon
-            onClick={handleShare}
-          >
-            <FiShare2 />
-          </CircleIcon>
+          <span>Coverage</span>
 
-          <CircleIcon>
-            <FiDownload />
-          </CircleIcon>
-
-          {!mcq.is_published && (
-            <button
-              onClick={handlePublish}
-              style={{
-                background: "#111827",
-                color: "#fff",
-                border: "none",
-                borderRadius: "20px",
-                padding: "10px 18px",
-                cursor: "pointer",
-              }}
-            >
-              Publish
-            </button>
-          )}
-          <button
-            style={{
-              background: "#111827",
-              color: "#fff",
-              border: "none",
-              borderRadius: "20px",
-              padding: "10px 18px",
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              cursor: "pointer",
-            }}
-          >
-            Delete
-            
-          </button>
-        
-
-          <button
-            style={{
-              background: "#111827",
-              color: "#fff",
-              border: "none",
-              borderRadius: "20px",
-              padding: "10px 18px",
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              cursor: "pointer",
-            }}
-          >
-            Open
-            <FiArrowRight />
-          </button>
+          <span>{Math.round(progress)}%</span>
         </div>
-      </div>
-    </div>
-  );
-}
 
-function InfoBox({ title, value }) {
-  return (
-    <div
-      style={{
-        flex: 1,
-        background: "#fff",
-        borderRadius: "16px",
-        padding: "10px",
-      }}
-    >
-      <small>{title}</small>
+        <div
+          style={{
+            height: "8px",
+            background: "#E2E8F0",
+            borderRadius: "20px",
+          }}
+        >
+          <div
+            style={{
+              width: `${progress}%`,
+              height: "100%",
+              borderRadius: "20px",
+              background:
+                "linear-gradient(135deg,#2563eb,#60a5fa)",
+            }}
+          />
+        </div>
+
+      </div>
+
+      {/* Bottom */}
 
       <div
         style={{
-          marginTop: "8px",
-          fontWeight: 600,
+          display: "flex",
+          justifyContent:
+            "space-between",
+          alignItems: "center",
+          marginTop: "28px",
         }}
       >
-        {value}
-      </div>
-    </div>
-  );
-}
+        <div>
 
-function CircleIcon({
-  children,
-  onClick,
-}) {
-  return (
-    <div
-      onClick={onClick}
-      style={{
-        width: "36px",
-        height: "36px",
-        borderRadius: "50%",
-        background: "#fff",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        cursor: "pointer",
-      }}
-    >
-      {children}
+          <div
+            style={{
+              color: "#64748B",
+              fontSize: "13px",
+            }}
+          >
+            Status
+          </div>
+
+          <div
+            style={{
+              fontWeight: 600,
+              color:
+                mcq.status === "published"
+                  ? "#16A34A"
+                  : "#F59E0B",
+            }}
+          >
+            {mcq.status}
+          </div>
+
+        </div>
+
+        <button
+          onClick={() =>
+            navigate(`/faculty/mcq/${mcq.id}`)
+          }
+          style={{
+            background:
+              "linear-gradient(135deg,#2563eb,#60a5fa)",
+            color: "#fff",
+            border: "none",
+            padding: "12px 22px",
+            borderRadius: "16px",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            cursor: "pointer",
+            fontWeight: 600,
+          }}
+        >
+          Open Editor
+
+          <FiArrowRight />
+        </button>
+
+      </div>
     </div>
   );
 }
