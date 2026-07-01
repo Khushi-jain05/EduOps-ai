@@ -10,10 +10,11 @@ export default function QuestionPaperGrid({
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fit,minmax(420px,1fr))",
-        gap: "22px",
-        marginTop: "30px",
-        marginBottom: "40px",
+        gridTemplateColumns:
+          "repeat(auto-fill,minmax(390px,1fr))",
+        gap: "20px",
+        marginTop: "35px",
+        paddingBottom: "40px",
       }}
     >
       {papers.length > 0 ? (
@@ -22,60 +23,59 @@ export default function QuestionPaperGrid({
             key={paper.id}
             onOpen={() => onOpenPaper?.(paper)}
             paper={{
-  id: paper.id,
+              id: paper.id,
 
-  code: `${paper.Subject?.code || ""} • ${
-    paper.Subject?.name || "Unknown Subject"
-  }`,
+              code: paper.Subject?.code || "",
 
-  title: paper.title,
+              subject:
+                paper.Subject?.name ||
+                "Unknown Subject",
 
-  type: paper.exam_type,
+              title: paper.title,
 
-  duration: paper.duration,
+              type: paper.exam_type,
 
-  marks: paper.total_marks,
+              duration: paper.duration,
 
-  status:
-    paper.status === "published"
-      ? "Published"
-      : "Draft",
+              marks: paper.total_marks,
 
-  updated: new Date(
-    paper.updated_at
-  ).toLocaleDateString(),
+              status:
+                paper.status === "published"
+                  ? "Published"
+                  : "Draft",
 
-  color:
-    paper.status === "published"
-      ? "blue"
-      : "green",
+              updated: new Date(
+                paper.updated_at
+              ).toLocaleDateString(),
 
-  border:
-    paper.status === "published"
-      ? "#7CC5FF"
-      : "#8AE6D1",
+              difficulty:
+                paper.difficulty || "Medium",
 
-  // ✅ ADD THESE
-  share_token: paper.share_token,
-  is_published: paper.is_published,
-}}
+              share_token: paper.share_token,
+
+              is_published:
+                paper.is_published,
+            }}
           />
         ))
       ) : (
         <div
           style={{
             gridColumn: "1 / -1",
+            padding: "90px",
             textAlign: "center",
             color: "#64748B",
-            fontSize: "18px",
-            padding: "60px",
+            fontSize: "20px",
+            fontWeight: 500,
           }}
         >
           No Question Papers Found
         </div>
       )}
 
-      <NewPaperCard onClick={onNewPaperClick} />
+      <NewPaperCard
+        onClick={onNewPaperClick}
+      />
     </div>
   );
 }

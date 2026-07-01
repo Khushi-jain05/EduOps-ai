@@ -1,21 +1,23 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import Sidebar from "../../components/layout/Sidebar";
 import Navbar from "../../components/layout/Navbar";
-import { useEffect } from "react";
-import { getQuestionPapers } from "../../services/questionPaper.service";
+
 import QuestionPaperStats from "../../components/faculty/questionPaper/QuestionPaperStats";
 import QuestionPaperSearch from "../../components/faculty/questionPaper/QuestionPaperSearch";
 import QuestionPaperGrid from "../../components/faculty/questionPaper/QuestionPaperGrid";
 import GeneratePaperModal from "../../components/faculty/questionPaper/GeneratePaperModal";
 
+import { getQuestionPapers } from "../../services/questionPaper.service";
+
 export default function QuestionPaper() {
   const [papers, setPapers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   const [openModal, setOpenModal] = useState(false);
+
   const [search, setSearch] = useState("");
-  const [subjectFilter, setSubjectFilter] = useState("all");
-  const [typeFilter, setTypeFilter] = useState("all");
-  const [dateFilter, setDateFilter] = useState("30");
+
   const [selectedPaper, setSelectedPaper] = useState(null);
 
   useEffect(() => {
@@ -24,92 +26,40 @@ export default function QuestionPaper() {
 
   const loadPapers = async () => {
     try {
+      setLoading(true);
+
       const data = await getQuestionPapers();
-      setPapers(data);
+
+      setPapers(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error(err);
+      setPapers([]);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const filterSubjects = useMemo(() => {
-    const byId = new Map();
-
-    papers.forEach((paper) => {
-      if (paper.Subject?.id) {
-        byId.set(paper.Subject.id, paper.Subject);
-      }
-    });
-
-    return Array.from(byId.values());
-  }, [papers]);
-
-  const filterTypes = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          papers
-            .map((paper) => paper.exam_type)
-            .filter(Boolean)
-        )
-      ),
-    [papers]
-  );
-
   const filteredPapers = useMemo(() => {
-    const query = search.trim().toLowerCase();
-    const now = Date.now();
-
     return papers.filter((paper) => {
-      const searchable = [
-        paper.title,
-        paper.exam_type,
-        paper.Subject?.code,
-        paper.Subject?.name,
-      ]
-        .filter(Boolean)
-        .join(" ")
+      const value = (
+        paper.title +
+        " " +
+        paper.Subject?.name +
+        " " +
+        paper.Subject?.code
+      )
         .toLowerCase();
 
-      if (query && !searchable.includes(query)) {
-        return false;
-      }
-
-      if (
-        subjectFilter !== "all" &&
-        paper.subject_id !== subjectFilter
-      ) {
-        return false;
-      }
-
-      if (
-        typeFilter !== "all" &&
-        paper.exam_type !== typeFilter
-      ) {
-        return false;
-      }
-
-      if (dateFilter !== "all") {
-        const updatedAt = new Date(
-          paper.updated_at || paper.created_at
-        ).getTime();
-        const days = Number(dateFilter);
-        const cutoff = now - days * 24 * 60 * 60 * 1000;
-
-        if (Number.isFinite(updatedAt) && updatedAt < cutoff) {
-          return false;
-        }
-      }
-
-      return true;
+      return value.includes(search.toLowerCase());
     });
-  }, [papers, search, subjectFilter, typeFilter, dateFilter]);
+  }, [papers, search]);
 
   return (
     <div
       style={{
         display: "flex",
         height: "100vh",
-        background: "#EEF6FF",
+        background: "#F4F8FF",
       }}
     >
       <Sidebar />
@@ -131,26 +81,34 @@ export default function QuestionPaper() {
             padding: "35px",
           }}
         >
-          <QuestionPaperStats papers={papers} />
-
-          <QuestionPaperSearch
+          <QuestionPaperStats
+            papers={papers}
             search={search}
             onSearchChange={setSearch}
-            subjectFilter={subjectFilter}
-            onSubjectFilterChange={setSubjectFilter}
-            typeFilter={typeFilter}
-            onTypeFilterChange={setTypeFilter}
-            dateFilter={dateFilter}
-            onDateFilterChange={setDateFilter}
-            subjects={filterSubjects}
-            types={filterTypes}
+            onNewPaper={() => setOpenModal(true)}
           />
 
-          <QuestionPaperGrid
-            papers={filteredPapers}
-            onNewPaperClick={() => setOpenModal(true)}
-            onOpenPaper={setSelectedPaper}
-          />
+          {loading ? (
+            <h2
+              style={{
+                marginTop: 40,
+              }}
+            >
+              Loading Question Papers...
+            </h2>
+          ) : (
+            <>
+              <QuestionPaperSearch />
+
+              <QuestionPaperGrid
+                papers={filteredPapers}
+                onNewPaperClick={() =>
+                  setOpenModal(true)
+                }
+                onOpenPaper={setSelectedPaper}
+              />
+            </>
+          )}
         </div>
       </div>
 
@@ -163,7 +121,9 @@ export default function QuestionPaper() {
       {selectedPaper && (
         <GeneratedPaperPreview
           paper={selectedPaper}
-          onClose={() => setSelectedPaper(null)}
+          onClose={() =>
+            setSelectedPaper(null)
+          }
         />
       )}
     </div>
@@ -179,117 +139,240 @@ function GeneratedPaperPreview({ paper, onClose }) {
       style={{
         position: "fixed",
         inset: 0,
-        background: "rgba(15,23,42,.45)",
+        background: "rgba(15,23,42,.55)",
         display: "flex",
-        alignItems: "center",
         justifyContent: "center",
-        zIndex: 1000,
+        alignItems: "center",
+        zIndex: 999,
       }}
     >
       <div
         style={{
-          width: "760px",
-          maxHeight: "88vh",
+          width: "900px",
+          maxHeight: "92vh",
           overflowY: "auto",
           background: "#fff",
-          borderRadius: "18px",
-          padding: "28px",
-          boxShadow: "0 24px 80px rgba(15,23,42,.22)",
+          borderRadius: "24px",
+          padding: "45px",
+          boxShadow:
+            "0 25px 70px rgba(15,23,42,.25)",
         }}
       >
+        {/* HEADER */}
+
         <div
           style={{
-            display: "flex",
-            justifyContent: "space-between",
-            gap: "16px",
-            alignItems: "flex-start",
+            textAlign: "center",
+            borderBottom: "2px solid #E2E8F0",
+            paddingBottom: "20px",
+            marginBottom: "30px",
           }}
         >
-          <div>
-            <h2 style={{ margin: 0 }}>
-              {content.title || paper.title}
-            </h2>
-            <p style={{ color: "#64748B", marginTop: "8px" }}>
-              {paper.Subject?.code} - {paper.Subject?.name} •{" "}
-              {paper.exam_type} • {paper.total_marks} marks
-            </p>
+          <h1
+            style={{
+              margin: 0,
+              fontSize: "30px",
+            }}
+          >
+            {content.title || paper.title}
+          </h1>
+
+          <p
+            style={{
+              color: "#64748B",
+              marginTop: "12px",
+            }}
+          >
+            {paper.Subject?.code} •{" "}
+            {paper.Subject?.name}
+          </p>
+
+          <div
+            style={{
+              marginTop: "18px",
+              display: "flex",
+              justifyContent: "space-between",
+              fontWeight: 600,
+            }}
+          >
+            <span>
+              Exam Type : {paper.exam_type}
+            </span>
+
+            <span>
+              Duration : {paper.duration}
+            </span>
+
+            <span>
+              Marks : {paper.total_marks}
+            </span>
           </div>
+        </div>
+
+        {/* Instructions */}
+
+        {content.instructions &&
+          content.instructions.length > 0 && (
+            <div
+              style={{
+                background: "#F8FAFC",
+                borderRadius: "16px",
+                padding: "20px",
+                marginBottom: "30px",
+              }}
+            >
+              <h3
+                style={{
+                  marginTop: 0,
+                }}
+              >
+                Instructions
+              </h3>
+
+              <ul>
+                {content.instructions.map(
+                  (item, index) => (
+                    <li key={index}>
+                      {item}
+                    </li>
+                  )
+                )}
+              </ul>
+            </div>
+          )}
+
+        {/* QUESTIONS */}
+
+        {sections.map(
+          (section, sectionIndex) => (
+            <div
+              key={sectionIndex}
+              style={{
+                marginBottom: "40px",
+              }}
+            >
+              <h2
+                style={{
+                  color: "#2563EB",
+                }}
+              >
+                {section.name}
+              </h2>
+
+              <p
+                style={{
+                  color: "#64748B",
+                }}
+              >
+                {section.instructions}
+              </p>
+
+              {(section.questions || []).map(
+                (question) => (
+                  <div
+                    key={question.number}
+                    style={{
+                      background: "#fff",
+                      border: "1px solid #E2E8F0",
+                      borderRadius: "16px",
+                      padding: "20px",
+                      marginTop: "18px",
+                    }}
+                  >
+                    <h3
+                      style={{
+                        marginTop: 0,
+                      }}
+                    >
+                      Q{question.number}.{" "}
+                      {question.question}
+                    </h3>
+
+                    <div
+                      style={{
+                        marginTop: "14px",
+                        display: "flex",
+                        gap: "18px",
+                        flexWrap: "wrap",
+                      }}
+                    >
+                      <Badge>
+                        {question.marks} Marks
+                      </Badge>
+
+                      <Badge>
+                        Unit {question.unit}
+                      </Badge>
+
+                      <Badge>
+                        {question.difficulty}
+                      </Badge>
+
+                      <Badge>
+                        {question.bloomLevel}
+                      </Badge>
+                    </div>
+                  </div>
+                )
+              )}
+            </div>
+          )
+        )}
+
+        <div
+          style={{
+            marginTop: "35px",
+            display: "flex",
+            justifyContent: "flex-end",
+            gap: "15px",
+          }}
+        >
+          <button
+            onClick={() => window.print()}
+            style={{
+              background: "#2563EB",
+              color: "#fff",
+              border: "none",
+              borderRadius: "12px",
+              padding: "12px 24px",
+              cursor: "pointer",
+            }}
+          >
+            Print Paper
+          </button>
 
           <button
             onClick={onClose}
             style={{
+              background: "#111827",
+              color: "#fff",
               border: "none",
-              background: "#F1F5F9",
-              borderRadius: "10px",
-              padding: "10px 14px",
+              borderRadius: "12px",
+              padding: "12px 24px",
               cursor: "pointer",
-              fontWeight: 600,
             }}
           >
             Close
           </button>
         </div>
-
-        {content.instructions?.length > 0 && (
-          <div style={{ marginTop: "18px" }}>
-            <strong>Instructions</strong>
-            <ul>
-              {content.instructions.map((item, index) => (
-                <li key={index}>{item}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {sections.length === 0 ? (
-          <pre
-            style={{
-              marginTop: "20px",
-              background: "#F8FAFC",
-              borderRadius: "12px",
-              padding: "16px",
-              whiteSpace: "pre-wrap",
-            }}
-          >
-            {JSON.stringify(content, null, 2)}
-          </pre>
-        ) : (
-          sections.map((section, sectionIndex) => (
-            <div key={sectionIndex} style={{ marginTop: "24px" }}>
-              <h3>{section.name}</h3>
-              <p style={{ color: "#64748B" }}>
-                {section.instructions}
-              </p>
-
-              {(section.questions || []).map((question) => (
-                <div
-                  key={question.number}
-                  style={{
-                    border: "1px solid #E2E8F0",
-                    borderRadius: "12px",
-                    padding: "14px",
-                    marginTop: "12px",
-                  }}
-                >
-                  <strong>
-                    Q{question.number}. {question.question}
-                  </strong>
-                  <div
-                    style={{
-                      marginTop: "8px",
-                      color: "#64748B",
-                      fontSize: "14px",
-                    }}
-                  >
-                    {question.marks} marks • Unit {question.unit || "-"} •{" "}
-                    {question.difficulty} • {question.bloomLevel}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ))
-        )}
       </div>
     </div>
+  );
+}
+
+function Badge({ children }) {
+  return (
+    <span
+      style={{
+        background: "#EEF4FF",
+        color: "#2563EB",
+        padding: "8px 14px",
+        borderRadius: "20px",
+        fontSize: "14px",
+        fontWeight: 600,
+      }}
+    >
+      {children}
+    </span>
   );
 }

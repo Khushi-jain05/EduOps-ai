@@ -3,12 +3,17 @@ import {
   FiBookOpen,
   FiShare2,
   FiDownload,
-  FiTrendingUp,
+  FiTrash2,
 } from "react-icons/fi";
 
 import { useNavigate } from "react-router-dom";
 
-export default function McqCard({ mcq }) {
+export default function McqCard({
+  mcq,
+  onPublish,
+  onDownload,
+  onDelete,
+}) {
   const navigate = useNavigate();
 
   const difficultyColor = {
@@ -147,8 +152,8 @@ export default function McqCard({ mcq }) {
 
           <div
             style={{
-              width: "80px",
-              height: "80px",
+              width: "70px",
+              height: "70px",
               borderRadius: "22px",
               background:
                 "linear-gradient(135deg,#EEF2FF,#C7D2FE)",
@@ -156,7 +161,7 @@ export default function McqCard({ mcq }) {
               justifyContent: "center",
               alignItems: "center",
               color: "#2563eb",
-              fontSize: "34px",
+              fontSize: "26px",
             }}
           >
             <FiBookOpen />
@@ -217,6 +222,7 @@ export default function McqCard({ mcq }) {
             "space-between",
           alignItems: "center",
           marginTop: "28px",
+          gap: "14px",
         }}
       >
         <div>
@@ -244,30 +250,80 @@ export default function McqCard({ mcq }) {
 
         </div>
 
-        <button
-          onClick={() =>
-            navigate(`/faculty/mcq/${mcq.id}`)
-          }
+        <div
           style={{
-            background:
-              "linear-gradient(135deg,#2563eb,#60a5fa)",
-            color: "#fff",
-            border: "none",
-            padding: "12px 22px",
-            borderRadius: "16px",
             display: "flex",
             alignItems: "center",
             gap: "8px",
-            cursor: "pointer",
-            fontWeight: 600,
+            flexWrap: "wrap",
+            justifyContent: "flex-end",
           }}
         >
-          Open Editor
+          <button
+            onClick={() => onPublish?.(mcq.id)}
+            style={iconButtonStyle}
+            title="Share"
+          >
+            <FiShare2 />
+          </button>
 
-          <FiArrowRight />
-        </button>
+          <button
+            onClick={() => onDownload?.(mcq)}
+            style={iconButtonStyle}
+            title="Download"
+          >
+            <FiDownload />
+          </button>
+
+          <button
+            onClick={() => onDelete?.(mcq.id)}
+            style={{
+              ...iconButtonStyle,
+              color: "#DC2626",
+            }}
+            title="Delete"
+          >
+            <FiTrash2 />
+          </button>
+
+          <button
+            onClick={() =>
+              navigate(`/faculty/mcq/${mcq.id}`)
+            }
+            style={{
+              background:
+                "linear-gradient(135deg,#2563eb,#60a5fa)",
+              color: "#fff",
+              border: "none",
+              padding: "12px 18px",
+              borderRadius: "8px",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              cursor: "pointer",
+              fontWeight: 600,
+            }}
+          >
+            Open
+
+            <FiArrowRight />
+          </button>
+        </div>
 
       </div>
     </div>
   );
 }
+
+const iconButtonStyle = {
+  width: "42px",
+  height: "42px",
+  borderRadius: "8px",
+  border: "1px solid #CBD5E1",
+  background: "#fff",
+  color: "#2563EB",
+  display: "grid",
+  placeItems: "center",
+  cursor: "pointer",
+  fontSize: "18px",
+};

@@ -4,159 +4,309 @@ import {
   FiDownload,
   FiArrowRight,
   FiAward,
+  FiFileText,
 } from "react-icons/fi";
-import { downloadQuestionPaper } from "../../../services/questionPaper.service";
+
 import {
-  
+  downloadQuestionPaper,
   updateQuestionPaperPublishStatus,
 } from "../../../services/questionPaper.service";
-export default function QuestionPaperCard({ paper, onOpen }) {
-  const colors = {
-    blue: "#DFF0FF",
-    purple: "#EEE6FF",
-    green: "#DFF8F4",
-    orange: "#FFF1DE",
+
+export default function QuestionPaperCard({
+  paper,
+  onOpen,
+}) {
+  const handlePublish = async () => {
+    try {
+      await updateQuestionPaperPublishStatus(
+        paper.id,
+        true
+      );
+
+      alert("Paper Published");
+
+      window.location.reload();
+    } catch (err) {
+      console.error(err);
+      alert("Publish failed");
+    }
   };
-  const handleShare = async (token) => {
 
-  if (!token) {
-    return alert(
-      "Please publish the paper before sharing."
+  const handleDownload = async () => {
+    try {
+      const pdf =
+        await downloadQuestionPaper(paper.id);
+
+      const blob = new Blob([pdf], {
+        type: "application/pdf",
+      });
+
+      const url =
+        window.URL.createObjectURL(blob);
+
+      const link =
+        document.createElement("a");
+
+      link.href = url;
+      link.download = `${paper.title}.pdf`;
+
+      document.body.appendChild(link);
+
+      link.click();
+
+      link.remove();
+
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      alert("Download Failed");
+    }
+  };
+
+  const handleShare = async () => {
+    if (!paper.share_token)
+      return alert(
+        "Publish the paper first."
+      );
+
+    await navigator.clipboard.writeText(
+      `${window.location.origin}/shared-paper/${paper.share_token}`
     );
-  }
-
-  const url =
-    `${window.location.origin}/shared-paper/${token}`;
-
-  try {
-
-    await navigator.clipboard.writeText(url);
 
     alert("Share link copied!");
+  };
 
-  } catch (err) {
-
-    console.error(err);
-
-    alert("Unable to copy link.");
-  }
-};
-  const handleDownload = async () => {
-  try {
-    const pdf = await downloadQuestionPaper(paper.id);
-
-const blob = new Blob([pdf], {
-  type: "application/pdf",
-});
-
-
-const url = window.URL.createObjectURL(blob);
-
-    const link = document.createElement("a");
-
-    link.href = url;
-
-    link.download = `${paper.title}.pdf`;
-
-    document.body.appendChild(link);
-
-    link.click();
-
-    link.remove();
-
-    window.URL.revokeObjectURL(url);
-
-  } catch (err) {
-    console.error(err);
-    alert("Download failed");
-  }
-};
-
-const handlePublish = async () => {
-  try {
-    await updateQuestionPaperPublishStatus(
-      paper.id,
-      true
-    );
-
-    alert("Paper Published!");
-
-    window.location.reload();
-
-  } catch (err) {
-    console.error(err);
-    alert("Publish failed");
-  }
-};
   return (
     <div
       style={{
-        background: colors[paper.color],
-        border: `1px solid ${paper.border}`,
-        borderRadius: "26px",
-        padding: "22px",
+        background: "#fff",
+        borderRadius: "28px",
+        padding: "26px",
+        boxShadow:
+          "0 12px 35px rgba(15,23,42,.08)",
+        border: "1px solid #E7EEF8",
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
-        minHeight: "255px",
+        minHeight: "360px",
+        transition: ".25s",
       }}
     >
-      {/* Top */}
+      {/* Header */}
 
-      <div>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            marginBottom: "15px",
-          }}
-        >
-          <span
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+        }}
+      >
+        <div>
+          <div
             style={{
-              fontSize: "13px",
-              color: "#64748B",
-              letterSpacing: "1px",
-              fontWeight: 400,
+              color: "#2563EB",
+              fontWeight: 700,
+              fontSize: "15px",
             }}
           >
             {paper.code}
-          </span>
+          </div>
 
-          <span
+          <div
             style={{
-              background:
-                paper.status === "Published"
-                  ? "#DCFCE7"
-                  : "#FEF3C7",
-
-              color:
-                paper.status === "Published"
-                  ? "#15803D"
-                  : "#B45309",
-
-              padding: "5px 12px",
-              borderRadius: "20px",
-              fontSize: "12px",
-              fontWeight: 600,
+              color: "#64748B",
+              marginTop: "3px",
+              fontSize: "16px",
             }}
           >
-            {paper.status}
+            {paper.subject}
+          </div>
+        </div>
+
+        <span
+          style={{
+            background:
+              "#FFF4E5",
+            color: "#F59E0B",
+            padding:
+              "8px 16px",
+            borderRadius: "30px",
+            fontWeight: 600,
+            fontSize: "13px",
+          }}
+        >
+          {paper.type}
+        </span>
+      </div>
+
+      {/* Title */}
+
+      <h2
+        style={{
+          marginTop: "22px",
+          marginBottom: "26px",
+          fontSize: "22px",
+          color: "#172554",
+        }}
+      >
+        {paper.title}
+      </h2>
+
+      {/* Middle */}
+
+      <div
+        style={{
+          display: "flex",
+          justifyContent:
+            "space-between",
+          alignItems: "center",
+        }}
+      >
+        <div>
+          <div
+            style={{
+              fontSize: "40px",
+              fontWeight: 700,
+              color: "#172554",
+              lineHeight: 1,
+            }}
+          >
+            {paper.marks}
+          </div>
+
+          <div
+            style={{
+              color: "#64748B",
+              fontSize: "18px",
+              marginTop: "8px",
+            }}
+          >
+            Total Marks
+          </div>
+        </div>
+
+        <div
+          style={{
+            width: "62px",
+            height: "62px",
+            borderRadius: "26px",
+            background:
+              "#E8EEFF",
+            display: "flex",
+            justifyContent:
+              "center",
+            alignItems: "center",
+            color: "#2563EB",
+            fontSize: "32px",
+          }}
+        >
+          <FiFileText />
+        </div>
+      </div>
+
+      {/* Duration */}
+
+      <div
+        style={{
+          marginTop: "28px",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent:
+              "space-between",
+            marginBottom: "8px",
+            color: "#64748B",
+          }}
+        >
+          <span>Duration</span>
+
+          <span>
+            {paper.duration}
           </span>
         </div>
 
-        <h2
+        <div
           style={{
-            margin: 0,
-            color: "#0F172A",
-            fontSize: "20px",
-            fontWeight: 500,
+            height: "8px",
+            background:
+              "#E8EEF7",
+            borderRadius: "20px",
+            overflow: "hidden",
           }}
         >
-          {paper.title}
-        </h2>
+          <div
+            style={{
+              width: "75%",
+              height: "100%",
+              background:
+                "linear-gradient(90deg,#2563EB,#60A5FA)",
+            }}
+          />
+        </div>
       </div>
 
-      {/* Middle */}
+      {/* Bottom */}
+
+      <div
+        style={{
+          marginTop: "30px",
+          display: "flex",
+          justifyContent:
+            "space-between",
+          alignItems: "center",
+        }}
+      >
+        <div>
+          <div
+            style={{
+              color: "#64748B",
+            }}
+          >
+            Status
+          </div>
+
+          <div
+            style={{
+              fontWeight: 700,
+              fontSize: "22px",
+              color:
+                paper.status ===
+                "Published"
+                  ? "#16A34A"
+                  : "#F59E0B",
+            }}
+          >
+            {paper.status}
+          </div>
+        </div>
+
+        <button
+          onClick={onOpen}
+          style={{
+            background:
+              "linear-gradient(90deg,#2563EB,#4F8EF7)",
+            color: "#fff",
+            border: "none",
+            borderRadius: "16px",
+            padding:
+              "12px 12px",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            cursor: "pointer",
+            fontWeight: 500,
+            fontSize: "15px",
+          }}
+        >
+          Open Paper
+
+          <FiArrowRight />
+        </button>
+      </div>
+
+      {/* Actions */}
 
       <div
         style={{
@@ -165,146 +315,61 @@ const handlePublish = async () => {
           marginTop: "22px",
         }}
       >
-        <InfoBox title="Type" value={paper.type} />
-
-        <InfoBox
-          title="Duration"
-          value={
-            <>
-              <FiClock /> {paper.duration}
-            </>
-          }
-        />
-
-        <InfoBox
-          title="Marks"
-          value={
-            <>
-              <FiAward /> {paper.marks}
-            </>
-          }
-        />
-      </div>
-
-      {/* Bottom */}
-
-      <div
-        style={{
-          marginTop: "24px",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <span
-          style={{
-            color: "#64748B",
-            fontSize: "14px",
-          }}
+        <CircleIcon
+          onClick={handleShare}
         >
-          {paper.updated}
-        </span>
+          <FiShare2 />
+        </CircleIcon>
 
-        <div
-          style={{
-            display: "flex",
-            gap: "10px",
-            alignItems: "center",
-          }}
+        <CircleIcon
+          onClick={handleDownload}
         >
-         <CircleIcon
-  onClick={() => handleShare(paper.share_token)}
->
-  <FiShare2 />
-</CircleIcon>
+          <FiDownload />
+        </CircleIcon>
 
-          <CircleIcon onClick={handleDownload}>
-    <FiDownload />
-</CircleIcon>
-<button onClick={handlePublish} style={{
-              background: "#111827",
-              color: "#fff",
-              border: "none",
-              borderRadius: "20px",
-              padding: "10px 18px",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-            }}>
-  Publish
-</button>
-
+        {!paper.is_published && (
           <button
-            onClick={() => onOpen?.()}
+            onClick={handlePublish}
             style={{
-              background: "#111827",
-              color: "#fff",
               border: "none",
-              borderRadius: "20px",
-              padding: "10px 18px",
+              background:
+                "#111827",
+              color: "#fff",
+              borderRadius:
+                "16px",
+              padding:
+                "10px 18px",
               cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
+              fontWeight: 600,
             }}
           >
-            Open
-            <FiArrowRight />
+            Publish
           </button>
-        </div>
+        )}
       </div>
     </div>
   );
 }
 
-function InfoBox({ title, value }) {
+function CircleIcon({
+  children,
+  onClick,
+}) {
   return (
     <div
+      onClick={onClick}
       style={{
-        flex: 1,
-        background: "#fff",
-        borderRadius: "16px",
-        padding: "10px",
-      }}
-    >
-      <small
-        style={{
-          display: "block",
-          color: "#64748B",
-        }}
-      >
-        {title}
-      </small>
-
-      <div
-        style={{
-          marginTop: "6px",
-          display: "flex",
-          alignItems: "center",
-          gap: "6px",
-          fontWeight: 600,
-        }}
-      >
-        {value}
-      </div>
-    </div>
-  );
-}
-
-function CircleIcon({ children,onClick }) {
-  return (
-    <div
-    onClick={onClick}
-      style={{
-        width: "36px",
-        height: "36px",
+        width: "42px",
+        height: "42px",
         borderRadius: "50%",
-        background: "#fff",
+        background: "#F8FAFC",
         display: "flex",
-        justifyContent: "center",
+        justifyContent:
+          "center",
         alignItems: "center",
         cursor: "pointer",
+        border:
+          "1px solid #E2E8F0",
       }}
     >
       {children}

@@ -4,6 +4,9 @@ import NewPaperCard from "../mcq/NewMcqCard";
 export default function McqGrid({
   mcqs,
   onNewClick,
+  onPublish,
+  onDownload,
+  onDelete,
   search = "",
 }) {
   const filteredMcqs = mcqs.filter((mcq) => {
@@ -31,6 +34,9 @@ export default function McqGrid({
           <McqCard
             key={mcq.id}
             mcq={mcq}
+            onPublish={onPublish}
+            onDownload={onDownload}
+            onDelete={onDelete}
           />
         ))
       ) : (

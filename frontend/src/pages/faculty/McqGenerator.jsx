@@ -13,7 +13,12 @@ import Navbar from "../../components/layout/Navbar";
 import McqGrid from "../../components/faculty/mcq/McqGrid";
 import GenerateMcqModal from "../../components/faculty/mcq/GenerateMcqModal";
 
-import { getMcqSets } from "../../services/mcq.service";
+import {
+  deleteMcq,
+  downloadMcq,
+  getMcqSets,
+  publishMcq,
+} from "../../services/mcq.service";
 
 export default function McqGenerator() {
   const [mcqs, setMcqs] = useState([]);
@@ -39,6 +44,51 @@ export default function McqGenerator() {
   useEffect(() => {
     loadMcqs();
   }, []);
+
+  const handlePublish = async (id) => {
+    try {
+      const updated = await publishMcq(id);
+      setMcqs((prev) =>
+        prev.map((mcq) => (mcq.id === id ? updated : mcq))
+      );
+
+      const shareUrl = `${window.location.origin}/mcq/share/${updated.share_token}`;
+      await navigator.clipboard?.writeText(shareUrl);
+      alert("Share link copied to clipboard");
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.message || "Unable to share MCQ set");
+    }
+  };
+
+  const handleDownload = async (mcq) => {
+    try {
+      const blob = await downloadMcq(mcq.id);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${(mcq.title || "mcq-set")
+        .replace(/[^a-z0-9-_]+/gi, "-")
+        .toLowerCase()}.txt`;
+      link.click();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.message || "Unable to download MCQ set");
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Delete this MCQ set permanently?")) return;
+
+    try {
+      await deleteMcq(id);
+      setMcqs((prev) => prev.filter((mcq) => mcq.id !== id));
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.message || "Unable to delete MCQ set");
+    }
+  };
 
   const stats = useMemo(() => {
     return {
@@ -231,6 +281,9 @@ export default function McqGenerator() {
               onNewClick={() =>
                 setOpenModal(true)
               }
+              onPublish={handlePublish}
+              onDownload={handleDownload}
+              onDelete={handleDelete}
             />
           )}
         </div>

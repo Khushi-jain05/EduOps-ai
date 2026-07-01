@@ -5,18 +5,24 @@ export default function NewPaperCard({ onClick }) {
     <div
       onClick={onClick}
       style={{
-        border: "2px dashed #8BD2FF",
-        borderRadius: "28px",
-        background: "#F8FCFF",
-        minHeight: "255px",
+        borderRadius: "30px",
+        minHeight: "320px",
+        cursor: "pointer",
+
+        background:
+          "linear-gradient(145deg,#EFF6FF,#FFFFFF)",
+
+        border: "2px dashed #93C5FD",
 
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
 
-        cursor: "pointer",
         transition: ".3s",
+
+        boxShadow:
+          "0 10px 30px rgba(37,99,235,.08)",
       }}
     >
       <div
@@ -24,8 +30,9 @@ export default function NewPaperCard({ onClick }) {
           width: "62px",
           height: "62px",
           borderRadius: "50%",
+
           background:
-            "linear-gradient(135deg,#0EA5E9,#2563EB)",
+            "linear-gradient(135deg,#2563EB,#60A5FA)",
 
           color: "#fff",
 
@@ -33,33 +40,74 @@ export default function NewPaperCard({ onClick }) {
           justifyContent: "center",
           alignItems: "center",
 
-          fontSize: "28px",
+          fontSize: "38px",
 
-          marginBottom: "20px",
+          marginBottom: "25px",
+
+          boxShadow:
+            "0 15px 35px rgba(37,99,235,.25)",
         }}
       >
         <FiPlus />
       </div>
 
-      <h3
+      <h2
         style={{
           margin: 0,
           color: "#2563EB",
           fontSize: "28px",
+          fontWeight: 700,
         }}
       >
-        Generate new paper
-      </h3>
+        New Question Paper
+      </h2>
 
       <p
         style={{
+          width: "75%",
+          textAlign: "center",
+
           color: "#64748B",
-          marginTop: "8px",
+
+          marginTop: "13px",
+
+          lineHeight: "28px",
+
           fontSize: "16px",
         }}
       >
-        AI builds it in 10 seconds
+        Generate AI-powered question papers
+        from Question Bank, PDFs,
+        Study Material and Bloom Taxonomy.
       </p>
+
+      <button
+        style={{
+          marginTop: "20px",
+
+          background:
+            "linear-gradient(135deg,#2563EB,#3B82F6)",
+
+          color: "#fff",
+
+          border: "none",
+
+          borderRadius: "14px",
+
+          padding: "14px 26px",
+
+          cursor: "pointer",
+
+          fontWeight: 600,
+
+          fontSize: "16px",
+
+          boxShadow:
+            "0 10px 25px rgba(37,99,235,.25)",
+        }}
+      >
+        Generate Paper
+      </button>
     </div>
   );
 }

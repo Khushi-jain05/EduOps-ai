@@ -28,16 +28,28 @@ function App() {
             </ProtectedRoute>
           }
         />
-      <Route
+<Route
 
 path="/faculty/mcq/:id"
 
-element={<McqPreview/>}
+element={
+  <ProtectedRoute allowedRoles={["faculty"]}>
+    <McqPreview/>
+  </ProtectedRoute>
+}
 
 />
 <Route
   path="/faculty/mcq"
-  element={<McqGenerator />}
+  element={
+    <ProtectedRoute allowedRoles={["faculty"]}>
+      <McqGenerator />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/mcq/share/:token"
+  element={<McqPreview shared />}
 />
         <Route
   path="/faculty"
