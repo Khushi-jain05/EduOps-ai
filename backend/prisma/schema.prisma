@@ -59,19 +59,22 @@ model Assignment {
 }
 
 model Timetable {
-  id           String   @id @default(dbgenerated("gen_random_uuid()"))
-  subject      String
-  faculty      String
-  room         String
-  startTime    String
-  duration     Int
-  userId       String
-  createdAt    DateTime @default(now())
-  category     String
-  day          String
-  lessonplanid String?  @db.Uuid
-  source       String?  @default("manual") @db.VarChar(30)
-  user         User     @relation(fields: [userId], references: [id])
+  id        String   @id @default(dbgenerated("gen_random_uuid()"))
+  subject   String
+  faculty   String
+  room      String
+  startTime String
+  duration  Int
+  userId    String
+  createdAt DateTime @default(now())
+  category  String
+  day       String
+
+  lessonplanid String? @db.Uuid
+  source       String? @default("manual") @db.VarChar(30)
+
+  user         User          @relation(fields: [userId], references: [id])
+  lesson_plans lesson_plans? @relation(fields: [lessonplanid], references: [id], onDelete: Cascade)
 }
 
 model Chat {
@@ -235,25 +238,26 @@ model units {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model lesson_plans {
-  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id          String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   title       String
   topic       String
   description String?
   objectives  String?
-  lesson_date DateTime  @db.Date
-  start_time  DateTime  @db.Time(6)
+  lesson_date DateTime    @db.Date
+  start_time  DateTime    @db.Time(6)
   duration    String?
   room        String?
-  status      String?   @default("draft")
+  status      String?     @default("draft")
   faculty_id  String
   subject_id  String
-  created_at  DateTime? @default(now()) @db.Timestamp(6)
-  updated_at  DateTime? @default(now()) @db.Timestamp(6)
-  day         String?   @db.VarChar(20)
-  sessions    Int?      @default(1)
-  weeks       Int?      @default(1)
+  created_at  DateTime?   @default(now()) @db.Timestamp(6)
+  updated_at  DateTime?   @default(now()) @db.Timestamp(6)
+  day         String?     @db.VarChar(20)
+  sessions    Int?        @default(1)
+  weeks       Int?        @default(1)
   outcomes    Json?
   notes       String?
-  User        User      @relation(fields: [faculty_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_faculty")
-  Subject     Subject   @relation(fields: [subject_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_subject")
+  User        User        @relation(fields: [faculty_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_faculty")
+  Subject     Subject     @relation(fields: [subject_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_subject")
+  timetable   Timetable[]
 }

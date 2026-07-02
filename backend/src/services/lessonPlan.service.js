@@ -66,8 +66,7 @@ const createLesson = async (data) => {
   const students = await prisma.user.findMany({
     where: {
       role: "student",
-      semester: subject.semester,
-      program: subject.program,
+      
     },
   });
 
@@ -95,6 +94,8 @@ const createLesson = async (data) => {
         category: "Lesson Plan",
 
         userId: student.id,
+        lessonplanid: lesson.id,
+source: "lesson_plan",
       },
     });
   }
