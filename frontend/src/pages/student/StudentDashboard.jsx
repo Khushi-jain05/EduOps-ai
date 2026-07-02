@@ -20,6 +20,7 @@ export default function StudentDashboard() {
   pendingAssignments: 0,
   timetable: [],
   assignments: [],
+  notifications: [],
 });
 const navigate = useNavigate();
   const user = JSON.parse(
@@ -265,6 +266,37 @@ const navigate = useNavigate();
                 )
               )}
             </div>
+          </div>
+
+          <div className="white-card">
+            <div className="card-header">
+              <div>
+                <h2>Notifications</h2>
+
+                <p>Latest lesson plan updates</p>
+              </div>
+            </div>
+
+            {dashboardData.notifications.length === 0 ? (
+              <p>No new notifications.</p>
+            ) : (
+              dashboardData.notifications.map((item) => (
+                <div
+                  key={item.id}
+                  className="schedule-item"
+                >
+                  <div className="time-badge">
+                    New
+                  </div>
+
+                  <div>
+                    <strong>{item.title}</strong>
+
+                    <p>{item.message}</p>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
 
           {/* AI ASSISTANT */}

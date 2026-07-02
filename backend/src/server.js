@@ -1,4 +1,8 @@
-require("dotenv").config();
+const path = require("path");
+
+require("dotenv").config({
+  path: path.resolve(__dirname, "../.env"),
+});
 
 const app = require("./app");
 const unitRoutes = require("./routes/unit.routes");
@@ -11,6 +15,7 @@ const uploadRoutes = require("./routes/upload.routes");
 const mcqRoutes = require("./routes/mcq.routes");
 const authRoutes = require("./routes/auth.routes");
 const lessonPlanRoutes = require("./routes/lessonPlan.routes");
+const facultyRoutes = require("./routes/faculty.routes");
 const PORT = process.env.PORT || 8000;
 app.use("/api/auth", authRoutes);
 app.use("/api/question-paper", questionPaperRoutes);
@@ -25,6 +30,7 @@ app.use("/api/subjects", subjectRoutes);
 app.use("/api/student", studentRoutes);
 app.use("/api/mcq", mcqRoutes);
 app.use("/api/lesson-plans", lessonPlanRoutes);
+app.use("/api/faculty", facultyRoutes);
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

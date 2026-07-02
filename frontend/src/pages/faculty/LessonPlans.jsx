@@ -9,7 +9,10 @@ import LessonSearch from "../../components/faculty/lessonPlan/LessonSearch";
 import LessonGrid from "../../components/faculty/lessonPlan/LessonGrid";
 import GenerateLessonModal from "../../components/faculty/lessonPlan/GenerateLessonModal";
 
-import { getLessonPlans } from "../../services/lessonPlan.service";
+import {
+  deleteLessonPlan,
+  getLessonPlans,
+} from "../../services/lessonPlan.service";
 
 export default function LessonPlans() {
   const [plans, setPlans] = useState([]);
@@ -42,6 +45,22 @@ export default function LessonPlans() {
   useEffect(() => {
     loadPlans();
   }, []);
+
+  const handleDelete = async (id) => {
+    const confirmDelete = window.confirm(
+      "Delete this lesson plan? It will also be removed from student timetables."
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+      await deleteLessonPlan(id);
+      await loadPlans();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete lesson plan");
+    }
+  };
 
   const filteredPlans = useMemo(() => {
     return plans.filter((plan) => {
@@ -130,6 +149,7 @@ export default function LessonPlans() {
               onNewClick={() =>
                 setOpenModal(true)
               }
+              onDelete={handleDelete}
             />
           )}
         </div>

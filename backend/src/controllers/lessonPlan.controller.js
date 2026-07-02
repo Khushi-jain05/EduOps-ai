@@ -1,11 +1,14 @@
 const LessonPlanService = require("../services/lessonPlan.service");
 
+const getUserId = (req) =>
+  LessonPlanService.getUserId(req.user);
+
 // Create Lesson
 const createLessonPlan = async (req, res) => {
   try {
     const lesson = await LessonPlanService.createLesson({
       ...req.body,
-      facultyId: req.user.id,
+      facultyId: getUserId(req),
     });
 
     res.status(201).json(lesson);
@@ -22,7 +25,7 @@ const createLessonPlan = async (req, res) => {
 const getLessonPlans = async (req, res) => {
   try {
     const lessons =
-      await LessonPlanService.getLessonPlans(req.user.id);
+      await LessonPlanService.getLessonPlans(getUserId(req));
 
     res.json(lessons);
   } catch (err) {
@@ -38,7 +41,10 @@ const getLessonPlans = async (req, res) => {
 const getLessonPlanById = async (req, res) => {
   try {
     const lesson =
-      await LessonPlanService.getLessonById(req.params.id);
+      await LessonPlanService.getLessonById(
+        req.params.id,
+        getUserId(req)
+      );
 
     res.json(lesson);
   } catch (err) {
@@ -56,7 +62,8 @@ const updateLessonPlan = async (req, res) => {
     const lesson =
       await LessonPlanService.updateLesson(
         req.params.id,
-        req.body
+        req.body,
+        getUserId(req)
       );
 
     res.json(lesson);
@@ -72,7 +79,10 @@ const updateLessonPlan = async (req, res) => {
 // Delete Lesson
 const deleteLessonPlan = async (req, res) => {
   try {
-    await LessonPlanService.deleteLesson(req.params.id);
+    await LessonPlanService.deleteLesson(
+      req.params.id,
+      getUserId(req)
+    );
 
     res.json({
       message: "Lesson deleted successfully",

@@ -66,6 +66,28 @@ export default function GenerateLessonModal({
   try {
     const user = JSON.parse(localStorage.getItem("user"));
 
+    if (
+      !form.title ||
+      !form.subject ||
+      !form.lessonDate ||
+      !form.startTime
+    ) {
+      alert("Please fill title, subject, date and start time.");
+      return;
+    }
+
+    const duration =
+      form.startTime && form.endTime
+        ? Math.max(
+            1,
+            Math.round(
+              (new Date(`1970-01-01T${form.endTime}:00`) -
+                new Date(`1970-01-01T${form.startTime}:00`)) /
+                60000
+            )
+          )
+        : 60;
+
     await createLessonPlan({
       title: form.title,
       topic: form.topic,
@@ -85,7 +107,7 @@ export default function GenerateLessonModal({
 
       start_time: form.startTime,
 
-      duration: 60,
+      duration,
 
       room: form.room,
 
@@ -97,9 +119,11 @@ export default function GenerateLessonModal({
         ? form.objectives.split("\n")
         : [],
 
-      outcomes: [],
+      outcomes: selectedUnits,
 
-      notes: form.description,
+      notes: [form.description, form.homework]
+        .filter(Boolean)
+        .join("\n\nHomework:\n"),
     });
 
     alert("Lesson Plan Created Successfully");
@@ -209,7 +233,7 @@ export default function GenerateLessonModal({
                 })
               }
             >
-              <option>
+              <option value="">
                 Select Subject
               </option>
 
@@ -374,6 +398,13 @@ startTime:e.target.value
             <input
               type="time"
               style={input}
+              value={form.endTime}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  endTime: e.target.value,
+                })
+              }
             />
 
             <label>Room</label>

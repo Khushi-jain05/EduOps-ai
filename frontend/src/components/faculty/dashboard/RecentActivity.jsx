@@ -5,38 +5,31 @@ import {
   FiArrowRight,
 } from "react-icons/fi";
 
-const activities = [
-  {
-    title: "DBMS Mid Semester Paper",
-    type: "Question Paper",
-    time: "2 hours ago",
+const metaByType = {
+  "Question Paper": {
     icon: <FiFileText />,
     color: "#2563EB",
   },
-  {
-    title: "Normalization MCQ Set",
-    type: "MCQ Generator",
-    time: "Yesterday",
+  "MCQ Set": {
     icon: <FiClipboard />,
     color: "#8B5CF6",
   },
-  {
-    title: "Week 8 Lesson Plan",
-    type: "Lesson Plan",
-    time: "2 days ago",
+  "Lesson Plan": {
     icon: <FiBookOpen />,
     color: "#10B981",
   },
-  {
-    title: "SQL Assignment",
-    type: "Assignment",
-    time: "3 days ago",
-    icon: <FiFileText />,
-    color: "#F97316",
-  },
-];
+};
 
-export default function RecentActivity() {
+const formatTime = (value) => {
+  if (!value) return "";
+
+  return new Date(value).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+  });
+};
+
+export default function RecentActivity({ activities = [] }) {
   return (
     <div
       style={{
@@ -82,9 +75,16 @@ export default function RecentActivity() {
         />
       </div>
 
-      {activities.map((item) => (
+      {activities.length === 0 ? (
+        <p style={{ color: "#64748B" }}>
+          No generated resources yet.
+        </p>
+      ) : activities.map((item) => {
+        const meta = metaByType[item.type] || metaByType["Question Paper"];
+
+        return (
         <div
-          key={item.title}
+          key={`${item.type}-${item.id}`}
           style={{
             display: "flex",
             justifyContent: "space-between",
@@ -105,7 +105,7 @@ export default function RecentActivity() {
                 width: "52px",
                 height: "52px",
                 borderRadius: "16px",
-                background: item.color,
+                background: meta.color,
                 color: "#fff",
                 display: "flex",
                 justifyContent: "center",
@@ -113,7 +113,7 @@ export default function RecentActivity() {
                 fontSize: "22px",
               }}
             >
-              {item.icon}
+              {meta.icon}
             </div>
 
             <div>
@@ -144,10 +144,11 @@ export default function RecentActivity() {
               fontSize: "14px",
             }}
           >
-            {item.time}
+            {formatTime(item.createdAt)}
           </span>
         </div>
-      ))}
+      );
+      })}
     </div>
   );
 }

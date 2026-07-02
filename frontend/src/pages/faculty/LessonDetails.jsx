@@ -1,84 +1,130 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { FiArrowLeft, FiBookOpen, FiCalendar, FiClock } from "react-icons/fi";
 import {
-  updateLesson,
-  deleteLessonPlan,
-} from "../../services/lessonPlan.service";
+  FiArrowLeft,
+  FiBookOpen,
+  FiCalendar,
+  FiClock,
+  FiTrash2,
+} from "react-icons/fi";
+
 import Navbar from "../../components/layout/Navbar";
 import Sidebar from "../../components/layout/Sidebar";
-import { getLessonPlanById } from "../../services/lessonPlan.service";
+import {
+  deleteLessonPlan,
+  getLessonPlanById,
+  updateLessonPlan,
+} from "../../services/lessonPlan.service";
+
+const toDateInput = (value) =>
+  value ? new Date(value).toISOString().slice(0, 10) : "";
+
+const toTimeInput = (value) =>
+  value ? new Date(value).toISOString().slice(11, 16) : "";
 
 export default function LessonDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-const [editing, setEditing] = useState(false);
-
-const [form, setForm] = useState({});
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState({});
   const [lesson, setLesson] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadLesson();
-  }, []);
-useEffect(() => {
-  if (lesson) {
-    setForm({
-      title: lesson.title,
-      topic: lesson.topic,
-      objectives: lesson.objectives,
-      notes: lesson.notes,
-      room: lesson.room,
-      duration: lesson.duration,
-      status: lesson.status,
-    });
-  }
-}, [lesson]);
   const loadLesson = async () => {
     try {
+      setLoading(true);
       const data = await getLessonPlanById(id);
       setLesson(data);
     } catch (err) {
       console.error(err);
+      setLesson(null);
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadLesson();
+  }, [id]);
+
+  useEffect(() => {
+    if (lesson) {
+      setForm({
+        title: lesson.title || "",
+        topic: lesson.topic || "",
+        description: lesson.description || "",
+        objectives: lesson.objectives || "",
+        notes: lesson.notes || "",
+        room: lesson.room || "",
+        duration: lesson.duration || "60",
+        status: lesson.status || "active",
+        lesson_date: toDateInput(lesson.lesson_date),
+        start_time: toTimeInput(lesson.start_time),
+        day: lesson.day || "",
+        sessions: lesson.sessions || 1,
+        weeks: lesson.weeks || 1,
+      });
+    }
+  }, [lesson]);
+
+  const updateForm = (key, value) => {
+    setForm((current) => ({
+      ...current,
+      [key]: value,
+    }));
+  };
+
   const handleSave = async () => {
-  try {
-    await updateLesson(id, form);
+    try {
+      const day = form.lesson_date
+        ? new Date(form.lesson_date).toLocaleDateString("en-US", {
+            weekday: "long",
+          })
+        : form.day;
 
-    await loadLesson();
+      await updateLessonPlan(id, {
+        ...form,
+        day,
+      });
 
-    setEditing(false);
+      await loadLesson();
+      setEditing(false);
+      alert("Lesson updated successfully");
+    } catch (err) {
+      console.error(err);
+      alert(
+        err.response?.data?.message ||
+          "Failed to update lesson"
+      );
+    }
+  };
 
-    alert("Lesson updated successfully");
-  } catch (err) {
-    console.error(err);
+  const handleDelete = async () => {
+    const confirmDelete = window.confirm(
+      "Delete this lesson? It will also be removed from student timetables."
+    );
 
-    alert("Failed to update lesson");
-  }
-};
+    if (!confirmDelete) return;
 
-const handleDelete = async () => {
-  const confirmDelete = window.confirm(
-    "Are you sure you want to delete this lesson?"
-  );
+    try {
+      await deleteLessonPlan(id);
+      alert("Lesson deleted successfully");
+      navigate("/faculty/lesson-plan");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete lesson");
+    }
+  };
 
-  if (!confirmDelete) return;
+  const inputStyle = {
+    width: "100%",
+    border: "1px solid #DDE5F0",
+    borderRadius: 12,
+    padding: "12px 14px",
+    fontSize: 15,
+  };
 
-  try {
-    await deleteLessonPlan(id);
-
-    alert("Lesson deleted successfully");
-
-    navigate("/faculty/lesson-plan");
-  } catch (err) {
-    console.error(err);
-
-    alert("Failed to delete lesson");
-  }
-};
+  const fieldValue = (value) => value || "Not set";
 
   return (
     <div
@@ -100,116 +146,100 @@ const handleDelete = async () => {
         <Navbar />
 
         <div style={{ padding: 35 }}>
-          <button
-            onClick={() => navigate(-1)}
+          <div
             style={{
-              border: "none",
-              background: "#fff",
-              padding: "12px 18px",
-              borderRadius: 12,
-              cursor: "pointer",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
               marginBottom: 25,
             }}
           >
-            <FiArrowLeft /> Back
-          </button>
-          <div
-  style={{
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 25,
-  }}
->
-  <button
-    onClick={() => navigate(-1)}
-    style={{
-      border: "none",
-      background: "#fff",
-      padding: "12px 18px",
-      borderRadius: 12,
-      cursor: "pointer",
-      fontWeight: 600,
-    }}
-  >
-    <FiArrowLeft /> Back
-  </button>
+            <button
+              onClick={() => navigate("/faculty/lesson-plan")}
+              style={{
+                border: "none",
+                background: "#fff",
+                padding: "12px 18px",
+                borderRadius: 12,
+                cursor: "pointer",
+                fontWeight: 600,
+              }}
+            >
+              <FiArrowLeft /> Back
+            </button>
 
-  <div
-    style={{
-      display: "flex",
-      gap: 15,
-    }}
-  >
-    {!editing ? (
-      <>
-        <button
-          onClick={() => setEditing(true)}
-          style={{
-            background: "#2563EB",
-            color: "#fff",
-            border: "none",
-            padding: "12px 22px",
-            borderRadius: 12,
-            cursor: "pointer",
-            fontWeight: 600,
-          }}
-        >
-          Edit Lesson
-        </button>
+            {lesson && (
+              <div style={{ display: "flex", gap: 15 }}>
+                {!editing ? (
+                  <>
+                    <button
+                      onClick={() => setEditing(true)}
+                      style={{
+                        background: "#2563EB",
+                        color: "#fff",
+                        border: "none",
+                        padding: "12px 22px",
+                        borderRadius: 12,
+                        cursor: "pointer",
+                        fontWeight: 600,
+                      }}
+                    >
+                      Edit Lesson
+                    </button>
 
-        <button
-          onClick={handleDelete}
-          style={{
-            background: "#EF4444",
-            color: "#fff",
-            border: "none",
-            padding: "12px 22px",
-            borderRadius: 12,
-            cursor: "pointer",
-            fontWeight: 600,
-          }}
-        >
-          Delete Lesson
-        </button>
-      </>
-    ) : (
-      <>
-        <button
-          onClick={() => {
-            setEditing(false);
-            loadLesson();
-          }}
-          style={{
-            background: "#CBD5E1",
-            border: "none",
-            padding: "12px 22px",
-            borderRadius: 12,
-            cursor: "pointer",
-            fontWeight: 600,
-          }}
-        >
-          Cancel
-        </button>
+                    <button
+                      onClick={handleDelete}
+                      style={{
+                        background: "#EF4444",
+                        color: "#fff",
+                        border: "none",
+                        padding: "12px 22px",
+                        borderRadius: 12,
+                        cursor: "pointer",
+                        fontWeight: 600,
+                      }}
+                    >
+                      <FiTrash2 /> Delete Lesson
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => {
+                        setEditing(false);
+                        loadLesson();
+                      }}
+                      style={{
+                        background: "#CBD5E1",
+                        border: "none",
+                        padding: "12px 22px",
+                        borderRadius: 12,
+                        cursor: "pointer",
+                        fontWeight: 600,
+                      }}
+                    >
+                      Cancel
+                    </button>
 
-        <button
-          onClick={handleSave}
-          style={{
-            background: "#16A34A",
-            color: "#fff",
-            border: "none",
-            padding: "12px 22px",
-            borderRadius: 12,
-            cursor: "pointer",
-            fontWeight: 600,
-          }}
-        >
-          Save Changes
-        </button>
-      </>
-    )}
-  </div>
-</div>
+                    <button
+                      onClick={handleSave}
+                      style={{
+                        background: "#16A34A",
+                        color: "#fff",
+                        border: "none",
+                        padding: "12px 22px",
+                        borderRadius: 12,
+                        cursor: "pointer",
+                        fontWeight: 600,
+                      }}
+                    >
+                      Save Changes
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
 
           {loading ? (
             <h2>Loading...</h2>
@@ -223,9 +253,39 @@ const handleDelete = async () => {
                 padding: 35,
               }}
             >
-              <h1>{lesson.title}</h1>
+              {editing ? (
+                <>
+                  <input
+                    style={{
+                      ...inputStyle,
+                      fontSize: 28,
+                      fontWeight: 700,
+                      color: "#172554",
+                    }}
+                    value={form.title}
+                    onChange={(e) =>
+                      updateForm("title", e.target.value)
+                    }
+                  />
 
-              <p>{lesson.topic}</p>
+                  <textarea
+                    rows={3}
+                    style={{
+                      ...inputStyle,
+                      marginTop: 16,
+                    }}
+                    value={form.topic}
+                    onChange={(e) =>
+                      updateForm("topic", e.target.value)
+                    }
+                  />
+                </>
+              ) : (
+                <>
+                  <h1>{lesson.title}</h1>
+                  <p>{lesson.topic}</p>
+                </>
+              )}
 
               <hr />
 
@@ -237,78 +297,162 @@ const handleDelete = async () => {
                   marginTop: 25,
                 }}
               >
-                <div>
-                  <h3>Subject</h3>
-                  <p>{lesson.Subject?.name}</p>
-                </div>
+                <ReadOnlyField
+                  label="Subject"
+                  value={lesson.Subject?.name}
+                />
 
-                <div>
-                  <h3>Status</h3>
-                  <p>{lesson.status}</p>
-                </div>
+                <EditableField
+                  editing={editing}
+                  label="Status"
+                  value={form.status}
+                  onChange={(value) => updateForm("status", value)}
+                  style={inputStyle}
+                />
 
-                <div>
-                  <h3>
-                    <FiCalendar /> Date
-                  </h3>
+                <EditableField
+                  editing={editing}
+                  label={
+                    <>
+                      <FiCalendar /> Date
+                    </>
+                  }
+                  type="date"
+                  value={form.lesson_date}
+                  viewValue={new Date(
+                    lesson.lesson_date
+                  ).toLocaleDateString()}
+                  onChange={(value) =>
+                    updateForm("lesson_date", value)
+                  }
+                  style={inputStyle}
+                />
 
-                  <p>
-                    {new Date(
-                      lesson.lesson_date
-                    ).toLocaleDateString()}
-                  </p>
-                </div>
+                <EditableField
+                  editing={editing}
+                  label={
+                    <>
+                      <FiClock /> Time
+                    </>
+                  }
+                  type="time"
+                  value={form.start_time}
+                  viewValue={toTimeInput(lesson.start_time)}
+                  onChange={(value) =>
+                    updateForm("start_time", value)
+                  }
+                  style={inputStyle}
+                />
 
-                <div>
-                  <h3>
-                    <FiClock /> Time
-                  </h3>
+                <EditableField
+                  editing={editing}
+                  label="Room"
+                  value={form.room}
+                  viewValue={fieldValue(lesson.room)}
+                  onChange={(value) => updateForm("room", value)}
+                  style={inputStyle}
+                />
 
-                  <p>
-                    {new Date(
-                      lesson.start_time
-                    ).toLocaleTimeString()}
-                  </p>
-                </div>
-
-                <div>
-                  <h3>Room</h3>
-
-                  <p>{lesson.room}</p>
-                </div>
-
-                <div>
-                  <h3>Duration</h3>
-
-                  <p>{lesson.duration} mins</p>
-                </div>
+                <EditableField
+                  editing={editing}
+                  label="Duration"
+                  type="number"
+                  value={form.duration}
+                  viewValue={`${fieldValue(lesson.duration)} mins`}
+                  onChange={(value) =>
+                    updateForm("duration", value)
+                  }
+                  style={inputStyle}
+                />
               </div>
 
-              <div
-                style={{
-                  marginTop: 35,
-                }}
-              >
-                <h2>
-                  <FiBookOpen /> Objectives
-                </h2>
+              <EditableTextArea
+                editing={editing}
+                icon={<FiBookOpen />}
+                label="Objectives"
+                value={form.objectives}
+                viewValue={fieldValue(lesson.objectives)}
+                onChange={(value) =>
+                  updateForm("objectives", value)
+                }
+                style={inputStyle}
+              />
 
-                <p>{lesson.objectives}</p>
-              </div>
-
-              <div
-                style={{
-                  marginTop: 35,
-                }}
-              >
-                <h2>Notes</h2>
-
-                <p>{lesson.notes}</p>
-              </div>
+              <EditableTextArea
+                editing={editing}
+                label="Notes"
+                value={form.notes}
+                viewValue={fieldValue(lesson.notes)}
+                onChange={(value) => updateForm("notes", value)}
+                style={inputStyle}
+              />
             </div>
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+function ReadOnlyField({ label, value }) {
+  return (
+    <div>
+      <h3>{label}</h3>
+      <p>{value || "Not set"}</p>
+    </div>
+  );
+}
+
+function EditableField({
+  editing,
+  label,
+  type = "text",
+  value,
+  viewValue,
+  onChange,
+  style,
+}) {
+  return (
+    <div>
+      <h3>{label}</h3>
+      {editing ? (
+        <input
+          type={type}
+          style={style}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      ) : (
+        <p>{viewValue || value || "Not set"}</p>
+      )}
+    </div>
+  );
+}
+
+function EditableTextArea({
+  editing,
+  icon,
+  label,
+  value,
+  viewValue,
+  onChange,
+  style,
+}) {
+  return (
+    <div style={{ marginTop: 35 }}>
+      <h2>
+        {icon} {label}
+      </h2>
+      {editing ? (
+        <textarea
+          rows={5}
+          style={style}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      ) : (
+        <p>{viewValue}</p>
+      )}
     </div>
   );
 }

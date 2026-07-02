@@ -6,6 +6,9 @@ exports.getTimetable = async (req, res) => {
       where: {
         userId: req.user.id,
       },
+      include: {
+        lesson_plans: true,
+      },
       orderBy: {
         startTime: "asc",
       },

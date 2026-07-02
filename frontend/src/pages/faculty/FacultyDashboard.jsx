@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import Sidebar from "../../components/layout/Sidebar";
 import Navbar from "../../components/layout/Navbar";
 import RecentActivity from "../../components/faculty/dashboard/RecentActivity";
@@ -6,8 +7,28 @@ import WelcomeBanner from "../../components/faculty/dashboard/WelcomeBanner";
 import DashboardStats from "../../components/faculty/dashboard/DashboardStats";
 import FacultyToolkit from "../../components/faculty/dashboard/FacultyToolkit";
 import FacultyProductivity from "../../components/faculty/dashboard/FacultyProductivity";
+import { getFacultyDashboard } from "../../services/faculty.service";
 
 export default function FacultyDashboard() {
+  const [dashboard, setDashboard] = useState({
+    stats: {},
+    upcomingClasses: [],
+    recentActivity: [],
+  });
+
+  useEffect(() => {
+    const loadDashboard = async () => {
+      try {
+        const data = await getFacultyDashboard();
+        setDashboard(data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    loadDashboard();
+  }, []);
+
   return (
     <div
       style={{
@@ -43,7 +64,7 @@ export default function FacultyDashboard() {
         >
           <WelcomeBanner />
 
-          <DashboardStats />
+          <DashboardStats stats={dashboard.stats} />
 
           <FacultyToolkit />
           <div
@@ -55,8 +76,8 @@ export default function FacultyDashboard() {
     alignItems: "start",
   }}
 >
-  <RecentActivity />
-   <UpcomingClasses />
+  <RecentActivity activities={dashboard.recentActivity} />
+   <UpcomingClasses classes={dashboard.upcomingClasses} />
 </div>
 <FacultyProductivity/>
         </div>

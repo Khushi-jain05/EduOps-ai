@@ -3,10 +3,13 @@ import {
   FiCalendar,
   FiClock,
   FiBookOpen,
-  FiEdit,
+  FiTrash2,
 } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
 
-export default function LessonCard({ plan }) {
+export default function LessonCard({ plan, onDelete }) {
+  const navigate = useNavigate();
+
   const badgeColor = {
     active: {
       bg: "#DCFCE7",
@@ -237,37 +240,58 @@ export default function LessonCard({ plan }) {
 
       {/* BUTTON */}
 
-      <button
+      <div
         style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 52px",
+          gap: "10px",
           marginTop: "28px",
-          height: "52px",
-
-          border: "none",
-
-          borderRadius: "16px",
-
-          background:
-            "linear-gradient(90deg,#2563EB,#4F8EF7)",
-
-          color: "#fff",
-
-          fontSize: "16px",
-
-          fontWeight: 600,
-
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-
-          gap: "8px",
-
-          cursor: "pointer",
         }}
       >
-        Open Plan
+        <button
+          onClick={() =>
+            navigate(`/faculty/lesson-plan/${plan.id}`)
+          }
+          style={{
+            height: "52px",
+            border: "none",
+            borderRadius: "16px",
+            background:
+              "linear-gradient(90deg,#2563EB,#4F8EF7)",
+            color: "#fff",
+            fontSize: "16px",
+            fontWeight: 600,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            gap: "8px",
+            cursor: "pointer",
+          }}
+        >
+          Open Plan
 
-        <FiArrowRight />
-      </button>
+          <FiArrowRight />
+        </button>
+
+        <button
+          title="Delete lesson"
+          onClick={() => onDelete?.(plan.id)}
+          style={{
+            height: "52px",
+            border: "1px solid #FECACA",
+            borderRadius: "16px",
+            background: "#FEF2F2",
+            color: "#DC2626",
+            fontSize: "20px",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            cursor: "pointer",
+          }}
+        >
+          <FiTrash2 />
+        </button>
+      </div>
     </div>
   );
 }

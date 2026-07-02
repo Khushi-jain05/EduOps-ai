@@ -7,7 +7,7 @@ import {
 
 import FacultyStatCard from "./FacultyStatCard";
 
-export default function DashboardStats() {
+export default function DashboardStats({ stats = {} }) {
   return (
     <div
       style={{
@@ -19,7 +19,7 @@ export default function DashboardStats() {
     >
       <FacultyStatCard
         title="Subjects Assigned"
-        value="4"
+        value={stats.subjectsAssigned || 0}
         subtitle="Current Semester"
         icon={<FiBookOpen />}
         iconColor="#2563EB"
@@ -28,8 +28,8 @@ export default function DashboardStats() {
 
       <FacultyStatCard
         title="Assignments Generated"
-        value="18"
-        subtitle="+12% this month"
+        value={stats.assignmentsGenerated || 0}
+        subtitle="Created by you"
         icon={<FiClipboard />}
         iconColor="#06B6D4"
         bgColor="#F8FBFF"
@@ -37,7 +37,7 @@ export default function DashboardStats() {
 
       <FacultyStatCard
         title="Lesson Plans"
-        value="9"
+        value={stats.lessonPlans || 0}
         subtitle="Prepared"
         icon={<FiEdit3 />}
         iconColor="#7C3AED"
@@ -46,8 +46,8 @@ export default function DashboardStats() {
 
       <FacultyStatCard
         title="Question Papers"
-        value="6"
-        subtitle="+8%"
+        value={stats.questionPapers || 0}
+        subtitle="Generated"
         icon={<FiFileText />}
         iconColor="#F97316"
         bgColor="#FFF9F5"

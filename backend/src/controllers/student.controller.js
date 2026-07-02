@@ -28,25 +28,61 @@ exports.getDashboard = async (req, res) => {
     const timetable =
       await prisma.timetable.findMany({
         where: { userId },
+        include: {
+          lesson_plans: {
+            include: {
+              Subject: true,
+            },
+          },
+        },
+        orderBy: {
+          startTime: "asc",
+        },
       });
+
+    const notifications =
+      await prisma.notifications.findMany({
+        where: { user_id: userId },
+        orderBy: {
+          created_at: "desc",
+        },
+        take: 5,
+      });
+
+    const today = new Date();
+    const todayKey = today.toISOString().slice(0, 10);
+
+    const visibleTimetable = timetable.filter((item) => {
+      if (!item.lesson_plans?.lesson_date) {
+        return true;
+      }
+
+      return (
+        item.lesson_plans.lesson_date
+          .toISOString()
+          .slice(0, 10) === todayKey
+      );
+    });
 
     console.log("ATTENDANCE =>", attendance);
     console.log("ASSIGNMENTS =>", assignments.length);
-    console.log("TIMETABLE =>", timetable.length);
+    console.log("TIMETABLE =>", visibleTimetable.length);
 
     res.status(200).json({
       attendance:
         attendance?.percentage || 0,
 
       upcomingClasses:
-        timetable.length,
+        visibleTimetable.length,
 
       pendingAssignments:
         assignments.length,
 
-      timetable,
+      timetable: visibleTimetable,
 
       assignments,
+
+      notifications,
     });
 
   } catch (error) {

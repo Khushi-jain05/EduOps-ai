@@ -17,9 +17,17 @@ export default function TodaySchedule({ timetableData = [], onViewAll = () => {}
   }, []);
 
   const todayClasses = useMemo(() => {
+    const todayKey = new Date().toISOString().slice(0, 10);
+
     return (
       timetableData
-        .filter((c) => (c.day || "").toString().toLowerCase().startsWith(today.slice(0, 3).toLowerCase()) || (c.day || "").toString().toLowerCase() === today.toLowerCase())
+        .filter((c) => {
+          if (c.source === "lesson_plan" && c.lesson_plans?.lesson_date) {
+            return c.lesson_plans.lesson_date.slice(0, 10) === todayKey;
+          }
+
+          return (c.day || "").toString().toLowerCase().startsWith(today.slice(0, 3).toLowerCase()) || (c.day || "").toString().toLowerCase() === today.toLowerCase();
+        })
         .sort((a, b) => a.startTime.localeCompare(b.startTime)) || []
     );
   }, [timetableData, today]);

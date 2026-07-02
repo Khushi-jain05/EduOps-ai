@@ -1,24 +1,9 @@
 import { FiClock, FiMapPin } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
 
-const classes = [
-  {
-    time: "10:00 AM",
-    subject: "Database Management Systems",
-    room: "Room A-204",
-  },
-  {
-    time: "01:00 PM",
-    subject: "Operating Systems",
-    room: "Lab B-102",
-  },
-  {
-    time: "03:30 PM",
-    subject: "Faculty Office Hours",
-    room: "Cabin F-12",
-  },
-];
+export default function UpcomingClasses({ classes = [] }) {
+  const navigate = useNavigate();
 
-export default function UpcomingClasses() {
   return (
     <div
       style={{
@@ -48,9 +33,13 @@ export default function UpcomingClasses() {
         Today's schedule
       </p>
 
-      {classes.map((item) => (
+      {classes.length === 0 ? (
+        <p style={{ color: "#64748B" }}>
+          No lesson plans scheduled for today.
+        </p>
+      ) : classes.map((item) => (
         <div
-          key={item.time}
+          key={item.id}
           style={{
             display: "flex",
             justifyContent: "space-between",
@@ -104,6 +93,9 @@ export default function UpcomingClasses() {
           </div>
 
           <button
+            onClick={() =>
+              navigate(`/faculty/lesson-plan/${item.id}`)
+            }
             style={{
               background: "#2563EB",
               color: "#fff",

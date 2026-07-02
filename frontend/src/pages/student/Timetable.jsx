@@ -47,6 +47,23 @@ function formatWeekLabel(startDate) {
   return `${start.toLocaleDateString(undefined, opts)} – ${end.toLocaleDateString(undefined, opts)}`;
 }
 
+function dateKey(value) {
+  return new Date(value).toISOString().slice(0, 10);
+}
+
+function isInSelectedWeek(value, weekStart) {
+  if (!value) return true;
+
+  const current = new Date(value);
+  const start = new Date(weekStart);
+  const end = new Date(weekStart);
+  end.setDate(start.getDate() + 6);
+  start.setHours(0, 0, 0, 0);
+  end.setHours(23, 59, 59, 999);
+
+  return current >= start && current <= end;
+}
+
 export default function Timetable() {
 
   const [classes, setClasses] = useState([]);
@@ -157,6 +174,24 @@ const [selectedCategories, setSelectedCategories] = useState([]);
   const filtered = useMemo(() => {
   let result = [...classes];
 
+  result = result.filter((item) => {
+    if (item.source !== "lesson_plan") {
+      return true;
+    }
+
+    const lessonDate = item.lesson_plans?.lesson_date;
+
+    if (!lessonDate) {
+      return true;
+    }
+
+    if (viewMode === "day") {
+      return dateKey(lessonDate) === dateKey(new Date());
+    }
+
+    return isInSelectedWeek(lessonDate, weekStart);
+  });
+
   if (viewMode === "day") {
     result = result.filter(
       (c) => normalizeDay(c.day) === todayFull
@@ -174,6 +209,7 @@ const [selectedCategories, setSelectedCategories] = useState([]);
   classes,
   viewMode,
   todayFull,
+  weekStart,
   selectedCategories,
 ]);
   return (
