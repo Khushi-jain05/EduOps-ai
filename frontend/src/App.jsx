@@ -15,9 +15,11 @@ import McqPreview from "./components/faculty/mcq/McqPreview";
 import Assignments1 from "./pages/faculty/Assignments1";
 import Analytics from "./pages/faculty/Analytics";
 import LessonPlans from "./pages/faculty/LessonPlans";
+import LessonDetails from "./pages/faculty/LessonDetails";
 function App() {
   return (
     <BrowserRouter>
+    
       <Routes>
         <Route path="/" element={<Auth />} />
 
@@ -53,6 +55,14 @@ element={
     <LessonPlans />
   </ProtectedRoute>
 }
+/>
+<Route
+  path="/faculty/lesson-plan/:id"
+  element={
+    <ProtectedRoute allowedRoles={["faculty"]}>
+      <LessonDetails />
+    </ProtectedRoute>
+  }
 />
 <Route
   path="/mcq/share/:token"

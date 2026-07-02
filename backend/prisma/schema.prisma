@@ -59,17 +59,19 @@ model Assignment {
 }
 
 model Timetable {
-  id        String   @id @default(dbgenerated("gen_random_uuid()"))
-  subject   String
-  faculty   String
-  room      String
-  startTime String
-  duration  Int
-  userId    String
-  createdAt DateTime @default(now())
-  category  String
-  day       String
-  user      User     @relation(fields: [userId], references: [id])
+  id           String   @id @default(dbgenerated("gen_random_uuid()"))
+  subject      String
+  faculty      String
+  room         String
+  startTime    String
+  duration     Int
+  userId       String
+  createdAt    DateTime @default(now())
+  category     String
+  day          String
+  lessonplanid String?  @db.Uuid
+  source       String?  @default("manual") @db.VarChar(30)
+  user         User     @relation(fields: [userId], references: [id])
 }
 
 model Chat {
@@ -116,6 +118,8 @@ model Subject {
   color           String?           @default("blue")
   userId          String?
   icon            String?
+  semester        String?           @db.VarChar(20)
+  program         String?           @db.VarChar(100)
   lesson_plans    lesson_plans[]
   mcq_sets        mcq_sets[]
   question_bank   question_bank[]

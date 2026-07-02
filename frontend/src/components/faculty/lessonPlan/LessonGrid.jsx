@@ -4,6 +4,7 @@ import NewLessonCard from "./NewLessonCard";
 export default function LessonGrid({
   plans,
   onNewClick,
+  onDelete,
 }) {
   return (
     <div
@@ -50,12 +51,20 @@ export default function LessonGrid({
                 "60 mins",
 
               date:
-                plan.lesson_date,
+                plan.lesson_date
+                  ? new Date(
+                      plan.lesson_date
+                    ).toLocaleDateString()
+                  : "Not Scheduled",
+
+              room:
+                plan.room || "TBA",
 
               status:
                 plan.status ||
                 "draft",
             }}
+            onDelete={onDelete}
           />
         ))
       ) : (

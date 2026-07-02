@@ -4,6 +4,7 @@ const prisma = require("../config/prisma");
 // Create Lesson
 // ==========================
 const createLesson = async (data) => {
+  // Find Subject
   const subject = await prisma.subject.findUnique({
     where: {
       id: data.subject_id,
@@ -14,36 +15,42 @@ const createLesson = async (data) => {
     throw new Error("Subject not found");
   }
 
-  const lesson = await prisma.lessonPlan.create({
+  // Create Lesson
+  const lesson = await prisma.lesson_plans.create({
     data: {
       title: data.title,
-      topic: data.topic,
+      topic: data.topic || "",
+      description: data.description || "",
 
-      subject_id: data.subject_id,
-      faculty_id: data.facultyId,
+      objectives: Array.isArray(data.objectives)
+        ? data.objectives.join("\n")
+        : data.objectives || "",
 
       lesson_date: new Date(data.lesson_date),
 
-      day: data.day,
-start_time: data.start_time,
+      start_time: new Date(
+        `1970-01-01T${data.start_time}:00`
+      ),
 
-      duration: data.duration,
+      duration: String(data.duration || "60"),
 
-      room: data.room || null,
+      room: data.room || "",
+
+      status: data.status || "active",
+
+      faculty_id: data.facultyId,
+
+      subject_id: data.subject_id,
+
+      day: data.day || "",
 
       sessions: Number(data.sessions || 1),
 
       weeks: Number(data.weeks || 1),
 
-      objectives: data.objectives || "",
-
       outcomes: data.outcomes || null,
 
-      notes: data.notes || null,
-
-     
-
-      status: data.status || "active",
+      notes: data.notes || "",
     },
 
     include: {
@@ -52,14 +59,55 @@ start_time: data.start_time,
     },
   });
 
+  // ==========================
+  // Find matching students
+  // ==========================
+
+  const students = await prisma.user.findMany({
+    where: {
+      role: "student",
+      semester: subject.semester,
+      program: subject.program,
+    },
+  });
+
+  // ==========================
+  // Create Timetable Entries
+  // ==========================
+
+  for (const student of students) {
+    await prisma.timetable.create({
+      data: {
+        subject: subject.name,
+
+        faculty: subject.faculty,
+
+        room: lesson.room || "TBA",
+
+        startTime: lesson.start_time
+          .toISOString()
+          .substring(11, 16),
+
+        duration: Number(lesson.duration),
+
+        day: lesson.day,
+
+        category: "Lesson Plan",
+
+        userId: student.id,
+      },
+    });
+  }
+
   return lesson;
 };
 
 // ==========================
 // Get All Lessons
 // ==========================
+
 const getLessonPlans = async (facultyId) => {
-  return prisma.lessonPlan.findMany({
+  return prisma.lesson_plans.findMany({
     where: {
       faculty_id: facultyId,
     },
@@ -78,8 +126,9 @@ const getLessonPlans = async (facultyId) => {
 // ==========================
 // Get Lesson By ID
 // ==========================
+
 const getLessonById = async (id) => {
-  return prisma.lessonPlan.findUnique({
+  return prisma.lesson_plans.findUnique({
     where: {
       id,
     },
@@ -94,41 +143,45 @@ const getLessonById = async (id) => {
 // ==========================
 // Update Lesson
 // ==========================
+
 const updateLesson = async (id, data) => {
-  return prisma.lessonPlan.update({
+  return prisma.lesson_plans.update({
     where: {
       id,
     },
 
     data: {
       title: data.title,
-      topic: data.topic,
 
-      
+      topic: data.topic || "",
+
+      description: data.description || "",
+
+      objectives: Array.isArray(data.objectives)
+        ? data.objectives.join("\n")
+        : data.objectives || "",
 
       lesson_date: new Date(data.lesson_date),
-
-      day: data.day,
 
       start_time: new Date(
         `1970-01-01T${data.start_time}:00`
       ),
 
-      duration: data.duration,
+      duration: String(data.duration || "60"),
 
-      room: data.room,
+      room: data.room || "",
+
+      day: data.day || "",
 
       sessions: Number(data.sessions || 1),
 
       weeks: Number(data.weeks || 1),
 
-      objectives: data.objectives,
+      outcomes: data.outcomes || null,
 
-      outcomes: data.outcomes,
+      notes: data.notes || "",
 
-      notes: data.notes,
-
-      status: data.status,
+      status: data.status || "active",
     },
   });
 };
@@ -136,8 +189,9 @@ const updateLesson = async (id, data) => {
 // ==========================
 // Delete Lesson
 // ==========================
+
 const deleteLesson = async (id) => {
-  return prisma.lessonPlan.delete({
+  return prisma.lesson_plans.delete({
     where: {
       id,
     },
