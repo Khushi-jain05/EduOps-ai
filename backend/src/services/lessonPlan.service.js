@@ -1,206 +1,166 @@
 const prisma = require("../config/prisma");
 
-const DAY_NAMES = [
-  "Sunday",
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-];
-
-const asArray = (value) => {
-  if (Array.isArray(value)) return value.filter(Boolean);
-  if (!value) return [];
-  return String(value)
-    .split("\n")
-    .map((item) => item.trim())
-    .filter(Boolean);
-};
-
-const getDayName = (date) => DAY_NAMES[new Date(date).getDay()];
-
-const getFacultyName = async (facultyId) => {
-  const user = await prisma.user.findUnique({
-    where: { id: facultyId },
-    select: { username: true, email: true },
+const createLesson = async (data) => {
+  // Check subject exists
+  const subject = await prisma.subject.findUnique({
+    where: {
+      id: data.subject_id,
+    },
   });
 
-  return user?.username || user?.email || "Faculty";
-};
-
-const syncLessonToStudentTimetable = async (lessonPlan) => {
-  if (lessonPlan.status === "draft") {
-    await prisma.timetable.deleteMany({
-      where: { lessonPlanId: lessonPlan.id },
-    });
-    return;
+  if (!subject) {
+    throw new Error("Subject not found");
   }
 
-  const students = await prisma.user.findMany({
-    where: { role: "student" },
-    select: { id: true },
+  // Create lesson plan
+  const lesson = await prisma.lessonPlan.create({
+    data: {
+      title: data.title,
+      topic: data.topic,
+      subject_id: data.subject_id,
+      faculty_id: data.facultyId,
+
+      lesson_date: new Date(data.lesson_date),
+
+      day: data.day,
+      start_time: data.start_time,
+      duration: Number(data.duration),
+
+      room: data.room,
+
+      weeks: Number(data.weeks || 1),
+      sessions: Number(data.sessions || 1),
+
+      objectives: data.objectives || [],
+      outcomes: data.outcomes || [],
+
+      notes: data.notes || "",
+
+      status: data.status || "active",
+    },
   });
 
-  const facultyName = await getFacultyName(lessonPlan.faculty_id);
-  const subjectName = lessonPlan.Subject?.name || lessonPlan.topic;
-  const subjectCode = lessonPlan.Subject?.code || "Lesson";
+  // Automatically create timetable entry
+  await prisma.timetable.create({
+    data: {
+      title: lesson.title,
 
-  await prisma.timetable.deleteMany({
-    where: { lessonPlanId: lessonPlan.id },
+      subjectId: lesson.subject_id,
+
+      facultyId: lesson.faculty_id,
+
+      day: lesson.day,
+
+      startTime: lesson.start_time,
+
+      duration: lesson.duration,
+
+      room: lesson.room,
+
+      lessonPlanId: lesson.id,
+
+      type: "lesson",
+    },
   });
 
-  if (students.length === 0) return;
-
-  await prisma.timetable.createMany({
-    data: students.map((student) => ({
-      subject: `${subjectCode} · ${lessonPlan.topic}`,
-      faculty: facultyName,
-      room: lessonPlan.room || "TBA",
-      day: lessonPlan.day,
-      category: subjectName,
-      startTime: lessonPlan.start_time,
-      duration: lessonPlan.duration,
-      userId: student.id,
-      eventDate: lessonPlan.lesson_date,
-      lessonPlanId: lessonPlan.id,
-      source: "lesson_plan",
-    })),
-  });
+  return lesson;
 };
 
 const getLessonPlans = async (facultyId) => {
   return prisma.lessonPlan.findMany({
-    where: { faculty_id: facultyId },
-    include: { Subject: true },
-    orderBy: [{ lesson_date: "asc" }, { start_time: "asc" }],
-  });
-};
-
-const createLessonPlan = async (facultyId, payload) => {
-  const {
-    title,
-    topic,
-    subjectId,
-    lessonDate,
-    startTime,
-    duration,
-    room,
-    sessions,
-    weeks,
-    status,
-    objectives,
-    outcomes,
-    notes,
-  } = payload;
-
-  if (!title?.trim()) throw new Error("Title is required");
-  if (!topic?.trim()) throw new Error("Topic is required");
-  if (!subjectId) throw new Error("Subject is required");
-  if (!lessonDate) throw new Error("Lesson date is required");
-  if (!startTime) throw new Error("Start time is required");
-
-  const subject = await prisma.subject.findUnique({
-    where: { id: subjectId },
-  });
-
-  if (!subject) throw new Error("Subject not found");
-
-  const planDate = new Date(lessonDate);
-
-  const lessonPlan = await prisma.lessonPlan.create({
-    data: {
-      title: title.trim(),
-      topic: topic.trim(),
-      subject_id: subjectId,
+    where: {
       faculty_id: facultyId,
-      lesson_date: planDate,
-      day: getDayName(planDate),
-      start_time: startTime,
-      duration: Number(duration) || 1,
-      room: room?.trim() || "TBA",
-      sessions: Number(sessions) || 1,
-      weeks: Number(weeks) || 1,
-      status: status || "active",
-      objectives: asArray(objectives),
-      outcomes: asArray(outcomes),
-      notes: notes?.trim() || null,
     },
-    include: { Subject: true },
+    include: {
+      Subject: true,
+    },
+    orderBy: {
+      lesson_date: "asc",
+    },
   });
-
-  await syncLessonToStudentTimetable(lessonPlan);
-
-  return lessonPlan;
 };
 
-const updateLessonPlan = async (facultyId, id, payload) => {
-  const existing = await prisma.lessonPlan.findFirst({
-    where: { id, faculty_id: facultyId },
+const getLessonById = async (id) => {
+  return prisma.lessonPlan.findUnique({
+    where: {
+      id,
+    },
+    include: {
+      Subject: true,
+    },
   });
+};
 
-  if (!existing) throw new Error("Lesson plan not found");
-
-  const planDate = payload.lessonDate
-    ? new Date(payload.lessonDate)
-    : existing.lesson_date;
-
-  const lessonPlan = await prisma.lessonPlan.update({
-    where: { id },
+const updateLesson = async (id, data) => {
+  const lesson = await prisma.lessonPlan.update({
+    where: {
+      id,
+    },
     data: {
-      title: payload.title?.trim() || existing.title,
-      topic: payload.topic?.trim() || existing.topic,
-      subject_id: payload.subjectId || existing.subject_id,
-      lesson_date: planDate,
-      day: getDayName(planDate),
-      start_time: payload.startTime || existing.start_time,
-      duration: Number(payload.duration) || existing.duration,
-      room: payload.room?.trim() || existing.room,
-      sessions: Number(payload.sessions) || existing.sessions,
-      weeks: Number(payload.weeks) || existing.weeks,
-      status: payload.status || existing.status,
-      objectives:
-        payload.objectives === undefined
-          ? existing.objectives
-          : asArray(payload.objectives),
-      outcomes:
-        payload.outcomes === undefined
-          ? existing.outcomes
-          : asArray(payload.outcomes),
-      notes:
-        payload.notes === undefined
-          ? existing.notes
-          : payload.notes?.trim() || null,
-      updated_at: new Date(),
+      title: data.title,
+      topic: data.topic,
+
+      lesson_date: new Date(data.lesson_date),
+
+      day: data.day,
+
+      start_time: data.start_time,
+
+      duration: Number(data.duration),
+
+      room: data.room,
+
+      objectives: data.objectives,
+
+      outcomes: data.outcomes,
+
+      notes: data.notes,
+
+      status: data.status,
     },
-    include: { Subject: true },
   });
 
-  await syncLessonToStudentTimetable(lessonPlan);
+  // Keep timetable in sync
+  await prisma.timetable.updateMany({
+    where: {
+      lessonPlanId: id,
+    },
+    data: {
+      title: lesson.title,
 
-  return lessonPlan;
+      day: lesson.day,
+
+      startTime: lesson.start_time,
+
+      duration: lesson.duration,
+
+      room: lesson.room,
+    },
+  });
+
+  return lesson;
 };
 
-const deleteLessonPlan = async (facultyId, id) => {
-  const existing = await prisma.lessonPlan.findFirst({
-    where: { id, faculty_id: facultyId },
-  });
-
-  if (!existing) throw new Error("Lesson plan not found");
-
+const deleteLesson = async (id) => {
+  // Remove timetable entry first
   await prisma.timetable.deleteMany({
-    where: { lessonPlanId: id },
+    where: {
+      lessonPlanId: id,
+    },
   });
 
-  await prisma.lessonPlan.delete({
-    where: { id },
+  // Delete lesson
+  return prisma.lessonPlan.delete({
+    where: {
+      id,
+    },
   });
 };
 
 module.exports = {
+  createLesson,
   getLessonPlans,
-  createLessonPlan,
-  updateLessonPlan,
-  deleteLessonPlan,
+  getLessonById,
+  updateLesson,
+  deleteLesson,
 };

@@ -10,6 +10,7 @@ const questionPaperRoutes = require("./routes/questionPaper.routes");
 const uploadRoutes = require("./routes/upload.routes");
 const mcqRoutes = require("./routes/mcq.routes");
 const authRoutes = require("./routes/auth.routes");
+const lessonPlanRoutes = require("./routes/lessonPlan.routes");
 const PORT = process.env.PORT || 8000;
 app.use("/api/auth", authRoutes);
 app.use("/api/question-paper", questionPaperRoutes);
@@ -23,6 +24,7 @@ app.use("/api/exams", examRoutes);
 app.use("/api/subjects", subjectRoutes);
 app.use("/api/student", studentRoutes);
 app.use("/api/mcq", mcqRoutes);
+app.use("/api/lesson-plans", lessonPlanRoutes);
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
