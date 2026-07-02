@@ -1,7 +1,9 @@
 const prisma = require("../config/prisma");
 
+// ==========================
+// Create Lesson
+// ==========================
 const createLesson = async (data) => {
-  // Check subject exists
   const subject = await prisma.subject.findUnique({
     where: {
       id: data.subject_id,
@@ -12,103 +14,113 @@ const createLesson = async (data) => {
     throw new Error("Subject not found");
   }
 
-  // Create lesson plan
   const lesson = await prisma.lessonPlan.create({
     data: {
       title: data.title,
       topic: data.topic,
+
       subject_id: data.subject_id,
       faculty_id: data.facultyId,
 
       lesson_date: new Date(data.lesson_date),
 
       day: data.day,
-      start_time: data.start_time,
-      duration: Number(data.duration),
+start_time: data.start_time,
 
-      room: data.room,
+      duration: data.duration,
 
-      weeks: Number(data.weeks || 1),
+      room: data.room || null,
+
       sessions: Number(data.sessions || 1),
 
-      objectives: data.objectives || [],
-      outcomes: data.outcomes || [],
+      weeks: Number(data.weeks || 1),
 
-      notes: data.notes || "",
+      objectives: data.objectives || "",
+
+      outcomes: data.outcomes || null,
+
+      notes: data.notes || null,
+
+     
 
       status: data.status || "active",
     },
-  });
 
-  // Automatically create timetable entry
-  await prisma.timetable.create({
-    data: {
-      title: lesson.title,
-
-      subjectId: lesson.subject_id,
-
-      facultyId: lesson.faculty_id,
-
-      day: lesson.day,
-
-      startTime: lesson.start_time,
-
-      duration: lesson.duration,
-
-      room: lesson.room,
-
-      lessonPlanId: lesson.id,
-
-      type: "lesson",
+    include: {
+      Subject: true,
+      User: true,
     },
   });
 
   return lesson;
 };
 
+// ==========================
+// Get All Lessons
+// ==========================
 const getLessonPlans = async (facultyId) => {
   return prisma.lessonPlan.findMany({
     where: {
       faculty_id: facultyId,
     },
+
     include: {
       Subject: true,
+      User: true,
     },
+
     orderBy: {
-      lesson_date: "asc",
+      lesson_date: "desc",
     },
   });
 };
 
+// ==========================
+// Get Lesson By ID
+// ==========================
 const getLessonById = async (id) => {
   return prisma.lessonPlan.findUnique({
     where: {
       id,
     },
+
     include: {
       Subject: true,
+      User: true,
     },
   });
 };
 
+// ==========================
+// Update Lesson
+// ==========================
 const updateLesson = async (id, data) => {
-  const lesson = await prisma.lessonPlan.update({
+  return prisma.lessonPlan.update({
     where: {
       id,
     },
+
     data: {
       title: data.title,
       topic: data.topic,
+
+      
 
       lesson_date: new Date(data.lesson_date),
 
       day: data.day,
 
-      start_time: data.start_time,
+      start_time: new Date(
+        `1970-01-01T${data.start_time}:00`
+      ),
 
-      duration: Number(data.duration),
+      duration: data.duration,
 
       room: data.room,
+
+      sessions: Number(data.sessions || 1),
+
+      weeks: Number(data.weeks || 1),
 
       objectives: data.objectives,
 
@@ -119,37 +131,12 @@ const updateLesson = async (id, data) => {
       status: data.status,
     },
   });
-
-  // Keep timetable in sync
-  await prisma.timetable.updateMany({
-    where: {
-      lessonPlanId: id,
-    },
-    data: {
-      title: lesson.title,
-
-      day: lesson.day,
-
-      startTime: lesson.start_time,
-
-      duration: lesson.duration,
-
-      room: lesson.room,
-    },
-  });
-
-  return lesson;
 };
 
+// ==========================
+// Delete Lesson
+// ==========================
 const deleteLesson = async (id) => {
-  // Remove timetable entry first
-  await prisma.timetable.deleteMany({
-    where: {
-      lessonPlanId: id,
-    },
-  });
-
-  // Delete lesson
   return prisma.lessonPlan.delete({
     where: {
       id,

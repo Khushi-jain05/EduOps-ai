@@ -9,7 +9,7 @@ import LessonSearch from "../../components/faculty/lessonPlan/LessonSearch";
 import LessonGrid from "../../components/faculty/lessonPlan/LessonGrid";
 import GenerateLessonModal from "../../components/faculty/lessonPlan/GenerateLessonModal";
 
-// import { getLessonPlans } from "../../services/lessonPlan.service";
+import { getLessonPlans } from "../../services/lessonPlan.service";
 
 export default function LessonPlans() {
   const [plans, setPlans] = useState([]);
@@ -136,12 +136,10 @@ export default function LessonPlans() {
       </div>
 
       <GenerateLessonModal
-        open={openModal}
-        onClose={() =>
-          setOpenModal(false)
-        }
-        onSuccess={loadPlans}
-      />
+  open={openModal}
+  onClose={() => setOpenModal(false)}
+  onSuccess={loadPlans}
+/>
     </div>
   );
 }

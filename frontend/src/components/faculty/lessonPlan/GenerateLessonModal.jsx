@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 
 import { getSubjects } from "../../../services/subject.service";
 import { getUnitsBySubject } from "../../../services/unit.service";
+import { createLessonPlan } from "../../../services/lessonPlan.service";
 
 export default function GenerateLessonModal({
   open,
   onClose,
+  onSuccess
 }) {
   const [subjects, setSubjects] = useState([]);
 
@@ -60,6 +62,63 @@ export default function GenerateLessonModal({
       console.error(err);
     }
   };
+  const handleSave = async () => {
+  try {
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    await createLessonPlan({
+      title: form.title,
+      topic: form.topic,
+
+      subject_id: form.subject,
+
+      faculty_id: user.id,
+
+      lesson_date: form.lessonDate,
+
+      day: new Date(form.lessonDate).toLocaleDateString(
+        "en-US",
+        {
+          weekday: "long",
+        }
+      ),
+
+      start_time: form.startTime,
+
+      duration: 60,
+
+      room: form.room,
+
+      sessions: 1,
+
+      weeks: Number(form.week) || 1,
+
+      objectives: form.objectives
+        ? form.objectives.split("\n")
+        : [],
+
+      outcomes: [],
+
+      notes: form.description,
+    });
+
+    alert("Lesson Plan Created Successfully");
+
+    if (onSuccess) {
+      await onSuccess();
+    }
+
+    onClose();
+  } catch (err) {
+    console.error(err);
+
+    alert(
+      err.response?.data?.message ||
+        "Unable to save lesson."
+    );
+  }
+};
+  
 
   if (!open) return null;
 
@@ -285,17 +344,30 @@ export default function GenerateLessonModal({
 
             <label>Lesson Date</label>
 
-            <input
-              type="date"
-              style={input}
-            />
-
+           <input
+type="date"
+style={input}
+value={form.lessonDate}
+onChange={(e)=>
+setForm({
+...form,
+lessonDate:e.target.value
+})
+}
+/>
             <label>Start Time</label>
 
             <input
-              type="time"
-              style={input}
-            />
+type="time"
+style={input}
+value={form.startTime}
+onChange={(e)=>
+setForm({
+...form,
+startTime:e.target.value
+})
+}
+/>
 
             <label>End Time</label>
 
@@ -306,14 +378,30 @@ export default function GenerateLessonModal({
 
             <label>Room</label>
 
-            <input style={input} />
+            <input
+style={input}
+value={form.room}
+onChange={(e)=>
+setForm({
+...form,
+room:e.target.value
+})
+}
+/>
 
             <label>Homework</label>
 
             <textarea
-              rows={3}
-              style={input}
-            />
+rows={3}
+style={input}
+value={form.homework}
+onChange={(e)=>
+setForm({
+...form,
+homework:e.target.value
+})
+}
+/>
           </div>
         </div>
 
@@ -337,8 +425,10 @@ export default function GenerateLessonModal({
           >
             Cancel
           </button>
+          
 
           <button
+          onClick={handleSave}
             style={{
               background:
                 "#2563EB",

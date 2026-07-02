@@ -4,9 +4,9 @@ const auth = require("../middleware/auth.middleware");
 const {
   createLessonPlan,
   getLessonPlans,
+  getLessonPlanById,
   updateLessonPlan,
   deleteLessonPlan,
-  getLessonPlanById,
 } = require("../controllers/lessonPlan.controller");
 
 const router = express.Router();
