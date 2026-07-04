@@ -8,7 +8,7 @@ import TimetableGrid from "../../components/timetable/TimetableGrid";
 import TodaySchedule from "../../components/timetable/TodaySchedule";
 import WeeklyStats from "../../components/timetable/WeeklyStats";
 
-import { getStudentLectures } from "../../services/lecture.service";
+import { getTimetable } from "../../services/timetable.service";
 
 import "../../styles/timetable.css";
 
@@ -61,42 +61,24 @@ function dateKey(value) {
 }
 
 function getLessonDate(item) {
-  return (
-    item.lessonDate ||
-    item.eventDate ||
-    item.lesson_plans?.lesson_date
-  );
+  return item.lessonDate || item.eventDate;
 }
 
-function getUser() {
-  try {
-    return JSON.parse(localStorage.getItem("user"));
-  } catch {
-    return null;
-  }
+function minutesOf(duration) {
+  const n = Number(duration);
+  return Number.isFinite(n) && n > 0 ? n : 60;
 }
 
-function formatFaculty(lecture) {
-  return (
-    lecture.User?.username ||
-    lecture.Subject?.faculty ||
-    "Faculty"
-  );
-}
+function addMinutes(time, minutes) {
+  if (!time) return "";
 
-function minutesBetween(start, end) {
-  if (!start || !end) return 60;
+  const date = new Date(`1970-01-01T${time}:00`);
+  date.setMinutes(date.getMinutes() + minutes);
 
-  const startDate = new Date(`1970-01-01T${start}:00`);
-  const endDate = new Date(`1970-01-01T${end}:00`);
+  const hours = String(date.getHours()).padStart(2, "0");
+  const mins = String(date.getMinutes()).padStart(2, "0");
 
-  return Math.max(1, Math.round((endDate - startDate) / 60000));
-}
-
-function dayName(date) {
-  return new Date(`${date}T00:00:00`).toLocaleDateString("en-US", {
-    weekday: "long",
-  });
+  return `${hours}:${mins}`;
 }
 
 function formatTime(time) {
@@ -108,24 +90,26 @@ function formatTime(time) {
     : "";
 }
 
-function lectureToEvent(lecture) {
+function timetableRowToEvent(item) {
+  const duration = minutesOf(item.duration);
+  const lesson = item.lesson_plans;
+
   return {
-    id: lecture.id,
-    code: lecture.Subject?.code || lecture.Subject?.name || "Lecture",
-    subject: lecture.Subject?.name || "Lecture",
-    title: lecture.title,
-    faculty: formatFaculty(lecture),
-    room: lecture.classroom || lecture.meeting_link || "TBA",
-    meeting_link: lecture.meeting_link,
-    description: lecture.description,
-    day: dayName(lecture.date),
-    lessonDate: lecture.date,
-    startTime: lecture.start_time,
-    endTime: lecture.end_time,
-    duration: minutesBetween(lecture.start_time, lecture.end_time),
-    category: lecture.Subject?.name || "Lecture",
-    source: "lecture",
-    lecture,
+    id: item.id,
+    code: item.code || item.subject,
+    subject: item.subject,
+    title: lesson?.title || item.subject,
+    faculty: item.faculty,
+    room: item.room || "TBA",
+    description: lesson?.description || "",
+    day: item.day,
+    lessonDate: item.lessonDate,
+    startTime: item.startTime,
+    endTime: addMinutes(item.startTime, duration),
+    duration,
+    category: item.category,
+    source: item.source,
+    item,
   };
 }
 
@@ -165,23 +149,16 @@ const [selectedCategories, setSelectedCategories] = useState([]);
   useEffect(() => {
     let active = true;
 
-    const fetchLectures = async () => {
+    const fetchTimetable = async () => {
       try {
-        const user = getUser();
-
-        if (!user?.id) {
-          setClasses([]);
-          return;
-        }
-
-        const data = await getStudentLectures(user.id);
-        const events = Array.isArray(data) ? data.map(lectureToEvent) : [];
+        const data = await getTimetable();
+        const events = Array.isArray(data) ? data.map(timetableRowToEvent) : [];
 
         if (active) {
           setClasses(events);
         }
       } catch (error) {
-        console.error("Failed to fetch lectures", error);
+        console.error("Failed to fetch timetable", error);
       } finally {
         if (active) {
           setLoading(false);
@@ -189,10 +166,10 @@ const [selectedCategories, setSelectedCategories] = useState([]);
       }
     };
 
-    fetchLectures();
+    fetchTimetable();
 
-    const onFocus = () => fetchLectures();
-    const interval = window.setInterval(fetchLectures, 15000);
+    const onFocus = () => fetchTimetable();
+    const interval = window.setInterval(fetchTimetable, 15000);
 
     window.addEventListener("focus", onFocus);
 
@@ -364,7 +341,7 @@ const [selectedCategories, setSelectedCategories] = useState([]);
                   <strong>{selectedLecture.faculty}</strong>
 
                   <span>Date</span>
-                  <strong>{dateKey(getLessonDate(selectedLecture))}</strong>
+                  <strong>{dateKey(getLessonDate(selectedLecture)) || "Recurring"}</strong>
 
                   <span>Time</span>
                   <strong>
@@ -378,16 +355,6 @@ const [selectedCategories, setSelectedCategories] = useState([]);
 
                 {selectedLecture.description && (
                   <p>{selectedLecture.description}</p>
-                )}
-
-                {selectedLecture.meeting_link && (
-                  <a
-                    href={selectedLecture.meeting_link}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Open meeting link
-                  </a>
                 )}
 
                 <button onClick={() => setSelectedLecture(null)}>

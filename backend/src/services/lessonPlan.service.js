@@ -104,7 +104,11 @@ const syncStudentTimetables = async (lesson, subject) => {
   });
 };
 
-const notifyStudentsForLesson = async (lesson, subject) => {
+const notifyStudentsForLesson = async (
+  lesson,
+  subject,
+  { title = "New lesson plan added", verb = "scheduled" } = {}
+) => {
   const students = await getMatchingStudents(subject);
 
   if (students.length === 0) {
@@ -114,8 +118,8 @@ const notifyStudentsForLesson = async (lesson, subject) => {
   await prisma.notifications.createMany({
     data: students.map((student) => ({
       user_id: student.id,
-      title: "New lesson plan added",
-      message: `${subject.name}: ${lesson.title} has been scheduled for ${lesson.day || "the selected day"} at ${toTimeLabel(lesson.start_time)}.`,
+      title,
+      message: `${subject.name}: ${lesson.title} has been ${verb} for ${lesson.day || "the selected day"} at ${toTimeLabel(lesson.start_time)}.`,
       type: "lesson_plan",
       reference_id: lesson.id,
     })),
@@ -251,6 +255,10 @@ const updateLesson = async (id, data, facultyId) => {
   });
 
   await syncStudentTimetables(lesson, lesson.Subject);
+  await notifyStudentsForLesson(lesson, lesson.Subject, {
+    title: "Lesson plan updated",
+    verb: "updated",
+  });
 
   return lesson;
 };

@@ -112,6 +112,8 @@ export default function GenerateLessonModal({
 
       start_time: form.startTime,
 
+      end_time: form.endTime,
+
       duration,
 
       room: form.room,

@@ -95,8 +95,6 @@ export default function Sidebar() {
       text: "Assignments",
       path: "/faculty/assignments",
     },
-    
-    
   ];
 
   const accountMenu = [
