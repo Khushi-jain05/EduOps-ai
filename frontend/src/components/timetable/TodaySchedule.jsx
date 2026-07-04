@@ -29,6 +29,19 @@ const getLessonDate = (item) =>
   item.eventDate ||
   item.lesson_plans?.lesson_date;
 
+const formatTime = (time) =>
+  time
+    ? new Date(`1970-01-01T${time}:00`).toLocaleTimeString([], {
+        hour: "numeric",
+        minute: "2-digit",
+      })
+    : "";
+
+const formatDuration = (minutes) =>
+  Number(minutes) >= 60 && Number(minutes) % 60 === 0
+    ? `${Number(minutes) / 60}h`
+    : `${minutes || 60} min`;
+
 export default function TodaySchedule({ timetableData = [], onViewAll = () => {} }) {
   const today = useMemo(() => {
     const d = new Date();
@@ -66,7 +79,7 @@ export default function TodaySchedule({ timetableData = [], onViewAll = () => {}
 
       {todayClasses.map((item, index) => (
         <div key={item.id || index} className="today-row">
-          <div className="today-time">{item.startTime}</div>
+          <div className="today-time">{formatTime(item.startTime)}</div>
 
           <div className="subject-icon" style={{ background: getColor(item.category) }}>
             <BookOpen size={18} />
@@ -79,7 +92,7 @@ export default function TodaySchedule({ timetableData = [], onViewAll = () => {}
 
           <div className="duration">
             <Clock3 size={14} />
-            {item.duration ? `${item.duration}h` : '1h'}
+            {formatDuration(item.duration)}
           </div>
         </div>
       ))}

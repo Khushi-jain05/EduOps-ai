@@ -10,6 +10,7 @@ export default function TimetableHeader({
   onFilter = () => {},
   onExport = () => {},
   onAddEvent = () => {},
+  showAddEvent = false,
 }) {
   return (
     <div className="tt-header">
@@ -50,10 +51,12 @@ export default function TimetableHeader({
           Export
         </button>
 
-        <button className="primary" onClick={onAddEvent}>
-          <Plus size={16} />
-          Add event
-        </button>
+        {showAddEvent && (
+          <button className="primary" onClick={onAddEvent}>
+            <Plus size={16} />
+            Add event
+          </button>
+        )}
       </div>
     </div>
   );

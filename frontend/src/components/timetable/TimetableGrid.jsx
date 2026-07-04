@@ -3,6 +3,7 @@ import TimetableCard from "./TimetableCard";
 export default function TimetableGrid({
   timetable = [],
   weekStart,
+  onEventClick = () => {},
 }) {
 
   const days = [
@@ -73,6 +74,22 @@ export default function TimetableGrid({
     item.eventDate ||
     item.lesson_plans?.lesson_date;
 
+  const hours = Array.from(
+    new Set([
+      ...Array.from({ length: 11 }, (_, index) => index + 8),
+      ...timetable
+        .map((item) => parseInt(item.startTime?.split(":")[0], 10))
+        .filter((hour) => Number.isInteger(hour)),
+    ])
+  ).sort((a, b) => a - b);
+
+  const formatHour = (hour) =>
+    new Date(`1970-01-01T${String(hour).padStart(2, "0")}:00:00`)
+      .toLocaleTimeString([], {
+        hour: "numeric",
+        minute: "2-digit",
+      });
+
   const cellDateKey = (dayIndex) => {
     const start = weekStart ? new Date(weekStart) : new Date();
     start.setHours(0, 0, 0, 0);
@@ -142,13 +159,13 @@ export default function TimetableGrid({
         ))}
       </div>
 
-      {[8, 9, 10, 11, 12, 13, 14, 15, 16].map(
+      {hours.map(
         (hour) => (
           <div
             key={hour}
             className="tt-row"
           >
-            <div>{hour}:00</div>
+            <div>{formatHour(hour)}</div>
 
             {days.map((day, dayIndex) => {
 
@@ -156,7 +173,7 @@ export default function TimetableGrid({
   const lessonDate = getLessonDate(item);
 
   const dayMatch =
-    item.source === "lesson_plan" && lessonDate
+    lessonDate
       ? dateKey(lessonDate) === cellDateKey(dayIndex)
       : normalizeDay(item.day) ===
         normalizeDay(dayMap[day]);
@@ -177,6 +194,7 @@ export default function TimetableGrid({
                   {classItem ? (
 
                     <TimetableCard
+                      onClick={() => onEventClick(classItem)}
                       code={
                         classItem.code ||
                         classItem.subject

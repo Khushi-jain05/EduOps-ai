@@ -26,6 +26,7 @@ const profileRoutes = require("./routes/profile.routes");
 const lessonPlanRoutes = require("./routes/lessonPlan.routes");
 const facultyRoutes = require("./routes/faculty.routes");
 const notificationRoutes = require("./routes/notification.routes");
+const lectureRoutes = require("./routes/lecture.routes");
 
 app.use("/api/auth", authRoutes);
 app.use("/api/student", studentRoutes);
@@ -34,6 +35,8 @@ app.use("/api/support-ai", supportRoutes);
 app.use("/api/timetable", timetableRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/lesson-plans", lessonPlanRoutes);
+app.use("/api/lectures", lectureRoutes);
+app.use("/lectures", lectureRoutes);
 app.use("/api/faculty", facultyRoutes);
 app.use("/api/notifications", notificationRoutes);
 

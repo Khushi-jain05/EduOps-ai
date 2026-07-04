@@ -2,14 +2,13 @@ import { useEffect, useState, useMemo } from "react";
 
 import Sidebar from "../../components/layout/Sidebar";
 import Navbar from "../../components/layout/Navbar";
-import AddEventModal from "../../components/timetable/AddEventModal";
 import TimetableHeader from "../../components/timetable/TimetableHeader";
 import TimetableControls from "../../components/timetable/TimetableControls";
 import TimetableGrid from "../../components/timetable/TimetableGrid";
 import TodaySchedule from "../../components/timetable/TodaySchedule";
 import WeeklyStats from "../../components/timetable/WeeklyStats";
 
-import { getTimetable } from "../../services/timetable.service";
+import { getStudentLectures } from "../../services/lecture.service";
 
 import "../../styles/timetable.css";
 
@@ -69,6 +68,67 @@ function getLessonDate(item) {
   );
 }
 
+function getUser() {
+  try {
+    return JSON.parse(localStorage.getItem("user"));
+  } catch {
+    return null;
+  }
+}
+
+function formatFaculty(lecture) {
+  return (
+    lecture.User?.username ||
+    lecture.Subject?.faculty ||
+    "Faculty"
+  );
+}
+
+function minutesBetween(start, end) {
+  if (!start || !end) return 60;
+
+  const startDate = new Date(`1970-01-01T${start}:00`);
+  const endDate = new Date(`1970-01-01T${end}:00`);
+
+  return Math.max(1, Math.round((endDate - startDate) / 60000));
+}
+
+function dayName(date) {
+  return new Date(`${date}T00:00:00`).toLocaleDateString("en-US", {
+    weekday: "long",
+  });
+}
+
+function formatTime(time) {
+  return time
+    ? new Date(`1970-01-01T${time}:00`).toLocaleTimeString([], {
+        hour: "numeric",
+        minute: "2-digit",
+      })
+    : "";
+}
+
+function lectureToEvent(lecture) {
+  return {
+    id: lecture.id,
+    code: lecture.Subject?.code || lecture.Subject?.name || "Lecture",
+    subject: lecture.Subject?.name || "Lecture",
+    title: lecture.title,
+    faculty: formatFaculty(lecture),
+    room: lecture.classroom || lecture.meeting_link || "TBA",
+    meeting_link: lecture.meeting_link,
+    description: lecture.description,
+    day: dayName(lecture.date),
+    lessonDate: lecture.date,
+    startTime: lecture.start_time,
+    endTime: lecture.end_time,
+    duration: minutesBetween(lecture.start_time, lecture.end_time),
+    category: lecture.Subject?.name || "Lecture",
+    source: "lecture",
+    lecture,
+  };
+}
+
 function isInSelectedWeek(value, weekStart) {
   if (!value) return true;
 
@@ -88,9 +148,9 @@ export default function Timetable() {
 
   const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedLecture, setSelectedLecture] = useState(null);
 
   const [viewMode, setViewMode] = useState("week");
-  const [showAddModal, setShowAddModal] = useState(false);
 const [selectedCategories, setSelectedCategories] = useState([]);
   const [weekStart, setWeekStart] = useState(() => {
     const d = new Date();
@@ -103,19 +163,44 @@ const [selectedCategories, setSelectedCategories] = useState([]);
   });
 
   useEffect(() => {
-    const fetchTimetable = async () => {
+    let active = true;
+
+    const fetchLectures = async () => {
       try {
-        const data = await getTimetable();
-        console.log("Timetable data:", data);
-        setClasses(data || []);
+        const user = getUser();
+
+        if (!user?.id) {
+          setClasses([]);
+          return;
+        }
+
+        const data = await getStudentLectures(user.id);
+        const events = Array.isArray(data) ? data.map(lectureToEvent) : [];
+
+        if (active) {
+          setClasses(events);
+        }
       } catch (error) {
-        console.error("Failed to fetch timetable", error);
+        console.error("Failed to fetch lectures", error);
       } finally {
-        setLoading(false);
+        if (active) {
+          setLoading(false);
+        }
       }
     };
 
-    fetchTimetable();
+    fetchLectures();
+
+    const onFocus = () => fetchLectures();
+    const interval = window.setInterval(fetchLectures, 15000);
+
+    window.addEventListener("focus", onFocus);
+
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
+    };
   }, []);
 
   const weekLabel = useMemo(() => formatWeekLabel(weekStart), [weekStart]);
@@ -161,6 +246,7 @@ const [selectedCategories, setSelectedCategories] = useState([]);
       room: c.room,
       day: c.day,
       startTime: c.startTime,
+      endTime: c.endTime,
       duration: c.duration,
       category: c.category,
     }));
@@ -181,10 +267,6 @@ const [selectedCategories, setSelectedCategories] = useState([]);
     URL.revokeObjectURL(url);
   };
 
-  const onAddEvent = () => {
-  setShowAddModal(true);
-};
-
   const todayFull = useMemo(() => {
     const d = new Date();
     const map = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -195,10 +277,6 @@ const [selectedCategories, setSelectedCategories] = useState([]);
   let result = [...classes];
 
   result = result.filter((item) => {
-    if (item.source !== "lesson_plan") {
-      return true;
-    }
-
     const lessonDate = getLessonDate(item);
 
     if (!lessonDate) {
@@ -245,7 +323,6 @@ const [selectedCategories, setSelectedCategories] = useState([]);
             setViewMode={setViewMode}
             onFilter={onFilter}
             onExport={onExport}
-            onAddEvent={onAddEvent}
           />
 
           <TimetableControls prevWeek={prevWeek} nextWeek={nextWeek} weekLabel={weekLabel} />
@@ -256,6 +333,7 @@ const [selectedCategories, setSelectedCategories] = useState([]);
             <TimetableGrid
               timetable={filtered}
               weekStart={weekStart}
+              onEventClick={setSelectedLecture}
             />
           )}
 
@@ -264,14 +342,60 @@ const [selectedCategories, setSelectedCategories] = useState([]);
 
             <WeeklyStats timetableData={classes} />
           </div>
-          <AddEventModal
-  open={showAddModal}
-  onClose={() => setShowAddModal(false)}
-  onSuccess={async () => {
-    const data = await getTimetable();
-    setClasses(data || []);
-  }}
-/>
+          {selectedLecture && (
+            <div
+              className="modal-overlay"
+              onClick={() => setSelectedLecture(null)}
+            >
+              <div
+                className="lecture-detail-card"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <div>
+                  <span className="tt-label">LECTURE</span>
+                  <h2>{selectedLecture.title}</h2>
+                </div>
+
+                <div className="lecture-detail-grid">
+                  <span>Subject</span>
+                  <strong>{selectedLecture.subject}</strong>
+
+                  <span>Faculty</span>
+                  <strong>{selectedLecture.faculty}</strong>
+
+                  <span>Date</span>
+                  <strong>{dateKey(getLessonDate(selectedLecture))}</strong>
+
+                  <span>Time</span>
+                  <strong>
+                    {formatTime(selectedLecture.startTime)} -{" "}
+                    {formatTime(selectedLecture.endTime)}
+                  </strong>
+
+                  <span>Classroom</span>
+                  <strong>{selectedLecture.room || "TBA"}</strong>
+                </div>
+
+                {selectedLecture.description && (
+                  <p>{selectedLecture.description}</p>
+                )}
+
+                {selectedLecture.meeting_link && (
+                  <a
+                    href={selectedLecture.meeting_link}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Open meeting link
+                  </a>
+                )}
+
+                <button onClick={() => setSelectedLecture(null)}>
+                  Close
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -7,11 +7,20 @@ export default function TimetableCard({
   subject,
   room,
   faculty,
-  color
+  color,
+  onClick = () => {},
 }) {
   return (
     <div
       className="timetable-card"
+      role="button"
+      tabIndex={0}
+      onClick={onClick}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          onClick();
+        }
+      }}
       style={{
         background: color.bg,
         borderColor: color.border,

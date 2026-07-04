@@ -17,10 +17,10 @@ import {
 } from "../../services/lessonPlan.service";
 
 const toDateInput = (value) =>
-  value ? new Date(value).toISOString().slice(0, 10) : "";
+  value ? value.toString().slice(0, 10) : "";
 
 const toTimeInput = (value) =>
-  value ? new Date(value).toISOString().slice(11, 16) : "";
+  value ? value.toString().slice(11, 16) : "";
 
 export default function LessonDetails() {
   const { id } = useParams();
@@ -51,6 +51,7 @@ export default function LessonDetails() {
     if (lesson) {
       setForm({
         title: lesson.title || "",
+        subject_id: lesson.subject_id || "",
         topic: lesson.topic || "",
         description: lesson.description || "",
         objectives: lesson.objectives || "",
@@ -60,6 +61,7 @@ export default function LessonDetails() {
         status: lesson.status || "active",
         lesson_date: toDateInput(lesson.lesson_date),
         start_time: toTimeInput(lesson.start_time),
+        end_time: toTimeInput(lesson.end_time),
         day: lesson.day || "",
         sessions: lesson.sessions || 1,
         weeks: lesson.weeks || 1,
@@ -319,9 +321,7 @@ export default function LessonDetails() {
                   }
                   type="date"
                   value={form.lesson_date}
-                  viewValue={new Date(
-                    lesson.lesson_date
-                  ).toLocaleDateString()}
+                  viewValue={toDateInput(lesson.lesson_date)}
                   onChange={(value) =>
                     updateForm("lesson_date", value)
                   }
@@ -346,22 +346,22 @@ export default function LessonDetails() {
 
                 <EditableField
                   editing={editing}
-                  label="Room"
-                  value={form.room}
-                  viewValue={fieldValue(lesson.room)}
-                  onChange={(value) => updateForm("room", value)}
+                  label="End Time"
+                  type="time"
+                  value={form.end_time}
+                  viewValue={toTimeInput(lesson.end_time)}
+                  onChange={(value) =>
+                    updateForm("end_time", value)
+                  }
                   style={inputStyle}
                 />
 
                 <EditableField
                   editing={editing}
-                  label="Duration"
-                  type="number"
-                  value={form.duration}
-                  viewValue={`${fieldValue(lesson.duration)} mins`}
-                  onChange={(value) =>
-                    updateForm("duration", value)
-                  }
+                  label="Room"
+                  value={form.room}
+                  viewValue={fieldValue(lesson.room)}
+                  onChange={(value) => updateForm("room", value)}
                   style={inputStyle}
                 />
               </div>

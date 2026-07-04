@@ -24,6 +24,10 @@ export default function GenerateLessonModal({
     startTime: "",
     endTime: "",
     room: "",
+    meetingLink: "",
+    semester: "",
+    section: "",
+    branch: "",
     homework: "",
     resources: "",
   });
@@ -70,9 +74,10 @@ export default function GenerateLessonModal({
       !form.title ||
       !form.subject ||
       !form.lessonDate ||
-      !form.startTime
+      !form.startTime ||
+      !form.endTime
     ) {
-      alert("Please fill title, subject, date and start time.");
+      alert("Please fill title, subject, date, start time and end time.");
       return;
     }
 
@@ -110,6 +115,14 @@ export default function GenerateLessonModal({
       duration,
 
       room: form.room,
+
+      meeting_link: form.meetingLink,
+
+      semester: form.semester,
+
+      section: form.section,
+
+      branch: form.branch,
 
       sessions: 1,
 
@@ -419,6 +432,73 @@ room:e.target.value
 })
 }
 />
+
+            <label>Meeting Link</label>
+
+            <input
+style={input}
+value={form.meetingLink}
+onChange={(e)=>
+setForm({
+...form,
+meetingLink:e.target.value
+})
+}
+/>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns:
+                  "1fr 1fr 1fr",
+                gap: "12px",
+              }}
+            >
+              <div>
+                <label>Semester</label>
+
+                <input
+style={input}
+value={form.semester}
+onChange={(e)=>
+setForm({
+...form,
+semester:e.target.value
+})
+}
+/>
+              </div>
+
+              <div>
+                <label>Section</label>
+
+                <input
+style={input}
+value={form.section}
+onChange={(e)=>
+setForm({
+...form,
+section:e.target.value
+})
+}
+/>
+              </div>
+
+              <div>
+                <label>Branch</label>
+
+                <input
+style={input}
+value={form.branch}
+onChange={(e)=>
+setForm({
+...form,
+branch:e.target.value
+})
+}
+/>
+              </div>
+            </div>
 
             <label>Homework</label>
 
