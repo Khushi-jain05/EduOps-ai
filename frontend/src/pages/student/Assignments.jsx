@@ -15,9 +15,17 @@ import {
   Award,
 } from "lucide-react";
 
-import { getAssignments } from "../../services/assignment.service";
+import { getStudentAssignments, submitAssignment } from "../../services/assignment.service";
 
 import "../../styles/assignments.css";
+
+function getUser() {
+  try {
+    return JSON.parse(localStorage.getItem("user"));
+  } catch {
+    return null;
+  }
+}
 
 export default function Assignments() {
   const navigate = useNavigate();
@@ -31,19 +39,16 @@ const [selectedFaculty, setSelectedFaculty] = useState("All");
   const [selectedStatus, setSelectedStatus] =
     useState("All");
 
-  useEffect(() => {
-    loadAssignments();
-  }, []);
-
   const loadAssignments = async () => {
     try {
-      const data =
-        await getAssignments();
+      const user = getUser();
 
-      console.log(
-        "Assignments:",
-        data
-      );
+      if (!user?.id) {
+        setAssignments([]);
+        return;
+      }
+
+      const data = await getStudentAssignments(user.id);
 
       setAssignments(data || []);
     } catch (error) {
@@ -53,6 +58,26 @@ const [selectedFaculty, setSelectedFaculty] = useState("All");
       );
     } finally {
       setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadAssignments();
+  }, []);
+
+  const handleSubmit = async (item) => {
+    const link = window.prompt(
+      "Paste a link to your submission (Drive, GitHub, etc.):"
+    );
+
+    if (!link) return;
+
+    try {
+      await submitAssignment(item.assignment_id, { file_url: link });
+      await loadAssignments();
+    } catch (error) {
+      console.error("Failed to submit assignment", error);
+      alert(error.response?.data?.message || "Failed to submit assignment");
     }
   };
 
@@ -94,7 +119,7 @@ const [selectedFaculty, setSelectedFaculty] = useState("All");
           Subject: item.subject,
           Faculty: item.faculty,
           Status: item.status,
-          DueDate: item.dueDate,
+          DueDate: item.due_date,
         })
       );
 
@@ -429,7 +454,7 @@ const [selectedFaculty, setSelectedFaculty] = useState("All");
                 ) => (
                   <div
                     key={
-                      item.id
+                      item.assignment_id
                     }
                     className={`assignment-card ${getCardClass(
                       item.subject
@@ -446,7 +471,7 @@ const [selectedFaculty, setSelectedFaculty] = useState("All");
                     <div>
                       <span className="course-code">
                         {
-                          item.subject
+                          item.subject_code || item.subject
                         }
                       </span>
 
@@ -458,9 +483,9 @@ const [selectedFaculty, setSelectedFaculty] = useState("All");
 
                       <div className="due-info">
                         Due:{" "}
-                        {item.dueDate
+                        {item.due_date
                           ? new Date(
-                              item.dueDate
+                              item.due_date
                             ).toLocaleDateString()
                           : "N/A"}
                       </div>
@@ -470,14 +495,23 @@ const [selectedFaculty, setSelectedFaculty] = useState("All");
                         {item.faculty ||
                           "Not Assigned"}
                       </div>
+
+                      {item.status === "Graded" && (
+                        <div className="faculty-text">
+                          Score: {item.score}/{item.total_marks}
+                        </div>
+                      )}
                     </div>
 
                     <div className="assignment-footer">
-                      <button className="open-link">
-                        Open
-                        assignment
-                        ↗
-                      </button>
+                      {(item.status === "Pending" || item.status === "Overdue") && (
+                        <button
+                          className="open-link"
+                          onClick={() => handleSubmit(item)}
+                        >
+                          Submit ↗
+                        </button>
+                      )}
                     </div>
                   </div>
                 )

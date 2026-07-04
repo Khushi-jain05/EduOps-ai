@@ -27,6 +27,7 @@ model User {
   branch          String?
   section         String?
   assignments     Assignment[]
+  assignment_submissions assignment_submissions[]
   attendance      Attendance[]
   exam            Exam[]
   timetable       Timetable[]
@@ -47,19 +48,39 @@ model Attendance {
 }
 
 model Assignment {
-  id          String   @id @default(dbgenerated("gen_random_uuid()"))
-  title       String
-  subject     String
-  dueDate     DateTime
-  status      String
-  userId      String
-  createdAt   DateTime @default(now())
-  description String?
-  faculty     String?
-  fileUrl     String?
-  score       Int?
-  totalMarks  Int?
-  user        User     @relation(fields: [userId], references: [id])
+  id                     String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title                  String
+  description            String?
+  subject_id             String
+  faculty_id             String
+  due_date               DateTime
+  total_marks            Int                      @default(100)
+  status                 String                   @default("active")
+  semester               String?                  @db.VarChar(20)
+  section                String?                  @db.VarChar(50)
+  branch                 String?                  @db.VarChar(100)
+  created_at             DateTime                 @default(now())
+  updated_at             DateTime                 @updatedAt
+  Subject                Subject                  @relation(fields: [subject_id], references: [id], onDelete: Cascade)
+  User                   User                     @relation(fields: [faculty_id], references: [id], onDelete: Cascade)
+  assignment_submissions assignment_submissions[]
+}
+
+model assignment_submissions {
+  id            String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  assignment_id String     @db.Uuid
+  student_id    String
+  status        String     @default("pending")
+  file_url      String?
+  submitted_at  DateTime?
+  score         Int?
+  feedback      String?
+  created_at    DateTime   @default(now())
+  updated_at    DateTime   @updatedAt
+  Assignment    Assignment @relation(fields: [assignment_id], references: [id], onDelete: Cascade)
+  User          User       @relation(fields: [student_id], references: [id], onDelete: Cascade)
+
+  @@unique([assignment_id, student_id])
 }
 
 model Timetable {
@@ -125,6 +146,7 @@ model Subject {
   icon            String?
   semester        String?           @db.VarChar(20)
   program         String?           @db.VarChar(100)
+  assignments     Assignment[]
   lesson_plans    lesson_plans[]
   lectures        Lecture[]
   mcq_sets        mcq_sets[]

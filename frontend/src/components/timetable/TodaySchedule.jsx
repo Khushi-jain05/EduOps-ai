@@ -90,7 +90,7 @@ export default function TodaySchedule({ timetableData = [], onViewAll = () => {}
             <p>{item.faculty} · {item.room}</p>
           </div>
 
-          <div className="duration">
+          <div className="today-duration">
             <Clock3 size={14} />
             {formatDuration(item.duration)}
           </div>
