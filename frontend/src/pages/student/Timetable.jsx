@@ -48,20 +48,40 @@ function formatWeekLabel(startDate) {
 }
 
 function dateKey(value) {
-  return new Date(value).toISOString().slice(0, 10);
+  if (!value) return "";
+
+  if (typeof value === "string") {
+    return value.slice(0, 10);
+  }
+
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function getLessonDate(item) {
+  return (
+    item.lessonDate ||
+    item.eventDate ||
+    item.lesson_plans?.lesson_date
+  );
 }
 
 function isInSelectedWeek(value, weekStart) {
   if (!value) return true;
 
-  const current = new Date(value);
   const start = new Date(weekStart);
   const end = new Date(weekStart);
   end.setDate(start.getDate() + 6);
-  start.setHours(0, 0, 0, 0);
-  end.setHours(23, 59, 59, 999);
 
-  return current >= start && current <= end;
+  const currentKey = dateKey(value);
+
+  return (
+    currentKey >= dateKey(start) &&
+    currentKey <= dateKey(end)
+  );
 }
 
 export default function Timetable() {
@@ -179,7 +199,7 @@ const [selectedCategories, setSelectedCategories] = useState([]);
       return true;
     }
 
-    const lessonDate = item.lesson_plans?.lesson_date;
+    const lessonDate = getLessonDate(item);
 
     if (!lessonDate) {
       return true;

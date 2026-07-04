@@ -57,8 +57,21 @@ export default function TimetableGrid({
   const dateKey = (value) => {
     if (!value) return "";
 
-    return new Date(value).toISOString().slice(0, 10);
+    if (typeof value === "string") {
+      return value.slice(0, 10);
+    }
+
+    const year = value.getFullYear();
+    const month = String(value.getMonth() + 1).padStart(2, "0");
+    const day = String(value.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
   };
+
+  const getLessonDate = (item) =>
+    item.lessonDate ||
+    item.eventDate ||
+    item.lesson_plans?.lesson_date;
 
   const cellDateKey = (dayIndex) => {
     const start = weekStart ? new Date(weekStart) : new Date();
@@ -140,9 +153,7 @@ export default function TimetableGrid({
             {days.map((day, dayIndex) => {
 
               const classItem = timetable.find((item) => {
-  const lessonDate =
-    item.lessonDate ||
-    item.lesson_plans?.lesson_date;
+  const lessonDate = getLessonDate(item);
 
   const dayMatch =
     item.source === "lesson_plan" && lessonDate

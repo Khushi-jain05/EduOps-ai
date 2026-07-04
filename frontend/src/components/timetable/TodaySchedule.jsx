@@ -10,6 +10,25 @@ const getColor = (category) => {
   return "#fde7c7";
 };
 
+const dateKey = (value) => {
+  if (!value) return "";
+
+  if (typeof value === "string") {
+    return value.slice(0, 10);
+  }
+
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
+
+const getLessonDate = (item) =>
+  item.lessonDate ||
+  item.eventDate ||
+  item.lesson_plans?.lesson_date;
+
 export default function TodaySchedule({ timetableData = [], onViewAll = () => {} }) {
   const today = useMemo(() => {
     const d = new Date();
@@ -17,13 +36,15 @@ export default function TodaySchedule({ timetableData = [], onViewAll = () => {}
   }, []);
 
   const todayClasses = useMemo(() => {
-    const todayKey = new Date().toISOString().slice(0, 10);
+    const todayKey = dateKey(new Date());
 
     return (
       timetableData
         .filter((c) => {
-          if (c.source === "lesson_plan" && c.lesson_plans?.lesson_date) {
-            return c.lesson_plans.lesson_date.slice(0, 10) === todayKey;
+          const lessonDate = getLessonDate(c);
+
+          if (c.source === "lesson_plan" && lessonDate) {
+            return dateKey(lessonDate) === todayKey;
           }
 
           return (c.day || "").toString().toLowerCase().startsWith(today.slice(0, 3).toLowerCase()) || (c.day || "").toString().toLowerCase() === today.toLowerCase();
