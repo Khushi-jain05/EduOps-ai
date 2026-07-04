@@ -233,7 +233,10 @@ const [selectedCategories, setSelectedCategories] = useState([]);
           {loading ? (
             <p>Loading timetable...</p>
           ) : (
-            <TimetableGrid timetable={filtered} />
+            <TimetableGrid
+              timetable={filtered}
+              weekStart={weekStart}
+            />
           )}
 
           <div className="timetable-bottom">

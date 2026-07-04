@@ -1,5 +1,23 @@
 const prisma = require("../config/prisma");
 
+const toTimeLabel = (date) => {
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+
+  return `${hours}:${minutes}`;
+};
+
+const normalizeLessonPlanTime = (item) => {
+  if (!item.lesson_plans?.start_time) {
+    return item;
+  }
+
+  return {
+    ...item,
+    startTime: toTimeLabel(item.lesson_plans.start_time),
+  };
+};
+
 exports.getTimetable = async (req, res) => {
   try {
     const timetable = await prisma.timetable.findMany({
@@ -14,7 +32,7 @@ exports.getTimetable = async (req, res) => {
       },
     });
 
-    res.json(timetable);
+    res.json(timetable.map(normalizeLessonPlanTime));
   } catch (error) {
     console.log(error);
     res.status(500).json({

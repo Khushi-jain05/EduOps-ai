@@ -1,5 +1,23 @@
 const prisma = require("../config/prisma");
 
+const toTimeLabel = (date) => {
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+
+  return `${hours}:${minutes}`;
+};
+
+const normalizeLessonPlanTime = (item) => {
+  if (!item.lesson_plans?.start_time) {
+    return item;
+  }
+
+  return {
+    ...item,
+    startTime: toTimeLabel(item.lesson_plans.start_time),
+  };
+};
+
 exports.getDashboard = async (req, res) => {
   try {
 
@@ -78,7 +96,7 @@ exports.getDashboard = async (req, res) => {
       pendingAssignments:
         assignments.length,
 
-      timetable: visibleTimetable,
+      timetable: visibleTimetable.map(normalizeLessonPlanTime),
 
       assignments,
 

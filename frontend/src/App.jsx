@@ -16,6 +16,7 @@ import Assignments1 from "./pages/faculty/Assignments1";
 import Analytics from "./pages/faculty/Analytics";
 import LessonPlans from "./pages/faculty/LessonPlans";
 import LessonDetails from "./pages/faculty/LessonDetails";
+import Notifications from "./pages/Notifications";
 function App() {
   return (
     <BrowserRouter>
@@ -81,6 +82,22 @@ element={
   element={
     <ProtectedRoute allowedRoles={["student"]}>
       <SupportAI />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/notifications"
+  element={
+    <ProtectedRoute allowedRoles={["student"]}>
+      <Notifications />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/faculty/notifications"
+  element={
+    <ProtectedRoute allowedRoles={["faculty"]}>
+      <Notifications />
     </ProtectedRoute>
   }
 />

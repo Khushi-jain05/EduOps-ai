@@ -11,8 +11,12 @@ const toStartTime = (startTime) => {
   return new Date(`1970-01-01T${startTime}:00`);
 };
 
-const toTimeLabel = (date) =>
-  date.toISOString().substring(11, 16);
+const toTimeLabel = (date) => {
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+
+  return `${hours}:${minutes}`;
+};
 
 const findLessonForFaculty = async (id, facultyId) => {
   const lesson = await prisma.lesson_plans.findFirst({
@@ -53,7 +57,7 @@ const getMatchingStudents = async (subject) => {
     },
   });
 
-  if (students.length > 0 || subject.program || subject.semester) {
+  if (students.length > 0) {
     return students;
   }
 
@@ -118,6 +122,18 @@ const notifyStudentsForLesson = async (lesson, subject) => {
   });
 };
 
+const notifyFacultyForLesson = async (lesson, subject) => {
+  await prisma.notifications.create({
+    data: {
+      user_id: lesson.faculty_id,
+      title: "Lesson plan published",
+      message: `${lesson.title} is scheduled for ${subject.name} on ${lesson.day || "the selected day"} at ${toTimeLabel(lesson.start_time)}.`,
+      type: "lesson_plan",
+      reference_id: lesson.id,
+    },
+  });
+};
+
 const createLesson = async (data) => {
   const subject = await prisma.subject.findUnique({
     where: {
@@ -170,6 +186,7 @@ const createLesson = async (data) => {
 
   await syncStudentTimetables(lesson, subject);
   await notifyStudentsForLesson(lesson, subject);
+  await notifyFacultyForLesson(lesson, subject);
 
   return lesson;
 };

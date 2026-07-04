@@ -2,6 +2,7 @@ import TimetableCard from "./TimetableCard";
 
 export default function TimetableGrid({
   timetable = [],
+  weekStart,
 }) {
 
   const days = [
@@ -51,6 +52,26 @@ export default function TimetableGrid({
     Thu: "Thursday",
     Fri: "Friday",
     Sat: "Saturday",
+  };
+
+  const dateKey = (value) => {
+    if (!value) return "";
+
+    return new Date(value).toISOString().slice(0, 10);
+  };
+
+  const cellDateKey = (dayIndex) => {
+    const start = weekStart ? new Date(weekStart) : new Date();
+    start.setHours(0, 0, 0, 0);
+
+    if (!weekStart) {
+      const diff = (start.getDay() + 6) % 7;
+      start.setDate(start.getDate() - diff);
+    }
+
+    start.setDate(start.getDate() + dayIndex);
+
+    return dateKey(start);
   };
 
   const getColor = (category) => {
@@ -116,20 +137,22 @@ export default function TimetableGrid({
           >
             <div>{hour}:00</div>
 
-            {days.map((day) => {
+            {days.map((day, dayIndex) => {
 
               const classItem = timetable.find((item) => {
+  const lessonDate =
+    item.lessonDate ||
+    item.lesson_plans?.lesson_date;
+
   const dayMatch =
-    normalizeDay(item.day) ===
-    normalizeDay(dayMap[day]);
+    item.source === "lesson_plan" && lessonDate
+      ? dateKey(lessonDate) === cellDateKey(dayIndex)
+      : normalizeDay(item.day) ===
+        normalizeDay(dayMap[day]);
 
   const timeMatch =
     parseInt(item.startTime?.split(":")[0]) ===
     hour;
-
-  if (dayMatch && timeMatch) {
-    console.log("MATCH FOUND", item);
-  }
 
   return dayMatch && timeMatch;
 });

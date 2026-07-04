@@ -8,6 +8,7 @@ import {
   FiUser,
   FiLogOut,
   FiBarChart2,
+  FiBell,
 } from "react-icons/fi";
 
 import { PiRobotBold } from "react-icons/pi";
@@ -99,6 +100,11 @@ export default function Sidebar() {
   ];
 
   const accountMenu = [
+    {
+      icon: <FiBell />,
+      text: "Notifications",
+      path: isFaculty ? "/faculty/notifications" : "/notifications",
+    },
     {
       icon: <FiUser />,
       text: "Profile",

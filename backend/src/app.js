@@ -5,7 +5,12 @@ const app = express();
 
 app.use(
   cors({
-    origin:[ "http://localhost:5174","http://localhost:5173" ],
+    origin: [
+      "http://localhost:5173",
+      "http://localhost:5174",
+      "http://127.0.0.1:5173",
+      "http://127.0.0.1:5174",
+    ],
     credentials: true,
   })
 );
@@ -20,6 +25,7 @@ const timetableRoutes = require("./routes/timetable.routes");
 const profileRoutes = require("./routes/profile.routes");
 const lessonPlanRoutes = require("./routes/lessonPlan.routes");
 const facultyRoutes = require("./routes/faculty.routes");
+const notificationRoutes = require("./routes/notification.routes");
 
 app.use("/api/auth", authRoutes);
 app.use("/api/student", studentRoutes);
@@ -29,6 +35,7 @@ app.use("/api/timetable", timetableRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/lesson-plans", lessonPlanRoutes);
 app.use("/api/faculty", facultyRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 app.get("/", (req, res) => {
   res.send("EduOps Backend Running 🚀");

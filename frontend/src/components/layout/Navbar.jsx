@@ -1,4 +1,5 @@
-import { FiSearch, FiBell } from "react-icons/fi";
+import { FiSearch } from "react-icons/fi";
+import NotificationDropdown from "../notifications/NotificationDropdown";
 
 export default function Navbar() {
   return (
@@ -37,7 +38,7 @@ export default function Navbar() {
         />
       </div>
 
-      <FiBell size={22} />
+      <NotificationDropdown />
     </div>
   );
 }
