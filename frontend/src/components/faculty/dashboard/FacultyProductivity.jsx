@@ -5,8 +5,21 @@ import {
   FiFileText,
 } from "react-icons/fi";
 
-export default function FacultyProductivity() {
-  const bars = [45, 65, 40, 90, 70, 100, 80];
+export default function FacultyProductivity({ productivity }) {
+  const weekly = productivity?.weekly?.length
+    ? productivity.weekly
+    : ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((label) => ({
+        label,
+        count: 0,
+      }));
+
+  const summary = productivity?.summary || {
+    questionPapers: 0,
+    mcqSets: 0,
+    lessonPlans: 0,
+  };
+
+  const maxCount = Math.max(1, ...weekly.map((d) => d.count));
 
   return (
     <div
@@ -63,7 +76,7 @@ export default function FacultyProductivity() {
           marginBottom: "35px",
         }}
       >
-        {bars.map((bar, index) => (
+        {weekly.map((day, index) => (
           <div
             key={index}
             style={{
@@ -74,9 +87,10 @@ export default function FacultyProductivity() {
             }}
           >
             <div
+              title={`${day.count} created`}
               style={{
                 width: "100%",
-                height: `${bar * 1.8}px`,
+                height: `${Math.max(6, (day.count / maxCount) * 180)}px`,
                 borderRadius: "14px",
                 background:
                   "linear-gradient(180deg,#60A5FA,#2563EB)",
@@ -90,7 +104,7 @@ export default function FacultyProductivity() {
                 fontSize: "13px",
               }}
             >
-              {["Mon","Tue","Wed","Thu","Fri","Sat","Sun"][index]}
+              {day.label}
             </span>
           </div>
         ))}
@@ -107,19 +121,19 @@ export default function FacultyProductivity() {
       >
         <SummaryCard
           icon={<FiFileText />}
-          value="18"
+          value={summary.questionPapers}
           label="Question Papers"
         />
 
         <SummaryCard
           icon={<FiClipboard />}
-          value="42"
+          value={summary.mcqSets}
           label="MCQs Generated"
         />
 
         <SummaryCard
           icon={<FiBookOpen />}
-          value="9"
+          value={summary.lessonPlans}
           label="Lesson Plans"
         />
       </div>

@@ -1,4 +1,15 @@
+function getUserName() {
+  try {
+    const user = JSON.parse(localStorage.getItem("user"));
+    return user?.username || "Faculty";
+  } catch {
+    return "Faculty";
+  }
+}
+
 export default function WelcomeBanner() {
+  const name = getUserName();
+
   return (
     <div
       style={{
@@ -33,7 +44,7 @@ export default function WelcomeBanner() {
             color: "#3B82F6",
           }}
         >
-          Khushi Jain
+          {name}
         </span>
       </h1>
 

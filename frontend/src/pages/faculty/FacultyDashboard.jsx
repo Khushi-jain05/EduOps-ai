@@ -14,6 +14,7 @@ export default function FacultyDashboard() {
     stats: {},
     upcomingClasses: [],
     recentActivity: [],
+    productivity: null,
   });
 
   useEffect(() => {
@@ -79,7 +80,7 @@ export default function FacultyDashboard() {
   <RecentActivity activities={dashboard.recentActivity} />
    <UpcomingClasses classes={dashboard.upcomingClasses} />
 </div>
-<FacultyProductivity/>
+<FacultyProductivity productivity={dashboard.productivity} />
         </div>
       </div>
     </div>

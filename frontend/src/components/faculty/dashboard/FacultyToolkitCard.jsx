@@ -5,9 +5,11 @@ export default function FacultyToolkitCard({
   iconBg,
   title,
   description,
+  onClick,
 }) {
   return (
     <div
+      onClick={onClick}
       style={{
         background: "#fff",
         border: "1px solid #EEF2F7",

@@ -314,6 +314,18 @@ export default function CreateAssignmentModal({ open, onClose, onSuccess, assign
           <option value="draft">Draft</option>
         </select>
 
+        <div
+          style={{
+            fontSize: "13px",
+            color: "#64748B",
+            marginBottom: "8px",
+          }}
+        >
+          Targeting (optional) — leave blank to send to <strong>all students</strong>.
+          Only fill these to restrict the assignment to a specific
+          semester/section/branch (values must exactly match student profiles).
+        </div>
+
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px" }}>
           <div>
             <label>Semester</label>

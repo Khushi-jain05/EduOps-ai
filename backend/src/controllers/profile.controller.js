@@ -1,95 +1,163 @@
 const prisma = require("../config/prisma");
 
-exports.getProfile = async (req, res) => {
+const getUserId = (user) => user?.id || user?.userId || user?.sub;
 
-  try {
-
-    const userId =
-      req.user.id ||
-      req.user.userId ||
-      req.user.sub;
-
-    const user =
-      await prisma.user.findUnique({
-
-        where:{
-          id:userId
-        }
-
-      });
-
-    if(!user){
-
-      return res.status(404).json({
-        message:"User not found"
-      });
-
-    }
-
-    const assignments =
-      await prisma.assignment.count({
-        where:{userId}
-      });
-
-    const attendance =
-      await prisma.attendance.findFirst({
-        where:{userId}
-      });
-
-    const exams =
-      await prisma.exam.count({
-        where:{userId}
-      });
-
-    const subjects =
-      await prisma.subject.count({
-        where:{userId}
-      });
-
-    res.json({
-
-      user,
-
-      stats:{
-
-        assignments,
-        attendance:
-          attendance?.percentage || 0,
-        exams,
-        subjects
-
-      },
-
-      activity:[]
-
-    });
-
-  }
-
-  catch(error){
-
-    console.log(error);
-
-    res.status(500).json({
-      message:"Server Error"
-    });
-
-  }
-
+const timeAgo = (date) => {
+  if (!date) return "";
+  const diff = Date.now() - new Date(date).getTime();
+  const minutes = Math.max(1, Math.round(diff / 60000));
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.round(hours / 24)}d ago`;
 };
 
+const getFacultyProfile = async (userId) => {
+  const [subjects, lessonPlans, questionPapers, mcqSets, assignments] =
+    await Promise.all([
+      prisma.subject.count({
+        where: { OR: [{ userId }, { userId: null }] },
+      }),
+      prisma.lesson_plans.count({ where: { faculty_id: userId } }),
+      prisma.question_papers.count({ where: { faculty_id: userId } }),
+      prisma.mcq_sets.count({ where: { faculty_id: userId } }),
+      prisma.assignment.count({ where: { faculty_id: userId } }),
+    ]);
 
-exports.updateProfile = async (req,res)=>{
+  const [recentLessons, recentPapers, recentMcqs, recentAssignments] =
+    await Promise.all([
+      prisma.lesson_plans.findMany({
+        where: { faculty_id: userId },
+        orderBy: { created_at: "desc" },
+        take: 5,
+        include: { Subject: true },
+      }),
+      prisma.question_papers.findMany({
+        where: { faculty_id: userId },
+        orderBy: { created_at: "desc" },
+        take: 5,
+      }),
+      prisma.mcq_sets.findMany({
+        where: { faculty_id: userId },
+        orderBy: { created_at: "desc" },
+        take: 5,
+      }),
+      prisma.assignment.findMany({
+        where: { faculty_id: userId },
+        orderBy: { created_at: "desc" },
+        take: 5,
+        include: { Subject: true },
+      }),
+    ]);
 
-  try{
+  const activity = [
+    ...recentLessons.map((l) => ({
+      id: `lesson-${l.id}`,
+      title: `Created lesson plan: ${l.title}`,
+      description: l.Subject?.name || "",
+      createdAt: l.created_at,
+    })),
+    ...recentPapers.map((p) => ({
+      id: `paper-${p.id}`,
+      title: `Generated question paper: ${p.title}`,
+      description: "",
+      createdAt: p.created_at,
+    })),
+    ...recentMcqs.map((m) => ({
+      id: `mcq-${m.id}`,
+      title: `Generated MCQ set: ${m.title}`,
+      description: "",
+      createdAt: m.created_at,
+    })),
+    ...recentAssignments.map((a) => ({
+      id: `assignment-${a.id}`,
+      title: `Posted assignment: ${a.title}`,
+      description: a.Subject?.name || "",
+      createdAt: a.created_at,
+    })),
+  ]
+    .filter((item) => item.createdAt)
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, 6)
+    .map((item) => ({ ...item, time: timeAgo(item.createdAt) }));
 
-    const userId =
-      req.user.id ||
-      req.user.userId ||
-      req.user.sub;
+  return {
+    stats: { subjects, lessonPlans, questionPapers, mcqSets, assignments },
+    activity,
+  };
+};
+
+const getStudentProfile = async (userId) => {
+  const [assignments, attendance, exams, subjects, submissions] =
+    await Promise.all([
+      prisma.assignment_submissions.count({ where: { student_id: userId } }),
+      prisma.attendance.findFirst({ where: { userId } }),
+      prisma.exam.count({ where: { userId } }),
+      prisma.subject.count({ where: { userId } }),
+      prisma.assignment_submissions.findMany({
+        where: { student_id: userId },
+        orderBy: { updated_at: "desc" },
+        take: 6,
+        include: { Assignment: { include: { Subject: true } } },
+      }),
+    ]);
+
+  const activity = submissions
+    .filter((s) => s.Assignment)
+    .map((s) => ({
+      id: s.id,
+      title:
+        s.status === "graded"
+          ? `Graded: ${s.Assignment.title} (${s.score}/${s.Assignment.total_marks})`
+          : s.status === "submitted"
+            ? `Submitted: ${s.Assignment.title}`
+            : `Assigned: ${s.Assignment.title}`,
+      description: s.Assignment.Subject?.name || "",
+      time: timeAgo(s.updated_at),
+    }));
+
+  return {
+    stats: {
+      assignments,
+      attendance: attendance?.percentage || 0,
+      exams,
+      subjects,
+    },
+    activity,
+  };
+};
+
+exports.getProfile = async (req, res) => {
+  try {
+    const userId = getUserId(req.user);
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const details =
+      user.role === "faculty"
+        ? await getFacultyProfile(userId)
+        : await getStudentProfile(userId);
+
+    res.json({
+      user,
+      stats: details.stats,
+      activity: details.activity,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+exports.updateProfile = async (req, res) => {
+  try {
+    const userId = getUserId(req.user);
 
     const {
-
       username,
       phone,
       dob,
@@ -98,45 +166,27 @@ exports.updateProfile = async (req,res)=>{
       semester,
       studentId,
       address,
-      about
-
+      about,
     } = req.body;
 
-    const updatedUser =
-      await prisma.user.update({
-
-        where:{
-          id:userId
-        },
-
-        data:{
-
-          username,
-          phone,
-          dob,
-          city,
-          program,
-          semester,
-          studentId,
-          address,
-          about
-
-        }
-
-      });
-
-    res.json(updatedUser);
-
-  }
-
-  catch(error){
-
-    console.log(error);
-
-    res.status(500).json({
-      message:"Failed to update profile"
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        username,
+        phone,
+        dob,
+        city,
+        program,
+        semester,
+        studentId,
+        address,
+        about,
+      },
     });
 
+    res.json(updatedUser);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Failed to update profile" });
   }
-
 };

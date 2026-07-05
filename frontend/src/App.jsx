@@ -16,6 +16,7 @@ import Assignments1 from "./pages/faculty/Assignments1";
 import Analytics from "./pages/faculty/Analytics";
 import LessonPlans from "./pages/faculty/LessonPlans";
 import LessonDetails from "./pages/faculty/LessonDetails";
+import FacultyProfile from "./pages/faculty/Profile";
 import Notifications from "./pages/Notifications";
 function App() {
   return (
@@ -98,6 +99,14 @@ element={
   element={
     <ProtectedRoute allowedRoles={["faculty"]}>
       <Notifications />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/faculty/profile"
+  element={
+    <ProtectedRoute allowedRoles={["faculty"]}>
+      <FacultyProfile />
     </ProtectedRoute>
   }
 />

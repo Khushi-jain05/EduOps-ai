@@ -6,11 +6,13 @@ import {
   FiBarChart2,
 } from "react-icons/fi";
 
-import { PiBooksFill } from "react-icons/pi";
+import { useNavigate } from "react-router-dom";
 
 import FacultyToolkitCard from "./FacultyToolkitCard";
 
 export default function FacultyToolkit() {
+  const navigate = useNavigate();
+
   const tools = [
     {
       title: "Question Paper",
@@ -18,6 +20,7 @@ export default function FacultyToolkit() {
         "Generate exam papers with Bloom's taxonomy.",
       icon: <FiFileText />,
       color: "#3B82F6",
+      path: "/faculty/question-paper",
     },
     {
       title: "MCQ Generator",
@@ -25,6 +28,7 @@ export default function FacultyToolkit() {
         "Auto-create MCQs by topic & difficulty.",
       icon: <FiClipboard />,
       color: "#7C3AED",
+      path: "/faculty/mcq",
     },
     {
       title: "Lesson Plans",
@@ -32,6 +36,7 @@ export default function FacultyToolkit() {
         "Session-wise plans aligned to outcomes.",
       icon: <FiEdit3 />,
       color: "#10B981",
+      path: "/faculty/lesson-plan",
     },
     {
       title: "Assignments",
@@ -39,13 +44,7 @@ export default function FacultyToolkit() {
         "Create, distribute and track submissions.",
       icon: <FiBookOpen />,
       color: "#F97316",
-    },
-    {
-      title: "Subjects",
-      description:
-        "Syllabus, roster and performance.",
-      icon: <PiBooksFill />,
-      color: "#EC4899",
+      path: "/faculty/assignments",
     },
     {
       title: "Analytics",
@@ -53,6 +52,7 @@ export default function FacultyToolkit() {
         "Engagement, pacing and at-risk insights.",
       icon: <FiBarChart2 />,
       color: "#0EA5E9",
+      path: "/faculty/analytics",
     },
   ];
 
@@ -101,6 +101,7 @@ export default function FacultyToolkit() {
             description={tool.description}
             icon={tool.icon}
             iconBg={tool.color}
+            onClick={() => navigate(tool.path)}
           />
         ))}
       </div>

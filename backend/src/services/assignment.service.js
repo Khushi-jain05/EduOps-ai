@@ -60,9 +60,11 @@ const validateAssignmentPayload = async (data, facultyId) => {
     due_date: dueDate,
     total_marks: Number.isFinite(totalMarks) && totalMarks > 0 ? totalMarks : 100,
     status: normalizeText(data.status) || "active",
-    semester: normalizeText(data.semester || subject.semester),
+    // Targeting filters are optional. Only what the faculty explicitly enters
+    // is stored — a blank field means "no filter" (send to all students).
+    semester: normalizeText(data.semester),
     section: normalizeText(data.section),
-    branch: normalizeText(data.branch || subject.program),
+    branch: normalizeText(data.branch),
   };
 };
 
@@ -171,30 +173,25 @@ Return ONLY valid JSON matching this schema:
   };
 };
 
+const eq = (a, b) =>
+  normalizeText(a).toLowerCase() === normalizeText(b).toLowerCase();
+
+// A student matches when every targeting filter the faculty explicitly set on
+// the assignment matches that student's profile. Blank filters are ignored, so
+// an assignment with no targeting reaches every student. Subject metadata is
+// NOT used to filter — only the faculty's explicit choices.
 const matchesTarget = (assignment, student) => {
-  const studentBranch = normalizeText(student.branch || student.program);
-  const studentSemester = normalizeText(student.semester);
-  const studentSection = normalizeText(student.section);
-  const subjectBranch = normalizeText(assignment.Subject?.program);
-  const subjectSemester = normalizeText(assignment.Subject?.semester);
+  const studentBranch = student.branch || student.program;
 
-  if (assignment.semester && assignment.semester !== studentSemester) {
+  if (assignment.semester && !eq(assignment.semester, student.semester)) {
     return false;
   }
 
-  if (assignment.branch && assignment.branch !== studentBranch) {
+  if (assignment.section && !eq(assignment.section, student.section)) {
     return false;
   }
 
-  if (assignment.section && assignment.section !== studentSection) {
-    return false;
-  }
-
-  if (subjectSemester && studentSemester && subjectSemester !== studentSemester) {
-    return false;
-  }
-
-  if (subjectBranch && studentBranch && subjectBranch !== studentBranch) {
+  if (assignment.branch && !eq(assignment.branch, studentBranch)) {
     return false;
   }
 

@@ -20,10 +20,10 @@ const getDashboard = async (facultyId) => {
     }),
     prisma.assignment.findMany({
       where: {
-        userId: facultyId,
+        faculty_id: facultyId,
       },
       orderBy: {
-        createdAt: "desc",
+        created_at: "desc",
       },
       take: 5,
     }),
@@ -101,6 +101,8 @@ const getDashboard = async (facultyId) => {
     )
     .slice(0, 6);
 
+  const productivity = await getProductivity(facultyId);
+
   return {
     stats: {
       subjectsAssigned: subjects.length,
@@ -115,6 +117,65 @@ const getDashboard = async (facultyId) => {
       room: lesson.room || "TBA",
     })),
     recentActivity: activities,
+    productivity,
+  };
+};
+
+const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+const getProductivity = async (facultyId) => {
+  // Start of the window: 6 days ago at midnight (7-day rolling window).
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  start.setDate(start.getDate() - 6);
+
+  const [papers, mcqs, lessons, allPapers, allMcqs, allLessons] =
+    await Promise.all([
+      prisma.question_papers.findMany({
+        where: { faculty_id: facultyId, created_at: { gte: start } },
+        select: { created_at: true },
+      }),
+      prisma.mcq_sets.findMany({
+        where: { faculty_id: facultyId, created_at: { gte: start } },
+        select: { created_at: true },
+      }),
+      prisma.lesson_plans.findMany({
+        where: { faculty_id: facultyId, created_at: { gte: start } },
+        select: { created_at: true },
+      }),
+      prisma.question_papers.count({ where: { faculty_id: facultyId } }),
+      prisma.mcq_sets.count({ where: { faculty_id: facultyId } }),
+      prisma.lesson_plans.count({ where: { faculty_id: facultyId } }),
+    ]);
+
+  // Build 7 day buckets (index 0 = 6 days ago, index 6 = today).
+  const buckets = Array.from({ length: 7 }, (_, i) => {
+    const day = new Date(start);
+    day.setDate(start.getDate() + i);
+    return { label: DAY_LABELS[day.getDay()], count: 0 };
+  });
+
+  const bucketIndex = (date) => {
+    const day = new Date(date);
+    day.setHours(0, 0, 0, 0);
+    return Math.round((day - start) / (24 * 60 * 60 * 1000));
+  };
+
+  [...papers, ...mcqs, ...lessons].forEach((item) => {
+    if (!item.created_at) return;
+    const index = bucketIndex(item.created_at);
+    if (index >= 0 && index < 7) {
+      buckets[index].count += 1;
+    }
+  });
+
+  return {
+    weekly: buckets,
+    summary: {
+      questionPapers: allPapers,
+      mcqSets: allMcqs,
+      lessonPlans: allLessons,
+    },
   };
 };
 
