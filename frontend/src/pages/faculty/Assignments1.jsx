@@ -7,11 +7,13 @@ import {
   FiPercent,
   FiCheckCircle,
   FiTrash2,
+  FiEdit2,
 } from "react-icons/fi";
 
 import Sidebar from "../../components/layout/Sidebar";
 import Navbar from "../../components/layout/Navbar";
 import CreateAssignmentModal from "../../components/faculty/assignment/CreateAssignmentModal";
+import AssignmentSubmissionsModal from "../../components/faculty/assignment/AssignmentSubmissionsModal";
 
 import { deleteAssignment, getAssignments } from "../../services/assignment.service";
 
@@ -22,6 +24,7 @@ export default function Assignments1() {
   const [tab, setTab] = useState("live");
   const [openModal, setOpenModal] = useState(false);
   const [editingAssignment, setEditingAssignment] = useState(null);
+  const [viewingAssignmentId, setViewingAssignmentId] = useState(null);
 
   const loadAssignments = async () => {
     try {
@@ -330,7 +333,7 @@ export default function Assignments1() {
 
                     <div style={{ display: "flex", gap: "10px" }}>
                       <button
-                        onClick={() => handleEdit(a)}
+                        onClick={() => setViewingAssignmentId(a.id)}
                         style={{
                           border: "none",
                           borderRadius: "14px",
@@ -342,6 +345,21 @@ export default function Assignments1() {
                         }}
                       >
                         Open ↗
+                      </button>
+
+                      <button
+                        title="Edit assignment"
+                        onClick={() => handleEdit(a)}
+                        style={{
+                          border: "1px solid #DDE5F0",
+                          borderRadius: "14px",
+                          background: "#fff",
+                          color: "#334155",
+                          padding: "12px",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <FiEdit2 />
                       </button>
 
                       <button
@@ -372,6 +390,13 @@ export default function Assignments1() {
         assignment={editingAssignment}
         onClose={() => setOpenModal(false)}
         onSuccess={loadAssignments}
+      />
+
+      <AssignmentSubmissionsModal
+        open={Boolean(viewingAssignmentId)}
+        assignmentId={viewingAssignmentId}
+        onClose={() => setViewingAssignmentId(null)}
+        onChange={loadAssignments}
       />
     </div>
   );

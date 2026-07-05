@@ -304,11 +304,13 @@ const createAssignment = async (data, user) => {
     include: { Subject: true, assignment_submissions: true },
   });
 
-  await syncSubmissionsForMatchingStudents(assignment);
-  await notifyStudents(assignment, {
-    title: "New assignment posted",
-    verb: "posted",
-  });
+  if (assignment.status === "active") {
+    await syncSubmissionsForMatchingStudents(assignment);
+    await notifyStudents(assignment, {
+      title: "New assignment posted",
+      verb: "posted",
+    });
+  }
 
   return withStats(await getAssignmentForFaculty(assignment.id, assignment.faculty_id));
 };
@@ -343,7 +345,7 @@ const updateAssignment = async (id, data, user) => {
     throw new Error("Only faculty can update assignments");
   }
 
-  await getAssignmentForFaculty(id, getUserId(user));
+  const previous = await getAssignmentForFaculty(id, getUserId(user));
 
   const payload = await validateAssignmentPayload(data, getUserId(user));
 
@@ -353,11 +355,13 @@ const updateAssignment = async (id, data, user) => {
     include: { Subject: true, assignment_submissions: true },
   });
 
-  await syncSubmissionsForMatchingStudents(assignment);
-  await notifyStudents(assignment, {
-    title: "Assignment updated",
-    verb: "updated",
-  });
+  if (assignment.status === "active") {
+    await syncSubmissionsForMatchingStudents(assignment);
+    await notifyStudents(assignment, {
+      title: previous.status === "active" ? "Assignment updated" : "New assignment posted",
+      verb: previous.status === "active" ? "updated" : "posted",
+    });
+  }
 
   return withStats(await getAssignmentForFaculty(assignment.id, assignment.faculty_id));
 };

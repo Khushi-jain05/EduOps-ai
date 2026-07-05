@@ -15,7 +15,9 @@ import {
   Award,
 } from "lucide-react";
 
-import { getStudentAssignments, submitAssignment } from "../../services/assignment.service";
+import { getStudentAssignments } from "../../services/assignment.service";
+import AssignmentDetailsModal from "../../components/assignments/AssignmentDetailsModal";
+import SubmitAssignmentModal from "../../components/assignments/SubmitAssignmentModal";
 
 import "../../styles/assignments.css";
 
@@ -38,6 +40,8 @@ const [selectedFaculty, setSelectedFaculty] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] =
     useState("All");
+  const [selectedAssignment, setSelectedAssignment] = useState(null);
+  const [submittingAssignment, setSubmittingAssignment] = useState(null);
 
   const loadAssignments = async () => {
     try {
@@ -65,20 +69,13 @@ const [selectedFaculty, setSelectedFaculty] = useState("All");
     loadAssignments();
   }, []);
 
-  const handleSubmit = async (item) => {
-    const link = window.prompt(
-      "Paste a link to your submission (Drive, GitHub, etc.):"
-    );
+  const handleOpen = (item) => {
+    setSelectedAssignment(item);
+  };
 
-    if (!link) return;
-
-    try {
-      await submitAssignment(item.assignment_id, { file_url: link });
-      await loadAssignments();
-    } catch (error) {
-      console.error("Failed to submit assignment", error);
-      alert(error.response?.data?.message || "Failed to submit assignment");
-    }
+  const handleSubmitClick = (item) => {
+    setSelectedAssignment(null);
+    setSubmittingAssignment(item);
   };
 
   const filteredAssignments =
@@ -504,14 +501,12 @@ const [selectedFaculty, setSelectedFaculty] = useState("All");
                     </div>
 
                     <div className="assignment-footer">
-                      {(item.status === "Pending" || item.status === "Overdue") && (
-                        <button
-                          className="open-link"
-                          onClick={() => handleSubmit(item)}
-                        >
-                          Submit ↗
-                        </button>
-                      )}
+                      <button
+                        className="open-link"
+                        onClick={() => handleOpen(item)}
+                      >
+                        Open assignment ↗
+                      </button>
                     </div>
                   </div>
                 )
@@ -521,6 +516,20 @@ const [selectedFaculty, setSelectedFaculty] = useState("All");
           )}
         </div>
       </div>
+
+      <AssignmentDetailsModal
+        open={Boolean(selectedAssignment)}
+        assignment={selectedAssignment}
+        onClose={() => setSelectedAssignment(null)}
+        onSubmitClick={handleSubmitClick}
+      />
+
+      <SubmitAssignmentModal
+        open={Boolean(submittingAssignment)}
+        assignment={submittingAssignment}
+        onClose={() => setSubmittingAssignment(null)}
+        onSuccess={loadAssignments}
+      />
     </div>
   );
 }
