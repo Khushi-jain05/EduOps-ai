@@ -60,3 +60,21 @@ exports.askAdmissions = async (req, res) => {
     sendError(res, error, "Failed to get an answer");
   }
 };
+
+exports.getApplication = async (req, res) => {
+  try {
+    const result = await ApplicantService.getApplication(req.user);
+    res.json(result);
+  } catch (error) {
+    sendError(res, error, "Failed to load application");
+  }
+};
+
+exports.saveApplication = async (req, res) => {
+  try {
+    const result = await ApplicantService.saveApplication(req.user, req.body);
+    res.json(result);
+  } catch (error) {
+    sendError(res, error, "Failed to save application");
+  }
+};

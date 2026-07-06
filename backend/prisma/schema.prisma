@@ -27,6 +27,7 @@ model User {
   branch          String?
   section         String?
   applicationStep Int               @default(0)
+  applicationData Json?
   assignments     Assignment[]
   assignment_submissions assignment_submissions[]
   attendance      Attendance[]
@@ -50,6 +51,7 @@ model Program {
   seats        Int      @default(0)
   intake       String?
   description  String?
+  eligibility  String?
   featured     Boolean  @default(false)
   is_open      Boolean  @default(true)
   created_at   DateTime @default(now())
@@ -60,6 +62,7 @@ model Appointment {
   applicant_id String
   mode         String   @default("video")
   slot         DateTime
+  program      String?
   notes        String?
   status       String   @default("requested")
   created_at   DateTime @default(now())

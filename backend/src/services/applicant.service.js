@@ -27,6 +27,7 @@ const mapProgram = (program) => ({
   fee_per_year: program.fee_per_year,
   seats: program.seats,
   intake: program.intake,
+  eligibility: program.eligibility,
   description: program.description,
 });
 
@@ -103,6 +104,8 @@ const advanceApplication = async (user) => {
   return { applicationStep: updated.applicationStep };
 };
 
+const VALID_MODES = ["video", "campus", "phone"];
+
 const bookAppointment = async (user, data) => {
   const userId = getUserId(user);
 
@@ -118,8 +121,9 @@ const bookAppointment = async (user, data) => {
   const appointment = await prisma.appointment.create({
     data: {
       applicant_id: userId,
-      mode: data.mode === "campus" ? "campus" : "video",
+      mode: VALID_MODES.includes(data.mode) ? data.mode : "video",
       slot,
+      program: (data.program || "").toString().trim() || null,
       notes: (data.notes || "").toString().trim(),
     },
   });
@@ -134,6 +138,51 @@ const bookAppointment = async (user, data) => {
   }
 
   return appointment;
+};
+
+const getApplication = async (user) => {
+  const userId = getUserId(user);
+  const applicant = await prisma.user.findUnique({ where: { id: userId } });
+
+  return {
+    applicationStep: applicant?.applicationStep || 0,
+    data: applicant?.applicationData || {
+      fullName: applicant?.username || "",
+      email: applicant?.email || "",
+      phone: applicant?.phone || "",
+      city: applicant?.city || "",
+    },
+  };
+};
+
+// Save one step of the multi-step application. `step` is the 1-based index of
+// the step being completed; `submitted` finalizes the application.
+const saveApplication = async (user, { data = {}, step = 1, submitted = false }) => {
+  const userId = getUserId(user);
+  const applicant = await prisma.user.findUnique({ where: { id: userId } });
+
+  const merged = { ...(applicant?.applicationData || {}), ...data };
+
+  // Journey step: application steps 1-4 map onto the 5-step admission journey.
+  // Completing/submitting the application takes them to "Submit application" (3).
+  const journeyStep = submitted
+    ? Math.max(applicant?.applicationStep || 0, 3)
+    : Math.max(applicant?.applicationStep || 0, Math.min(2, step));
+
+  const updated = await prisma.user.update({
+    where: { id: userId },
+    data: {
+      applicationData: merged,
+      applicationStep: journeyStep,
+      // Mirror the personal fields onto the profile where sensible.
+      ...(data.fullName ? { username: data.fullName } : {}),
+      ...(data.phone ? { phone: data.phone } : {}),
+      ...(data.city ? { city: data.city } : {}),
+      ...(data.program ? { program: data.program } : {}),
+    },
+  });
+
+  return { applicationStep: updated.applicationStep, data: updated.applicationData };
 };
 
 const getAppointments = async (user) => {
@@ -180,8 +229,10 @@ module.exports = {
   advanceApplication,
   askAdmissions,
   bookAppointment,
+  getApplication,
   getAppointments,
   getDashboard,
   getPrograms,
   getUserId,
+  saveApplication,
 };

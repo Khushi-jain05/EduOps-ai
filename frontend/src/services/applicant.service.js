@@ -37,3 +37,13 @@ export const askAdmissions = async (question) => {
   const res = await axios.post(`${API}/ask`, { question }, authHeaders());
   return res.data;
 };
+
+export const getApplication = async () => {
+  const res = await axios.get(`${API}/application`, authHeaders());
+  return res.data;
+};
+
+export const saveApplication = async (payload) => {
+  const res = await axios.post(`${API}/application`, payload, authHeaders());
+  return res.data;
+};
