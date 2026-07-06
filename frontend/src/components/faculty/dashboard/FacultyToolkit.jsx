@@ -45,15 +45,7 @@ export default function FacultyToolkit() {
       icon: <FiBookOpen />,
       color: "#F97316",
       path: "/faculty/assignments",
-    },
-    {
-      title: "Analytics",
-      description:
-        "Engagement, pacing and at-risk insights.",
-      icon: <FiBarChart2 />,
-      color: "#0EA5E9",
-      path: "/faculty/analytics",
-    },
+    }
   ];
 
   return (

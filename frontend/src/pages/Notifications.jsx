@@ -17,6 +17,7 @@ import {
   deleteNotification,
   getNotifications,
   markAllNotificationsRead,
+  markAllNotificationsUnread,
   markNotificationRead,
 } from "../services/notification.service";
 
@@ -133,6 +134,11 @@ export default function Notifications() {
     await loadNotifications();
   };
 
+  const handleRestoreAll = async () => {
+    await markAllNotificationsUnread();
+    await loadNotifications();
+  };
+
   const handleClear = async () => {
     const ok = window.confirm("Clear all visible notifications?");
     if (!ok) return;
@@ -162,6 +168,11 @@ export default function Notifications() {
 
     if (item.type === "lesson_plan") {
       navigate(isFaculty ? "/faculty/lesson-plan" : "/timetable");
+      return;
+    }
+
+    if (item.type === "assignment") {
+      navigate(isFaculty ? "/faculty/assignments" : "/assignments");
       return;
     }
 
@@ -244,7 +255,7 @@ export default function Notifications() {
                 <FiCheck /> Mark all read
               </button>
               <button
-                onClick={loadNotifications}
+                onClick={handleRestoreAll}
                 style={{
                   ...heroButton,
                   background: "transparent",

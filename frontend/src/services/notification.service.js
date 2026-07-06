@@ -31,6 +31,15 @@ export const markAllNotificationsRead = async () => {
   return res.data;
 };
 
+export const markAllNotificationsUnread = async () => {
+  const res = await axios.patch(
+    `${API}/unread-all`,
+    {},
+    authHeaders()
+  );
+  return res.data;
+};
+
 export const deleteNotification = async (id) => {
   const res = await axios.delete(
     `${API}/${id}`,

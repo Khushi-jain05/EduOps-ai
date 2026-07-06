@@ -75,6 +75,31 @@ exports.markAllNotificationsRead = async (req, res) => {
   }
 };
 
+exports.markAllNotificationsUnread = async (req, res) => {
+  try {
+    const userId = getUserId(req.user);
+
+    await prisma.notifications.updateMany({
+      where: {
+        user_id: userId,
+      },
+      data: {
+        is_read: false,
+      },
+    });
+
+    res.json({
+      message: "Notifications restored to unread",
+    });
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({
+      message: "Failed to update notifications",
+    });
+  }
+};
+
 exports.deleteNotification = async (req, res) => {
   try {
     const userId = getUserId(req.user);

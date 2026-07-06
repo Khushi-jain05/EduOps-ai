@@ -207,7 +207,7 @@ const syncSubmissionsForMatchingStudents = async (assignment) => {
   const students = await getMatchingStudents(assignment);
 
   if (students.length === 0) {
-    return;
+    return students;
   }
 
   const existing = await prisma.assignment_submissions.findMany({
@@ -218,16 +218,16 @@ const syncSubmissionsForMatchingStudents = async (assignment) => {
   const existingIds = new Set(existing.map((row) => row.student_id));
   const missing = students.filter((student) => !existingIds.has(student.id));
 
-  if (missing.length === 0) {
-    return;
+  if (missing.length > 0) {
+    await prisma.assignment_submissions.createMany({
+      data: missing.map((student) => ({
+        assignment_id: assignment.id,
+        student_id: student.id,
+      })),
+    });
   }
 
-  await prisma.assignment_submissions.createMany({
-    data: missing.map((student) => ({
-      assignment_id: assignment.id,
-      student_id: student.id,
-    })),
-  });
+  return students;
 };
 
 const notifyStudents = async (assignment, { title, verb }) => {
@@ -302,10 +302,21 @@ const createAssignment = async (data, user) => {
   });
 
   if (assignment.status === "active") {
-    await syncSubmissionsForMatchingStudents(assignment);
+    const students = await syncSubmissionsForMatchingStudents(assignment);
     await notifyStudents(assignment, {
       title: "New assignment posted",
       verb: "posted",
+    });
+
+    // Confirmation notification for the faculty who posted it.
+    await prisma.notifications.create({
+      data: {
+        user_id: assignment.faculty_id,
+        title: "Assignment posted",
+        message: `"${assignment.title}" was posted to ${students?.length || 0} student(s).`,
+        type: "assignment",
+        reference_id: assignment.id,
+      },
     });
   }
 
@@ -429,13 +440,17 @@ const submitAssignment = async (assignmentId, user, data) => {
         student_id: studentId,
       },
     },
+    include: {
+      Assignment: true,
+      User: true,
+    },
   });
 
   if (!submission) {
     throw new Error("Assignment not found for this student");
   }
 
-  return prisma.assignment_submissions.update({
+  const updated = await prisma.assignment_submissions.update({
     where: { id: submission.id },
     data: {
       status: "submitted",
@@ -443,6 +458,21 @@ const submitAssignment = async (assignmentId, user, data) => {
       submitted_at: new Date(),
     },
   });
+
+  // Notify the owning faculty that a student submitted.
+  if (submission.Assignment?.faculty_id) {
+    await prisma.notifications.create({
+      data: {
+        user_id: submission.Assignment.faculty_id,
+        title: "New submission received",
+        message: `${submission.User?.username || "A student"} submitted "${submission.Assignment.title}".`,
+        type: "assignment",
+        reference_id: assignmentId,
+      },
+    });
+  }
+
+  return updated;
 };
 
 const gradeSubmission = async (assignmentId, studentId, data, user) => {
