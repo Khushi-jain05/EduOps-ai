@@ -17,6 +17,7 @@ const authRoutes = require("./routes/auth.routes");
 const lessonPlanRoutes = require("./routes/lessonPlan.routes");
 const facultyRoutes = require("./routes/faculty.routes");
 const notificationRoutes = require("./routes/notification.routes");
+const applicantRoutes = require("./routes/applicant.routes");
 const PORT = process.env.PORT || 8000;
 app.use("/api/auth", authRoutes);
 app.use("/api/question-paper", questionPaperRoutes);
@@ -33,6 +34,7 @@ app.use("/api/mcq", mcqRoutes);
 app.use("/api/lesson-plans", lessonPlanRoutes);
 app.use("/api/faculty", facultyRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/applicant", applicantRoutes);
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

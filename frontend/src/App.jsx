@@ -17,6 +17,13 @@ import Analytics from "./pages/faculty/Analytics";
 import LessonPlans from "./pages/faculty/LessonPlans";
 import LessonDetails from "./pages/faculty/LessonDetails";
 import FacultyProfile from "./pages/faculty/Profile";
+import ApplicantDashboard from "./pages/applicant/ApplicantDashboard";
+import CoursesFees from "./pages/applicant/CoursesFees";
+import Faqs from "./pages/applicant/Faqs";
+import ApplyNow from "./pages/applicant/ApplyNow";
+import BookAppointment from "./pages/applicant/BookAppointment";
+import AdmissionsAI from "./pages/applicant/AdmissionsAI";
+import ApplicantProfile from "./pages/applicant/ApplicantProfile";
 import Notifications from "./pages/Notifications";
 function App() {
   return (
@@ -107,6 +114,62 @@ element={
   element={
     <ProtectedRoute allowedRoles={["faculty"]}>
       <FacultyProfile />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/applicant"
+  element={
+    <ProtectedRoute allowedRoles={["applicant"]}>
+      <ApplicantDashboard />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/applicant/courses"
+  element={
+    <ProtectedRoute allowedRoles={["applicant"]}>
+      <CoursesFees />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/applicant/faqs"
+  element={
+    <ProtectedRoute allowedRoles={["applicant"]}>
+      <Faqs />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/applicant/apply"
+  element={
+    <ProtectedRoute allowedRoles={["applicant"]}>
+      <ApplyNow />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/applicant/appointment"
+  element={
+    <ProtectedRoute allowedRoles={["applicant"]}>
+      <BookAppointment />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/applicant/admissions-ai"
+  element={
+    <ProtectedRoute allowedRoles={["applicant"]}>
+      <AdmissionsAI />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/applicant/profile"
+  element={
+    <ProtectedRoute allowedRoles={["applicant"]}>
+      <ApplicantProfile />
     </ProtectedRoute>
   }
 />

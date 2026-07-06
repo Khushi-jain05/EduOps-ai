@@ -87,6 +87,37 @@ const getFacultyProfile = async (userId) => {
   };
 };
 
+const getApplicantProfile = async (userId) => {
+  const [applicant, programsOpen, appointments] = await Promise.all([
+    prisma.user.findUnique({ where: { id: userId } }),
+    prisma.program.count({ where: { is_open: true } }),
+    prisma.appointment.findMany({
+      where: { applicant_id: userId },
+      orderBy: { slot: "desc" },
+      take: 6,
+    }),
+  ]);
+
+  const step = applicant?.applicationStep || 0;
+
+  const activity = appointments.map((a) => ({
+    id: a.id,
+    title: `Counseling ${a.mode === "campus" ? "campus visit" : "video call"} ${a.status}`,
+    description: new Date(a.slot).toLocaleString(),
+    time: timeAgo(a.created_at),
+  }));
+
+  return {
+    stats: {
+      applicationStep: step,
+      progressPercent: Math.round((step / 5) * 100),
+      programsOpen,
+      appointments: appointments.length,
+    },
+    activity,
+  };
+};
+
 const getStudentProfile = async (userId) => {
   const [assignments, attendance, exams, subjects, submissions] =
     await Promise.all([
@@ -140,7 +171,9 @@ exports.getProfile = async (req, res) => {
     const details =
       user.role === "faculty"
         ? await getFacultyProfile(userId)
-        : await getStudentProfile(userId);
+        : user.role === "applicant"
+          ? await getApplicantProfile(userId)
+          : await getStudentProfile(userId);
 
     res.json({
       user,

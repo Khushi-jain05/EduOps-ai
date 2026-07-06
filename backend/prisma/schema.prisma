@@ -26,6 +26,7 @@ model User {
   profilePic      String?
   branch          String?
   section         String?
+  applicationStep Int               @default(0)
   assignments     Assignment[]
   assignment_submissions assignment_submissions[]
   attendance      Attendance[]
@@ -37,6 +38,32 @@ model User {
   notifications   notifications[]
   question_bank   question_bank[]
   question_papers question_papers[]
+  appointments    Appointment[]
+}
+
+model Program {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name         String
+  level        String?
+  duration     String
+  fee_per_year Int
+  seats        Int      @default(0)
+  intake       String?
+  description  String?
+  featured     Boolean  @default(false)
+  is_open      Boolean  @default(true)
+  created_at   DateTime @default(now())
+}
+
+model Appointment {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  applicant_id String
+  mode         String   @default("video")
+  slot         DateTime
+  notes        String?
+  status       String   @default("requested")
+  created_at   DateTime @default(now())
+  User         User     @relation(fields: [applicant_id], references: [id], onDelete: Cascade)
 }
 
 model Attendance {

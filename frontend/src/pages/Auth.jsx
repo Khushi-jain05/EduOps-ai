@@ -47,20 +47,29 @@ const [loginData, setLoginData] = useState({
       return;
     }
 
-    const response = await registerUser({
+    await registerUser({
       username: signupData.username,
       email: signupData.email,
       password: signupData.password,
       role: signupData.role,
     });
 
-    console.log(response);
+    // Auto sign-in so the new user lands straight on their dashboard.
+    const response = await loginUser({
+      email: signupData.email,
+      password: signupData.password,
+    });
+
+    localStorage.setItem("token", response.token);
+    localStorage.setItem("user", JSON.stringify(response.user));
 
     alert("Registration Successful");
     if (response.user.role === "student") {
       navigate("/student");
     } else if (response.user.role === "faculty") {
       navigate("/faculty");
+    } else if (response.user.role === "applicant") {
+      navigate("/applicant");
     } else {
       navigate("/admin");
     }
@@ -91,6 +100,8 @@ console.log("LOGIN RESPONSE:", response);
       navigate("/student");
     } else if (response.user.role === "faculty") {
       navigate("/faculty");
+    } else if (response.user.role === "applicant") {
+      navigate("/applicant");
     } else {
       navigate("/admin");
     }
@@ -152,6 +163,7 @@ console.log("LOGIN RESPONSE:", response);
                   }
                 >
                   <option value="student">Student</option>
+                  <option value="applicant">Applicant</option>
                   <option value="faculty">Faculty</option>
                   <option value="admin">Admin</option>
                 </select>

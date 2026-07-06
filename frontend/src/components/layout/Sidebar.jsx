@@ -9,6 +9,8 @@ import {
   FiLogOut,
   FiBarChart2,
   FiBell,
+  FiHelpCircle,
+  FiFilePlus,
 } from "react-icons/fi";
 
 import { PiRobotBold } from "react-icons/pi";
@@ -21,6 +23,7 @@ export default function Sidebar() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
 
   const isFaculty = user.role === "faculty";
+  const isApplicant = user.role === "applicant";
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -97,20 +100,68 @@ export default function Sidebar() {
     },
   ];
 
-  const accountMenu = [
+  // -------------------------
+  // APPLICANT MENU
+  // -------------------------
+
+  const applicantMenu = [
     {
-      icon: <FiBell />,
-      text: "Notifications",
-      path: isFaculty ? "/faculty/notifications" : "/notifications",
+      icon: <FiGrid />,
+      text: "Dashboard",
+      path: "/applicant",
     },
     {
-      icon: <FiUser />,
-      text: "Profile",
-      path: isFaculty ? "/faculty/profile" : "/profile",
+      icon: <PiRobotBold />,
+      text: "Admissions AI",
+      path: "/applicant/admissions-ai",
+    },
+    {
+      icon: <FiHelpCircle />,
+      text: "FAQs",
+      path: "/applicant/faqs",
+    },
+    {
+      icon: <FiBook />,
+      text: "Courses & Fees",
+      path: "/applicant/courses",
+    },
+    {
+      icon: <FiFilePlus />,
+      text: "Apply Now",
+      path: "/applicant/apply",
+    },
+    {
+      icon: <FiCalendar />,
+      text: "Book Appointment",
+      path: "/applicant/appointment",
     },
   ];
 
-  const menuItems = isFaculty ? facultyMenu : studentMenu;
+  const accountMenu = [
+    {
+      icon: <FiUser />,
+      text: "Profile",
+      path: isFaculty
+        ? "/faculty/profile"
+        : isApplicant
+          ? "/applicant/profile"
+          : "/profile",
+    },
+  ];
+
+  if (!isApplicant) {
+    accountMenu.unshift({
+      icon: <FiBell />,
+      text: "Notifications",
+      path: isFaculty ? "/faculty/notifications" : "/notifications",
+    });
+  }
+
+  const menuItems = isFaculty
+    ? facultyMenu
+    : isApplicant
+      ? applicantMenu
+      : studentMenu;
 
   return (
     <div
@@ -161,7 +212,7 @@ export default function Sidebar() {
             marginBottom: "15px",
           }}
         >
-          {isFaculty ? "TEACH" : "LEARN"}
+          {isFaculty ? "TEACH" : isApplicant ? "ADMISSIONS" : "LEARN"}
         </p>
 
         {menuItems.map((item) => (

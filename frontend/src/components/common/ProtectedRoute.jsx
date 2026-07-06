@@ -15,12 +15,16 @@ export default function ProtectedRoute({
     allowedRoles.length > 0 &&
     !allowedRoles.includes(user.role)
   ) {
-    return (
-      <Navigate
-        to={user.role === "faculty" ? "/faculty" : "/student"}
-        replace
-      />
-    );
+    const home =
+      user.role === "faculty"
+        ? "/faculty"
+        : user.role === "applicant"
+          ? "/applicant"
+          : user.role === "admin"
+            ? "/admin"
+            : "/student";
+
+    return <Navigate to={home} replace />;
   }
 
   return children;
