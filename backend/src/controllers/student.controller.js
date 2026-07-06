@@ -35,13 +35,32 @@ exports.getDashboard = async (req, res) => {
         where: { userId },
       });
 
-    const assignments =
-      await prisma.assignment.findMany({
-        where: { userId },
+    const assignmentSubmissions =
+      await prisma.assignment_submissions.findMany({
+        where: { student_id: userId },
+        include: {
+          Assignment: {
+            include: { Subject: true },
+          },
+        },
         orderBy: {
-          dueDate: "asc",
+          Assignment: { due_date: "asc" },
         },
       });
+
+    const assignments = assignmentSubmissions
+      .filter((submission) => submission.Assignment)
+      .map((submission) => ({
+        id: submission.Assignment.id,
+        title: submission.Assignment.title,
+        subject: submission.Assignment.Subject?.name || "",
+        status: submission.status,
+        due_date: submission.Assignment.due_date,
+      }));
+
+    const pendingAssignments = assignments.filter(
+      (assignment) => assignment.status === "pending"
+    ).length;
 
     const timetable =
       await prisma.timetable.findMany({
@@ -93,8 +112,7 @@ exports.getDashboard = async (req, res) => {
       upcomingClasses:
         visibleTimetable.length,
 
-      pendingAssignments:
-        assignments.length,
+      pendingAssignments,
 
       timetable: visibleTimetable.map(normalizeLessonPlanTime),
 
