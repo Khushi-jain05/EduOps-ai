@@ -4,7 +4,14 @@ const sendError = (res, error, fallback = "Google Sheets request failed") => {
   console.error("[google-sheets]", error);
 
   const message = error.message || fallback;
-  const status = message.includes("Only admin") ? 403 : 500;
+  const status =
+    message.includes("Only admin")
+      ? 403
+      : message.includes("not configured") ||
+          message.includes("valid Google Sheet") ||
+          message.includes("denied access")
+        ? 400
+        : 500;
 
   res.status(status).json({ message });
 };
