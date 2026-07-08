@@ -1,5 +1,5 @@
 const prisma = require("../config/prisma");
-const { sendWhatsAppMessage } = require("./twilioClient");
+const { sendWhatsAppMessage } = require("./metaWhatsappClient");
 
 const isAdmin = (user) => user?.role === "admin";
 
