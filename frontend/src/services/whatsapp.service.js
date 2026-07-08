@@ -31,3 +31,8 @@ export const deleteTemplate = async (id) => {
   const res = await axios.delete(`${API}/${id}`, authHeaders());
   return res.data;
 };
+
+export const sendTestMessage = async (id, phone) => {
+  const res = await axios.post(`${API}/${id}/test`, { phone }, authHeaders());
+  return res.data;
+};

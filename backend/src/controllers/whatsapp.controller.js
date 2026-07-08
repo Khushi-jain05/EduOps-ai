@@ -9,7 +9,7 @@ const sendError = (res, error, fallback = "WhatsApp request failed") => {
       ? 403
       : message.includes("not found")
         ? 404
-        : message.includes("required")
+        : message.includes("required") || message.includes("not configured")
           ? 400
           : 500;
 
@@ -61,10 +61,20 @@ const deleteTemplate = async (req, res) => {
   }
 };
 
+const sendTest = async (req, res) => {
+  try {
+    const result = await WhatsappService.sendTest(req.params.id, req.body.phone, req.user);
+    res.json(result);
+  } catch (error) {
+    sendError(res, error, "Failed to send test WhatsApp message");
+  }
+};
+
 module.exports = {
   createTemplate,
   getTemplates,
   updateTemplate,
   toggleTemplate,
   deleteTemplate,
+  sendTest,
 };

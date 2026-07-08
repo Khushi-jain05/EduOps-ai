@@ -1,4 +1,5 @@
 const prisma = require("../config/prisma");
+const WhatsappService = require("./whatsapp.service");
 
 const isAdmin = (user) => user?.role === "admin";
 const getUserId = (user) => user?.id || user?.userId || user?.sub;
@@ -44,6 +45,10 @@ const createLead = async (data, user) => {
     "note",
     `Lead captured from ${lead.source}.`,
     getUserId(user)
+  );
+
+  await WhatsappService.triggerAutomation("new_lead", lead).catch((error) =>
+    console.error("[leads] new_lead automation failed:", error.message)
   );
 
   return lead;
@@ -145,6 +150,10 @@ const updateLead = async (id, data, user) => {
       "status_change",
       `Status changed from ${existing.status} to ${lead.status}.`,
       getUserId(user)
+    );
+
+    await WhatsappService.triggerAutomation(`status:${lead.status}`, lead).catch((error) =>
+      console.error("[leads] status automation failed:", error.message)
     );
   }
 

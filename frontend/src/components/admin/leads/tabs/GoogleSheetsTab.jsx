@@ -6,11 +6,16 @@ import { FiFileText, FiRefreshCw } from "react-icons/fi";
 export default function GoogleSheetsTab({ status, onChanged }) {
   const [sheetUrl, setSheetUrl] = useState(status.sheet_url || "");
   const [syncing, setSyncing] = useState(false);
+  const [syncError, setSyncError] = useState("");
 
   const handleSync = async () => {
     setSyncing(true);
+    setSyncError("");
     try {
       await syncSheetNow();
+      await onChanged();
+    } catch (error) {
+      setSyncError(error.response?.data?.message || "Failed to sync Google Sheets.");
       await onChanged();
     } finally {
       setSyncing(false);
@@ -92,6 +97,10 @@ export default function GoogleSheetsTab({ status, onChanged }) {
       >
         <FiRefreshCw /> {syncing ? "Syncing..." : "Sync now"}
       </button>
+
+      {syncError && (
+        <p style={{ color: "#dc2626", marginTop: "14px", marginBottom: 0 }}>{syncError}</p>
+      )}
     </div>
   );
 }

@@ -9,12 +9,14 @@ const {
   updateTemplate,
   toggleTemplate,
   deleteTemplate,
+  sendTest,
 } = require("../controllers/whatsapp.controller");
 
 router.post("/", auth, createTemplate);
 router.get("/", auth, getTemplates);
 router.put("/:id", auth, updateTemplate);
 router.patch("/:id/toggle", auth, toggleTemplate);
+router.post("/:id/test", auth, sendTest);
 router.delete("/:id", auth, deleteTemplate);
 
 module.exports = router;

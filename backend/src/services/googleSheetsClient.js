@@ -2,9 +2,25 @@ const path = require("path");
 const fs = require("fs");
 const { google } = require("googleapis");
 
-const CREDENTIALS_PATH =
-  process.env.GOOGLE_SHEETS_CREDENTIALS_PATH ||
-  path.resolve(__dirname, "../../credentials/google-service-account.json");
+const CREDENTIALS_DIR = path.resolve(__dirname, "../../credentials");
+
+const findCredentialsPath = () => {
+  if (process.env.GOOGLE_SHEETS_CREDENTIALS_PATH) {
+    return fs.existsSync(process.env.GOOGLE_SHEETS_CREDENTIALS_PATH)
+      ? process.env.GOOGLE_SHEETS_CREDENTIALS_PATH
+      : null;
+  }
+
+  if (!fs.existsSync(CREDENTIALS_DIR)) {
+    return null;
+  }
+
+  const jsonFile = fs
+    .readdirSync(CREDENTIALS_DIR)
+    .find((file) => file.endsWith(".json"));
+
+  return jsonFile ? path.join(CREDENTIALS_DIR, jsonFile) : null;
+};
 
 const getSpreadsheetId = (sheetUrl) => {
   if (!sheetUrl) {
@@ -16,14 +32,16 @@ const getSpreadsheetId = (sheetUrl) => {
 };
 
 const getSheetsClient = async () => {
-  if (!fs.existsSync(CREDENTIALS_PATH)) {
+  const credentialsPath = findCredentialsPath();
+
+  if (!credentialsPath) {
     throw new Error(
-      "Google Sheets is not configured. Add a service account key at backend/credentials/google-service-account.json."
+      "Google Sheets is not configured. Drop a service account JSON key into backend/credentials/."
     );
   }
 
   const auth = new google.auth.GoogleAuth({
-    keyFile: CREDENTIALS_PATH,
+    keyFile: credentialsPath,
     scopes: ["https://www.googleapis.com/auth/spreadsheets"],
   });
 
@@ -33,11 +51,13 @@ const getSheetsClient = async () => {
 };
 
 const getServiceAccountEmail = () => {
-  if (!fs.existsSync(CREDENTIALS_PATH)) {
+  const credentialsPath = findCredentialsPath();
+
+  if (!credentialsPath) {
     return null;
   }
 
-  const key = JSON.parse(fs.readFileSync(CREDENTIALS_PATH, "utf8"));
+  const key = JSON.parse(fs.readFileSync(credentialsPath, "utf8"));
   return key.client_email || null;
 };
 

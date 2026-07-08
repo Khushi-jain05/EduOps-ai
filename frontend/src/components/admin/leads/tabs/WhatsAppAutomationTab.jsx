@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { createTemplate, toggleTemplate, deleteTemplate } from "../../../../services/whatsapp.service";
+import { createTemplate, toggleTemplate, deleteTemplate, sendTestMessage } from "../../../../services/whatsapp.service";
 import { card, input, primaryButton, secondaryButton, modalOverlay, modalCard } from "../leadsStyles";
-import { FiPlus, FiTrash2 } from "react-icons/fi";
+import { FiPlus, FiTrash2, FiPlay } from "react-icons/fi";
 
 function NewTemplateModal({ onClose, onCreated }) {
   const [form, setForm] = useState({ name: "", trigger: "", message: "" });
@@ -26,7 +26,11 @@ function NewTemplateModal({ onClose, onCreated }) {
         <input style={input} value={form.name} onChange={set("name")} placeholder="Welcome message" />
 
         <label>Trigger</label>
-        <input style={input} value={form.trigger} onChange={set("trigger")} placeholder="new_lead" />
+        <input style={input} value={form.trigger} onChange={set("trigger")} placeholder="new_lead or status:hot" />
+        <p style={{ marginTop: "-10px", marginBottom: "16px", color: "#94a3b8", fontSize: "12px" }}>
+          Use <code>new_lead</code> to fire on lead capture, or <code>status:hot</code> /{" "}
+          <code>status:enrolled</code> etc. to fire when a lead moves to that status.
+        </p>
 
         <label>Message</label>
         <textarea rows={4} style={input} value={form.message} onChange={set("message")} />
@@ -52,6 +56,21 @@ export default function WhatsAppAutomationTab({ templates, onChanged }) {
     if (!confirm(`Delete automation "${template.name}"?`)) return;
     await deleteTemplate(template.id);
     onChanged();
+  };
+
+  const handleTest = async (template) => {
+    const phone = prompt(
+      "Send a test WhatsApp message to (include country code, e.g. +919876543210):"
+    );
+
+    if (!phone) return;
+
+    try {
+      await sendTestMessage(template.id, phone);
+      alert("Test message sent.");
+    } catch (error) {
+      alert(error.response?.data?.message || "Failed to send test message.");
+    }
   };
 
   return (
@@ -93,6 +112,12 @@ export default function WhatsAppAutomationTab({ templates, onChanged }) {
                 <input type="checkbox" checked={t.is_active} onChange={() => handleToggle(t)} />
                 Active
               </label>
+              <button
+                onClick={() => handleTest(t)}
+                style={{ ...secondaryButton, display: "flex", alignItems: "center", gap: "6px", padding: "8px 14px" }}
+              >
+                <FiPlay /> Test
+              </button>
               <button
                 onClick={() => handleDelete(t)}
                 style={{ border: "none", background: "transparent", color: "#dc2626", cursor: "pointer" }}
