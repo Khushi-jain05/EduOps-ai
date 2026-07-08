@@ -26,6 +26,11 @@ const profileRoutes = require("./routes/profile.routes");
 const lessonPlanRoutes = require("./routes/lessonPlan.routes");
 const facultyRoutes = require("./routes/faculty.routes");
 const notificationRoutes = require("./routes/notification.routes");
+const leadRoutes = require("./routes/lead.routes");
+const callAgentRoutes = require("./routes/callAgent.routes");
+const campaignRoutes = require("./routes/campaign.routes");
+const whatsappRoutes = require("./routes/whatsapp.routes");
+const googleSheetRoutes = require("./routes/googleSheet.routes");
 // const lectureRoutes = require("./routes/lecture.routes");
 
 app.use("/api/auth", authRoutes);
@@ -39,6 +44,11 @@ app.use("/api/lesson-plans", lessonPlanRoutes);
 // app.use("/lectures", lectureRoutes);
 app.use("/api/faculty", facultyRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/leads", leadRoutes);
+app.use("/api/call-agents", callAgentRoutes);
+app.use("/api/campaigns", campaignRoutes);
+app.use("/api/whatsapp", whatsappRoutes);
+app.use("/api/google-sheets", googleSheetRoutes);
 
 app.get("/", (req, res) => {
   res.send("EduOps Backend Running 🚀");

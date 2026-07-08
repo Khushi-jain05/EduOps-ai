@@ -40,6 +40,7 @@ model User {
   question_bank   question_bank[]
   question_papers question_papers[]
   appointments    Appointment[]
+  leads           Lead[]
 }
 
 model Program {
@@ -349,4 +350,92 @@ model notifications {
   User         User      @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_notification_user")
 
   @@index([user_id, created_at])
+}
+
+model Lead {
+  id          String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String
+  phone       String
+  email       String?
+  course      String?
+  city        String?
+  source      String?        @default("Website")
+  score       Int            @default(0)
+  status      String         @default("new")
+  assigned_to String?
+  notes       String?
+  created_at  DateTime       @default(now())
+  updated_at  DateTime       @updatedAt
+  User        User?          @relation(fields: [assigned_to], references: [id], onDelete: SetNull)
+  activities  LeadActivity[]
+  calls       CallLog[]
+}
+
+model LeadActivity {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  lead_id    String   @db.Uuid
+  type       String
+  message    String
+  created_by String?
+  created_at DateTime @default(now())
+  Lead       Lead     @relation(fields: [lead_id], references: [id], onDelete: Cascade)
+}
+
+model AiVoiceAgent {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String
+  role_label  String
+  languages   String
+  description String?
+  is_active   Boolean   @default(true)
+  created_by  String?
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  calls       CallLog[]
+}
+
+model CallLog {
+  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  lead_id          String?      @db.Uuid
+  agent_id         String       @db.Uuid
+  phone            String
+  status           String
+  duration_seconds Int?
+  started_at       DateTime     @default(now())
+  retry_at         DateTime?
+  Lead             Lead?        @relation(fields: [lead_id], references: [id], onDelete: SetNull)
+  AiVoiceAgent     AiVoiceAgent @relation(fields: [agent_id], references: [id], onDelete: Cascade)
+}
+
+model Campaign {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name           String
+  channel        String
+  status         String   @default("draft")
+  audience_count Int      @default(0)
+  sent_count     Int      @default(0)
+  created_by     String?
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+}
+
+model WhatsappTemplate {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name       String
+  trigger    String
+  message    String
+  is_active  Boolean  @default(true)
+  sent_count Int      @default(0)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model GoogleSheetSync {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sheet_url      String?
+  status         String    @default("disconnected")
+  last_synced_at DateTime?
+  synced_rows    Int       @default(0)
+  created_at     DateTime  @default(now())
+  updated_at     DateTime  @updatedAt
 }

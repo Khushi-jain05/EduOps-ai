@@ -6,6 +6,12 @@ import {
   FiCalendar,
   FiFileText,
   FiUser,
+  FiUsers,
+  FiShield,
+  FiClipboard,
+  FiPhoneCall,
+  FiFolder,
+  FiSettings,
   FiLogOut,
   FiBarChart2,
   FiBell,
@@ -24,6 +30,7 @@ export default function Sidebar() {
 
   const isFaculty = user.role === "faculty";
   const isApplicant = user.role === "applicant";
+  const isAdmin = user.role === "admin";
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -137,19 +144,54 @@ export default function Sidebar() {
     },
   ];
 
-  const accountMenu = [
+  // -------------------------
+  // ADMIN MENU
+  // -------------------------
+
+  const adminMenuGroups = [
     {
-      icon: <FiUser />,
-      text: "Profile",
-      path: isFaculty
-        ? "/faculty/profile"
-        : isApplicant
-          ? "/applicant/profile"
-          : "/profile",
+      label: "OVERVIEW",
+      items: [
+        { icon: <FiGrid />, text: "Dashboard", path: "/admin" },
+        { icon: <FiBarChart2 />, text: "Analytics", path: "/admin/analytics" },
+      ],
+    },
+    {
+      label: "MANAGE",
+      items: [
+        { icon: <FiUsers />, text: "Users", path: "/admin/users" },
+        { icon: <FiShield />, text: "Roles", path: "/admin/roles" },
+        { icon: <FiBook />, text: "Subjects", path: "/admin/subjects" },
+        { icon: <FiCalendar />, text: "Timetables", path: "/admin/timetables" },
+        { icon: <FiFileText />, text: "Assignments", path: "/admin/assignments" },
+        { icon: <FiClipboard />, text: "Exams", path: "/admin/exams" },
+        { icon: <FiPhoneCall />, text: "Leads", path: "/admin/leads" },
+        { icon: <FiFolder />, text: "Documents", path: "/admin/documents" },
+      ],
+    },
+    {
+      label: "SYSTEM",
+      items: [
+        { icon: <FiSettings />, text: "Settings", path: "/admin/settings" },
+      ],
     },
   ];
 
-  if (!isApplicant) {
+  const accountMenu = isAdmin
+    ? []
+    : [
+        {
+          icon: <FiUser />,
+          text: "Profile",
+          path: isFaculty
+            ? "/faculty/profile"
+            : isApplicant
+              ? "/applicant/profile"
+              : "/profile",
+        },
+      ];
+
+  if (!isApplicant && !isAdmin) {
     accountMenu.unshift({
       icon: <FiBell />,
       text: "Notifications",
@@ -162,6 +204,15 @@ export default function Sidebar() {
     : isApplicant
       ? applicantMenu
       : studentMenu;
+
+  const menuGroups = isAdmin
+    ? adminMenuGroups
+    : [
+        {
+          label: isFaculty ? "TEACH" : isApplicant ? "ADMISSIONS" : "LEARN",
+          items: menuItems,
+        },
+      ];
 
   return (
     <div
@@ -202,59 +253,66 @@ export default function Sidebar() {
           </p>
         </div>
 
-        {/* Section */}
+        {/* Sections */}
 
-        <p
-          style={{
-            color: "#9ca3af",
-            fontSize: "12px",
-            letterSpacing: "2px",
-            marginBottom: "15px",
-          }}
-        >
-          {isFaculty ? "TEACH" : isApplicant ? "ADMISSIONS" : "LEARN"}
-        </p>
+        {menuGroups.map((group) => (
+          <div key={group.label}>
+            <p
+              style={{
+                color: "#9ca3af",
+                fontSize: "12px",
+                letterSpacing: "2px",
+                marginTop: "15px",
+                marginBottom: "15px",
+              }}
+            >
+              {group.label}
+            </p>
 
-        {menuItems.map((item) => (
-          <div
-            key={item.path}
-            onClick={() => navigate(item.path)}
-            style={{
-              ...menuItem,
-              background:
-                location.pathname === item.path
-                  ? "linear-gradient(135deg,#2563eb,#60a5fa)"
-                  : "transparent",
+            {group.items.map((item) => (
+              <div
+                key={item.path}
+                onClick={() => navigate(item.path)}
+                style={{
+                  ...menuItem,
+                  background:
+                    location.pathname === item.path
+                      ? "linear-gradient(135deg,#2563eb,#60a5fa)"
+                      : "transparent",
 
-              color:
-                location.pathname === item.path
-                  ? "#fff"
-                  : "#374151",
+                  color:
+                    location.pathname === item.path
+                      ? "#fff"
+                      : "#374151",
 
-              boxShadow:
-                location.pathname === item.path
-                  ? "0 8px 18px rgba(37,99,235,.25)"
-                  : "none",
-            }}
-          >
-            {item.icon}
-            {item.text}
+                  boxShadow:
+                    location.pathname === item.path
+                      ? "0 8px 18px rgba(37,99,235,.25)"
+                      : "none",
+                }}
+              >
+                {item.icon}
+                {item.text}
+              </div>
+            ))}
           </div>
         ))}
 
         {/* Account */}
 
-        <p
-          style={{
-            color: "#9ca3af",
-            fontSize: "12px",
-            letterSpacing: "2px",
-            marginTop: "40px",
-            marginBottom: "15px",
-          }}
-        >
-          ACCOUNT
-        </p>
+        {accountMenu.length > 0 && (
+          <p
+            style={{
+              color: "#9ca3af",
+              fontSize: "12px",
+              letterSpacing: "2px",
+              marginTop: "40px",
+              marginBottom: "15px",
+            }}
+          >
+            ACCOUNT
+          </p>
+        )}
 
         {accountMenu.map((item) => (
           <div
