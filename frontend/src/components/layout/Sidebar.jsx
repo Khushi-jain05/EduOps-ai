@@ -152,8 +152,7 @@ export default function Sidebar() {
     {
       label: "OVERVIEW",
       items: [
-        { icon: <FiGrid />, text: "Dashboard", path: "/admin" },
-        { icon: <FiBarChart2 />, text: "Analytics", path: "/admin/analytics" },
+        { icon: <FiGrid />, text: "Dashboard", path: "/admin" }
       ],
     },
     {
@@ -161,9 +160,9 @@ export default function Sidebar() {
       items: [
         { icon: <FiUsers />, text: "Users", path: "/admin/users" },
         { icon: <FiShield />, text: "Roles", path: "/admin/roles" },
-        { icon: <FiBook />, text: "Subjects", path: "/admin/subjects" },
-        { icon: <FiCalendar />, text: "Timetables", path: "/admin/timetables" },
-        { icon: <FiFileText />, text: "Assignments", path: "/admin/assignments" },
+
+
+
         { icon: <FiClipboard />, text: "Exams", path: "/admin/exams" },
         { icon: <FiPhoneCall />, text: "Leads", path: "/admin/leads" },
         { icon: <FiFolder />, text: "Documents", path: "/admin/documents" },
