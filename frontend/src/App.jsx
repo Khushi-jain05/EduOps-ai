@@ -216,7 +216,7 @@ element={
 <Route
   path="/profile"
   element={
-    <ProtectedRoute allowedRoles={["student"]}>
+    <ProtectedRoute allowedRoles={["student", "admin"]}>
       <Profile />
     </ProtectedRoute>
   }

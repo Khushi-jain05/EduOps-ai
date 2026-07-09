@@ -22,6 +22,12 @@ const WELCOME = {
     "Hi! I'm the Admission Assist AI. I'm live on the applicant portal 24×7 and I brief you with the full lead context every time a query comes in. Ask me anything.",
 };
 
+const priorityFor = (score) => {
+  if (score >= 80) return { label: "High", bg: "#fef2f2", color: "#dc2626" };
+  if (score >= 50) return { label: "Med", bg: "#fff7ed", color: "#ea580c" };
+  return { label: "Low", bg: "#f0fdf4", color: "#16a34a" };
+};
+
 export default function AiAdmissionAssist() {
   const [messages, setMessages] = useState([WELCOME]);
   const [chatId, setChatId] = useState(null);
@@ -136,13 +142,31 @@ export default function AiAdmissionAssist() {
         <Navbar />
 
         <div style={{ padding: "30px" }}>
-          <p style={{ color: "#94a3b8", letterSpacing: "2px", fontSize: "12px", marginBottom: "6px" }}>
-            LEAD OPS
-          </p>
-          <h1 style={{ margin: 0, color: "#172554" }}>AI Admission Assist</h1>
-          <p style={{ color: "#64748B", marginTop: "6px", marginBottom: "20px" }}>
-            24×7 AI that answers queries and supports counselors with live lead context.
-          </p>
+          <div
+            style={{
+              background: "linear-gradient(135deg,#2563eb,#4f8ef7)",
+              borderRadius: "26px",
+              padding: "40px",
+              color: "#fff",
+              marginBottom: "20px",
+            }}
+          >
+            <span
+              style={{
+                background: "rgba(255,255,255,.18)",
+                padding: "6px 14px",
+                borderRadius: "20px",
+                fontSize: "13px",
+              }}
+            >
+              Lead ops • AI Admission Assist
+            </span>
+            <h1 style={{ margin: "18px 0 10px", fontSize: "36px" }}>AI Admission Assist</h1>
+            <p style={{ opacity: 0.9, maxWidth: "700px", margin: 0 }}>
+              24×7 AI answers counselor queries and briefs you with the full lead context so
+              follow-ups never stall.
+            </p>
+          </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "20px", marginBottom: "20px" }}>
             <div style={card}>
@@ -301,14 +325,45 @@ export default function AiAdmissionAssist() {
                 {followUps.length === 0 ? (
                   <p style={{ color: "#94a3b8", margin: 0 }}>Nothing waiting — pipeline is caught up.</p>
                 ) : (
-                  followUps.map((lead) => (
-                    <div key={lead.id} style={{ padding: "10px 0", borderTop: "1px solid #F1F5F9" }}>
-                      <strong>{lead.name}</strong>
-                      <p style={{ margin: "4px 0 0", color: "#64748B", fontSize: "13px" }}>
-                        "{lead.course || "General inquiry"}" — {lead.daysSinceContact}d silent
-                      </p>
-                    </div>
-                  ))
+                  followUps.map((lead) => {
+                    const priority = priorityFor(lead.score);
+                    return (
+                      <div
+                        key={lead.id}
+                        style={{
+                          padding: "12px 0",
+                          borderTop: "1px solid #F1F5F9",
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "flex-start",
+                          gap: "10px",
+                        }}
+                      >
+                        <div>
+                          <strong>{lead.name}</strong>
+                          <p style={{ margin: "4px 0 0", color: "#64748B", fontSize: "13px" }}>
+                            "{lead.suggestion}"
+                          </p>
+                          <p style={{ margin: "4px 0 0", color: "#94a3b8", fontSize: "12px" }}>
+                            WAITING {lead.daysSinceContact}d
+                          </p>
+                        </div>
+                        <span
+                          style={{
+                            flexShrink: 0,
+                            padding: "3px 10px",
+                            borderRadius: "999px",
+                            fontSize: "12px",
+                            fontWeight: 700,
+                            background: priority.bg,
+                            color: priority.color,
+                          }}
+                        >
+                          {priority.label}
+                        </span>
+                      </div>
+                    );
+                  })
                 )}
               </div>
 
