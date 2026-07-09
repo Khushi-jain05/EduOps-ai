@@ -27,7 +27,11 @@ import ApplicantProfile from "./pages/applicant/ApplicantProfile";
 import Notifications from "./pages/Notifications";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import Leads from "./pages/admin/Leads";
-import ComingSoon from "./pages/admin/ComingSoon";
+import AiAdmissionAssist from "./pages/admin/AiAdmissionAssist";
+import LeadScoringPage from "./pages/admin/LeadScoringPage";
+import SmartFollowUps from "./pages/admin/SmartFollowUps";
+import AiCallingPage from "./pages/admin/AiCallingPage";
+import CounselorPerformance from "./pages/admin/CounselorPerformance";
 function App() {
   return (
     <BrowserRouter>
@@ -99,7 +103,7 @@ element={
 <Route
   path="/notifications"
   element={
-    <ProtectedRoute allowedRoles={["student"]}>
+    <ProtectedRoute allowedRoles={["student", "admin"]}>
       <Notifications />
     </ProtectedRoute>
   }
@@ -259,74 +263,42 @@ element={
   }
 />
 <Route
-  path="/admin/analytics"
+  path="/admin/ai-admission-assist"
   element={
     <ProtectedRoute allowedRoles={["admin"]}>
-      <ComingSoon title="Analytics" />
+      <AiAdmissionAssist />
     </ProtectedRoute>
   }
 />
 <Route
-  path="/admin/users"
+  path="/admin/lead-scoring"
   element={
     <ProtectedRoute allowedRoles={["admin"]}>
-      <ComingSoon title="Users" />
+      <LeadScoringPage />
     </ProtectedRoute>
   }
 />
 <Route
-  path="/admin/roles"
+  path="/admin/follow-ups"
   element={
     <ProtectedRoute allowedRoles={["admin"]}>
-      <ComingSoon title="Roles" />
+      <SmartFollowUps />
     </ProtectedRoute>
   }
 />
 <Route
-  path="/admin/subjects"
+  path="/admin/ai-calling"
   element={
     <ProtectedRoute allowedRoles={["admin"]}>
-      <ComingSoon title="Subjects" />
+      <AiCallingPage />
     </ProtectedRoute>
   }
 />
 <Route
-  path="/admin/timetables"
+  path="/admin/counselor-performance"
   element={
     <ProtectedRoute allowedRoles={["admin"]}>
-      <ComingSoon title="Timetables" />
-    </ProtectedRoute>
-  }
-/>
-<Route
-  path="/admin/assignments"
-  element={
-    <ProtectedRoute allowedRoles={["admin"]}>
-      <ComingSoon title="Assignments" />
-    </ProtectedRoute>
-  }
-/>
-<Route
-  path="/admin/exams"
-  element={
-    <ProtectedRoute allowedRoles={["admin"]}>
-      <ComingSoon title="Exams" />
-    </ProtectedRoute>
-  }
-/>
-<Route
-  path="/admin/documents"
-  element={
-    <ProtectedRoute allowedRoles={["admin"]}>
-      <ComingSoon title="Documents" />
-    </ProtectedRoute>
-  }
-/>
-<Route
-  path="/admin/settings"
-  element={
-    <ProtectedRoute allowedRoles={["admin"]}>
-      <ComingSoon title="Settings" />
+      <CounselorPerformance />
     </ProtectedRoute>
   }
 />
