@@ -7,13 +7,11 @@ import {
   FiFileText,
   FiUser,
   FiUsers,
-  FiShield,
-  FiClipboard,
   FiPhoneCall,
-  FiFolder,
-  FiSettings,
+  FiTarget,
+  FiClock,
+  FiAward,
   FiLogOut,
-  FiBarChart2,
   FiBell,
   FiHelpCircle,
   FiFilePlus,
@@ -150,47 +148,32 @@ export default function Sidebar() {
 
   const adminMenuGroups = [
     {
-      label: "OVERVIEW",
+      label: "LEAD OPS",
       items: [
-        { icon: <FiGrid />, text: "Dashboard", path: "/admin" }
-      ],
-    },
-    {
-      label: "MANAGE",
-      items: [
-        { icon: <FiUsers />, text: "Users", path: "/admin/users" },
-        { icon: <FiShield />, text: "Roles", path: "/admin/roles" },
-
-
-
-        { icon: <FiClipboard />, text: "Exams", path: "/admin/exams" },
-        { icon: <FiPhoneCall />, text: "Leads", path: "/admin/leads" },
-        { icon: <FiFolder />, text: "Documents", path: "/admin/documents" },
-      ],
-    },
-    {
-      label: "SYSTEM",
-      items: [
-        { icon: <FiSettings />, text: "Settings", path: "/admin/settings" },
+        { icon: <FiGrid />, text: "Dashboard", path: "/admin" },
+        { icon: <PiRobotBold />, text: "AI Admission Assist", path: "/admin/ai-admission-assist" },
+        { icon: <FiTarget />, text: "Lead Intent Scoring", path: "/admin/lead-scoring" },
+        { icon: <FiClock />, text: "Smart Follow-ups", path: "/admin/follow-ups" },
+        { icon: <FiPhoneCall />, text: "AI Calling", path: "/admin/ai-calling" },
+        { icon: <FiAward />, text: "Counselor Performance", path: "/admin/counselor-performance" },
+        { icon: <FiUsers />, text: "All Leads", path: "/admin/leads" },
       ],
     },
   ];
 
-  const accountMenu = isAdmin
-    ? []
-    : [
-        {
-          icon: <FiUser />,
-          text: "Profile",
-          path: isFaculty
-            ? "/faculty/profile"
-            : isApplicant
-              ? "/applicant/profile"
-              : "/profile",
-        },
-      ];
+  const accountMenu = [
+    {
+      icon: <FiUser />,
+      text: "Profile",
+      path: isFaculty
+        ? "/faculty/profile"
+        : isApplicant
+          ? "/applicant/profile"
+          : "/profile",
+    },
+  ];
 
-  if (!isApplicant && !isAdmin) {
+  if (!isApplicant) {
     accountMenu.unshift({
       icon: <FiBell />,
       text: "Notifications",

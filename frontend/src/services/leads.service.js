@@ -41,3 +41,18 @@ export const deleteLead = async (id) => {
   const res = await axios.delete(`${API}/${id}`, authHeaders());
   return res.data;
 };
+
+export const getWorkspaceStats = async () => {
+  const res = await axios.get(`${API}/workspace-stats`, authHeaders());
+  return res.data;
+};
+
+export const getFollowUps = async () => {
+  const res = await axios.get(`${API}/follow-ups`, authHeaders());
+  return res.data;
+};
+
+export const getCounselorPerformance = async () => {
+  const res = await axios.get(`${API}/counselor-performance`, authHeaders());
+  return res.data;
+};
