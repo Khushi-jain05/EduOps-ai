@@ -23,6 +23,7 @@ const callAgentRoutes = require("./routes/callAgent.routes");
 const campaignRoutes = require("./routes/campaign.routes");
 const whatsappRoutes = require("./routes/whatsapp.routes");
 const googleSheetRoutes = require("./routes/googleSheet.routes");
+const adminChatRoutes = require("./routes/adminChat.routes");
 const PORT = process.env.PORT || 8000;
 app.use("/api/auth", authRoutes);
 app.use("/api/question-paper", questionPaperRoutes);
@@ -45,6 +46,7 @@ app.use("/api/call-agents", callAgentRoutes);
 app.use("/api/campaigns", campaignRoutes);
 app.use("/api/whatsapp", whatsappRoutes);
 app.use("/api/google-sheets", googleSheetRoutes);
+app.use("/api/admin-chat", adminChatRoutes);
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

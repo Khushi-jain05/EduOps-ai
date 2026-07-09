@@ -12,11 +12,17 @@ const {
   getLeadStats,
   getLeadScoring,
   getActivity,
+  getWorkspaceStats,
+  getFollowUps,
+  getCounselorPerformance,
 } = require("../controllers/lead.controller");
 
 router.get("/stats", auth, getLeadStats);
 router.get("/scoring", auth, getLeadScoring);
 router.get("/activity", auth, getActivity);
+router.get("/workspace-stats", auth, getWorkspaceStats);
+router.get("/follow-ups", auth, getFollowUps);
+router.get("/counselor-performance", auth, getCounselorPerformance);
 router.post("/", auth, createLead);
 router.get("/", auth, getLeads);
 router.get("/:id", auth, getLeadById);

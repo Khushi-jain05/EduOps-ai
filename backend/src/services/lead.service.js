@@ -1,5 +1,6 @@
 const prisma = require("../config/prisma");
 const WhatsappService = require("./whatsapp.service");
+const { askGemini } = require("./gemini.service");
 
 const isAdmin = (user) => user?.role === "admin";
 const getUserId = (user) => user?.id || user?.userId || user?.sub;
@@ -244,6 +245,230 @@ const getActivity = async (user) => {
   });
 };
 
+const periodStats = async (start, end) => {
+  const [newLeads, hotVelocity, totalInWindow, enrolledInWindow, leadsWithFirstTouch] =
+    await Promise.all([
+      prisma.lead.count({ where: { created_at: { gte: start, lt: end } } }),
+      prisma.leadActivity.count({
+        where: {
+          type: "status_change",
+          message: { contains: "to hot" },
+          created_at: { gte: start, lt: end },
+        },
+      }),
+      prisma.lead.count({ where: { created_at: { gte: start, lt: end } } }),
+      prisma.lead.count({
+        where: { created_at: { gte: start, lt: end }, status: "enrolled" },
+      }),
+      prisma.lead.findMany({
+        where: { created_at: { gte: start, lt: end } },
+        select: {
+          created_at: true,
+          activities: {
+            where: { type: { not: "note" } },
+            orderBy: { created_at: "asc" },
+            take: 1,
+            select: { created_at: true },
+          },
+        },
+      }),
+    ]);
+
+  const responseTimes = leadsWithFirstTouch
+    .filter((lead) => lead.activities.length > 0)
+    .map(
+      (lead) =>
+        (new Date(lead.activities[0].created_at).getTime() -
+          new Date(lead.created_at).getTime()) /
+        1000
+    );
+
+  const avgResponseSeconds =
+    responseTimes.length > 0
+      ? Math.round(responseTimes.reduce((sum, s) => sum + s, 0) / responseTimes.length)
+      : 0;
+
+  const conversionRate = totalInWindow > 0 ? (enrolledInWindow / totalInWindow) * 100 : 0;
+
+  return { newLeads, hotVelocity, avgResponseSeconds, conversionRate };
+};
+
+const deltaPct = (curr, prior) => {
+  if (prior === 0) return curr > 0 ? 100 : 0;
+  return Math.round(((curr - prior) / prior) * 1000) / 10;
+};
+
+const getWorkspaceStats = async (user) => {
+  if (!isAdmin(user)) {
+    throw new Error("Only admin can view workspace stats");
+  }
+
+  const now = new Date();
+  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+
+  const [openLeads, hotLeads, currentPeriod, priorPeriod] = await Promise.all([
+    prisma.lead.count({ where: { status: { notIn: ["enrolled", "lost"] } } }),
+    prisma.lead.count({ where: { score: { gte: 80 } } }),
+    periodStats(weekAgo, now),
+    periodStats(twoWeeksAgo, weekAgo),
+  ]);
+
+  return {
+    openLeads: {
+      value: openLeads,
+      deltaPct: deltaPct(currentPeriod.newLeads, priorPeriod.newLeads),
+    },
+    hotLeads: {
+      value: hotLeads,
+      deltaPct: deltaPct(currentPeriod.hotVelocity, priorPeriod.hotVelocity),
+    },
+    avgResponseSeconds: {
+      value: currentPeriod.avgResponseSeconds,
+      deltaPct: deltaPct(currentPeriod.avgResponseSeconds, priorPeriod.avgResponseSeconds),
+    },
+    conversionRate: {
+      value: Math.round(currentPeriod.conversionRate * 10) / 10,
+      deltaPct: deltaPct(currentPeriod.conversionRate, priorPeriod.conversionRate),
+    },
+  };
+};
+
+const getFollowUpSuggestions = async (user) => {
+  if (!isAdmin(user)) {
+    throw new Error("Only admin can view follow-up suggestions");
+  }
+
+  const leads = await prisma.lead.findMany({
+    where: { status: { in: ["new", "contacted"] } },
+    include: {
+      activities: { orderBy: { created_at: "desc" }, take: 1 },
+    },
+    take: 50,
+  });
+
+  const withRecency = leads
+    .map((lead) => {
+      const lastActivityAt = lead.activities[0]?.created_at || lead.created_at;
+      const daysSinceContact = Math.floor(
+        (Date.now() - new Date(lastActivityAt).getTime()) / 86400000
+      );
+      return { ...lead, daysSinceContact };
+    })
+    .sort((a, b) => b.daysSinceContact - a.daysSinceContact || b.score - a.score)
+    .slice(0, 15);
+
+  if (withRecency.length === 0) {
+    return [];
+  }
+
+  const prompt = `You are a lead-follow-up assistant for a college admissions team. For each lead below, write ONE short, specific sentence suggesting what the counselor should say or do next. Respond with ONLY a JSON array like [{"id": "<lead id>", "suggestion": "..."}], no other text.
+
+Leads:
+${withRecency
+  .map(
+    (l) =>
+      `- id: ${l.id}, name: ${l.name}, course: ${l.course || "unspecified"}, status: ${l.status}, score: ${l.score}, days since last contact: ${l.daysSinceContact}`
+  )
+  .join("\n")}`;
+
+  let suggestionsById = {};
+
+  try {
+    const raw = await askGemini(prompt);
+    const jsonMatch = raw.match(/\[[\s\S]*\]/);
+    const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : raw);
+    suggestionsById = Object.fromEntries(parsed.map((item) => [item.id, item.suggestion]));
+  } catch (error) {
+    console.error("[leads] follow-up AI suggestion failed:", error.message);
+  }
+
+  return withRecency.map((lead) => ({
+    id: lead.id,
+    name: lead.name,
+    course: lead.course,
+    city: lead.city,
+    status: lead.status,
+    score: lead.score,
+    daysSinceContact: lead.daysSinceContact,
+    suggestion:
+      suggestionsById[lead.id] ||
+      `Follow up on ${lead.course || "their"} interest — no contact in ${lead.daysSinceContact}d.`,
+  }));
+};
+
+const getCounselorPerformance = async (user) => {
+  if (!isAdmin(user)) {
+    throw new Error("Only admin can view counselor performance");
+  }
+
+  const [leads, activities, users] = await Promise.all([
+    prisma.lead.findMany({
+      where: { assigned_to: { not: null } },
+      select: { assigned_to: true, status: true },
+    }),
+    prisma.leadActivity.findMany({
+      where: { created_by: { not: null } },
+      select: { created_by: true, type: true },
+    }),
+    prisma.user.findMany({ select: { id: true, username: true } }),
+  ]);
+
+  const userNames = Object.fromEntries(users.map((u) => [u.id, u.username]));
+  const stats = {};
+
+  const ensure = (id) => {
+    if (!stats[id]) {
+      stats[id] = {
+        userId: id,
+        name: userNames[id] || "Unknown",
+        leadsAssigned: 0,
+        conversions: 0,
+        calls: 0,
+      };
+    }
+    return stats[id];
+  };
+
+  leads.forEach((lead) => {
+    const entry = ensure(lead.assigned_to);
+    entry.leadsAssigned += 1;
+    if (lead.status === "enrolled") {
+      entry.conversions += 1;
+    }
+  });
+
+  activities.forEach((activity) => {
+    const entry = ensure(activity.created_by);
+    if (activity.type === "call") {
+      entry.calls += 1;
+    }
+  });
+
+  const counselors = Object.values(stats).sort(
+    (a, b) => b.conversions - a.conversions || b.leadsAssigned - a.leadsAssigned
+  );
+
+  let insight = "";
+
+  if (counselors.length > 0) {
+    const prompt = `You manage a college admissions counseling team. Here is each counselor's stats (leads assigned, calls logged, conversions to enrolled):
+${counselors
+  .map((c) => `- ${c.name}: ${c.leadsAssigned} leads, ${c.calls} calls, ${c.conversions} conversions`)
+  .join("\n")}
+
+Write ONE short sentence (max 25 words) highlighting the standout performer or an actionable observation about the team's workload balance. Respond with only that sentence, no preamble.`;
+
+    try {
+      insight = (await askGemini(prompt)).trim();
+    } catch (error) {
+      console.error("[leads] counselor insight AI failed:", error.message);
+    }
+  }
+
+  return { counselors, insight };
+};
+
 module.exports = {
   createLead,
   getLeads,
@@ -253,4 +478,7 @@ module.exports = {
   getLeadStats,
   getLeadScoring,
   getActivity,
+  getWorkspaceStats,
+  getFollowUpSuggestions,
+  getCounselorPerformance,
 };

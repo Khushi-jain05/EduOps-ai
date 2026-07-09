@@ -88,6 +88,33 @@ const getActivity = async (req, res) => {
   }
 };
 
+const getWorkspaceStats = async (req, res) => {
+  try {
+    const stats = await LeadService.getWorkspaceStats(req.user);
+    res.json(stats);
+  } catch (error) {
+    sendError(res, error, "Failed to fetch workspace stats");
+  }
+};
+
+const getFollowUps = async (req, res) => {
+  try {
+    const followUps = await LeadService.getFollowUpSuggestions(req.user);
+    res.json(followUps);
+  } catch (error) {
+    sendError(res, error, "Failed to fetch follow-up suggestions");
+  }
+};
+
+const getCounselorPerformance = async (req, res) => {
+  try {
+    const performance = await LeadService.getCounselorPerformance(req.user);
+    res.json(performance);
+  } catch (error) {
+    sendError(res, error, "Failed to fetch counselor performance");
+  }
+};
+
 module.exports = {
   createLead,
   getLeads,
@@ -97,4 +124,7 @@ module.exports = {
   getLeadStats,
   getLeadScoring,
   getActivity,
+  getWorkspaceStats,
+  getFollowUps,
+  getCounselorPerformance,
 };
