@@ -138,10 +138,10 @@ export default function AiAdmissionAssist() {
     <div style={{ display: "flex", height: "100vh", background: "#EEF6FF" }}>
       <Sidebar />
 
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "auto" }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
         <Navbar />
 
-        <div style={{ padding: "30px" }}>
+        <div style={{ flex: 1, overflowY: "auto", padding: "30px" }}>
           <div
             style={{
               background: "linear-gradient(135deg,#2563eb,#4f8ef7)",

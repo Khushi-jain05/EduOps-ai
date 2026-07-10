@@ -144,6 +144,7 @@ const getCallStats = async (user) => {
 
   return {
     callsToday: total,
+    connectedCount: connected.length,
     connectedRate: total > 0 ? Math.round((connected.length / total) * 100) : 0,
     avgHandleSeconds,
     hotHandoffs: hotHandoffs.length,

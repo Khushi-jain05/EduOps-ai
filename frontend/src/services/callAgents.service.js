@@ -41,3 +41,8 @@ export const getQueue = async () => {
   const res = await axios.get(`${API}/queue`, authHeaders());
   return res.data;
 };
+
+export const generateTranscript = async (callId) => {
+  const res = await axios.post(`${API}/queue/${callId}/transcript`, {}, authHeaders());
+  return res.data;
+};
