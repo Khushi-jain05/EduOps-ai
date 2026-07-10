@@ -12,10 +12,14 @@ const {
   getQueue,
   testCall,
   generateTranscript,
+  launchCampaign,
+  advanceQueue,
 } = require("../controllers/callAgent.controller");
 
 router.get("/stats", auth, getCallStats);
 router.get("/queue", auth, getQueue);
+router.post("/campaign", auth, launchCampaign);
+router.post("/queue/advance", auth, advanceQueue);
 router.post("/", auth, createAgent);
 router.get("/", auth, getAgents);
 router.put("/:id", auth, updateAgent);

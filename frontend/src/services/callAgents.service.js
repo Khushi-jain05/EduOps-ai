@@ -46,3 +46,13 @@ export const generateTranscript = async (callId) => {
   const res = await axios.post(`${API}/queue/${callId}/transcript`, {}, authHeaders());
   return res.data;
 };
+
+export const launchCampaign = async (payload) => {
+  const res = await axios.post(`${API}/campaign`, payload, authHeaders());
+  return res.data;
+};
+
+export const advanceQueue = async () => {
+  const res = await axios.post(`${API}/queue/advance`, {}, authHeaders());
+  return res.data;
+};

@@ -1,8 +1,20 @@
 const prisma = require("../config/prisma");
 const { askGemini } = require("./gemini.service");
+const { computeLeadScore } = require("./scoring.service");
 
 const isAdmin = (user) => user?.role === "admin";
 const getUserId = (user) => user?.id || user?.userId || user?.sub;
+
+// Recompute a lead's score inline (self-contained, avoids cross-service coupling).
+const rescoreLead = async (leadId) => {
+  const lead = await prisma.lead.findUnique({
+    where: { id: leadId },
+    include: { activities: true, calls: true },
+  });
+  if (!lead) return;
+  const { score } = computeLeadScore(lead, lead.activities, lead.calls.length);
+  await prisma.lead.update({ where: { id: leadId }, data: { score } });
+};
 
 const startOfToday = () => {
   const d = new Date();
@@ -227,6 +239,117 @@ Respond with ONLY JSON in this exact shape, no other text:
   };
 };
 
+const ACTIVE_CALL_STATUSES = ["queued", "ringing", "in_call"];
+
+// Launch a calling campaign: enqueue real outbound calls for real leads,
+// spread across the active AI voice agents (round-robin). Creates a Campaign
+// record too so it shows in the Campaigns tab.
+const launchCampaign = async (data, user) => {
+  if (!isAdmin(user)) {
+    throw new Error("Only admin can launch calling campaigns");
+  }
+
+  const agents = await prisma.aiVoiceAgent.findMany({ where: { is_active: true } });
+
+  if (agents.length === 0) {
+    throw new Error("No active AI voice agents — activate an agent first");
+  }
+
+  // Target leads still worth calling, hottest first, capped.
+  const cap = Math.min(Number(data.audience_count) || 10, 25);
+  const leads = await prisma.lead.findMany({
+    where: { status: { in: ["new", "contacted", "hot"] }, phone: { not: "" } },
+    orderBy: { score: "desc" },
+    take: cap,
+  });
+
+  if (leads.length === 0) {
+    throw new Error("No callable leads available (need new/contacted/hot leads with a phone)");
+  }
+
+  const campaign = await prisma.campaign.create({
+    data: {
+      name: data.name || "AI calling campaign",
+      channel: "call",
+      status: "active",
+      audience_count: leads.length,
+      sent_count: 0,
+      created_by: getUserId(user),
+    },
+  });
+
+  await prisma.callLog.createMany({
+    data: leads.map((lead, i) => ({
+      lead_id: lead.id,
+      agent_id: agents[i % agents.length].id,
+      phone: lead.phone,
+      status: "queued",
+    })),
+  });
+
+  return { campaign, queued: leads.length };
+};
+
+// Advance every in-flight call by one step:
+//   queued -> ringing -> in_call -> completed | no_answer
+// When a call completes as connected, it logs a real LeadActivity(call) on the
+// lead and rescores it — so the call center feeds scoring, counselor stats and
+// the activity feed. This is a simulation (no real telephony), but it operates
+// entirely on real leads + real DB state.
+const advanceQueue = async (user) => {
+  if (!isAdmin(user)) {
+    throw new Error("Only admin can run the call queue");
+  }
+
+  const active = await prisma.callLog.findMany({
+    where: { status: { in: ACTIVE_CALL_STATUSES } },
+    orderBy: { started_at: "asc" },
+    take: 30,
+  });
+
+  for (const call of active) {
+    if (call.status === "queued") {
+      await prisma.callLog.update({
+        where: { id: call.id },
+        data: { status: "ringing" },
+      });
+    } else if (call.status === "ringing") {
+      const answered = Math.random() < 0.7; // ~70% pick up
+      await prisma.callLog.update({
+        where: { id: call.id },
+        data: answered
+          ? { status: "in_call" }
+          : { status: "no_answer", retry_at: new Date(Date.now() + 6 * 3600 * 1000) },
+      });
+    } else if (call.status === "in_call") {
+      const duration = 60 + Math.floor(Math.random() * 200); // 1-4.3 min
+      await prisma.callLog.update({
+        where: { id: call.id },
+        data: { status: "completed", duration_seconds: duration },
+      });
+
+      if (call.lead_id) {
+        const mins = Math.max(1, Math.round(duration / 60));
+        await prisma.leadActivity.create({
+          data: {
+            lead_id: call.lead_id,
+            type: "call",
+            message: `AI voice agent call completed (~${mins} min) — lead qualified.`,
+            created_by: getUserId(user),
+          },
+        });
+        await rescoreLead(call.lead_id);
+      }
+    }
+  }
+
+  const remaining = await prisma.callLog.count({
+    where: { status: { in: ACTIVE_CALL_STATUSES } },
+  });
+
+  return { processed: active.length, remaining };
+};
+
 module.exports = {
   createAgent,
   getAgents,
@@ -236,4 +359,6 @@ module.exports = {
   getQueue,
   testCall,
   generateTranscript,
+  launchCampaign,
+  advanceQueue,
 };

@@ -88,6 +88,24 @@ const generateTranscript = async (req, res) => {
   }
 };
 
+const launchCampaign = async (req, res) => {
+  try {
+    const result = await CallAgentService.launchCampaign(req.body, req.user);
+    res.status(201).json(result);
+  } catch (error) {
+    sendError(res, error, "Failed to launch calling campaign");
+  }
+};
+
+const advanceQueue = async (req, res) => {
+  try {
+    const result = await CallAgentService.advanceQueue(req.user);
+    res.json(result);
+  } catch (error) {
+    sendError(res, error, "Failed to advance call queue");
+  }
+};
+
 module.exports = {
   createAgent,
   getAgents,
@@ -97,4 +115,6 @@ module.exports = {
   getQueue,
   testCall,
   generateTranscript,
+  launchCampaign,
+  advanceQueue,
 };
