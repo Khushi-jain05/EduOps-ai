@@ -115,6 +115,24 @@ const getCounselorPerformance = async (req, res) => {
   }
 };
 
+const recalculateScores = async (req, res) => {
+  try {
+    const result = await LeadService.recalculateAllScores(req.user);
+    res.json(result);
+  } catch (error) {
+    sendError(res, error, "Failed to recalculate scores");
+  }
+};
+
+const getScoreBreakdown = async (req, res) => {
+  try {
+    const breakdown = await LeadService.getLeadScoreBreakdown(req.params.id, req.user);
+    res.json(breakdown);
+  } catch (error) {
+    sendError(res, error, "Failed to fetch score breakdown");
+  }
+};
+
 module.exports = {
   createLead,
   getLeads,
@@ -127,4 +145,6 @@ module.exports = {
   getWorkspaceStats,
   getFollowUps,
   getCounselorPerformance,
+  recalculateScores,
+  getScoreBreakdown,
 };

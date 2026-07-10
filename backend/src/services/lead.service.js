@@ -1,11 +1,28 @@
 const prisma = require("../config/prisma");
 const WhatsappService = require("./whatsapp.service");
 const { askGemini } = require("./gemini.service");
+const { computeLeadScore } = require("./scoring.service");
 
 const isAdmin = (user) => user?.role === "admin";
 const getUserId = (user) => user?.id || user?.userId || user?.sub;
 
 const STATUSES = ["new", "contacted", "hot", "enrolled", "lost"];
+
+// Recompute a lead's intent score from its real signals and persist it.
+const recalculateLeadScore = async (leadId) => {
+  const lead = await prisma.lead.findUnique({
+    where: { id: leadId },
+    include: { activities: true, calls: true },
+  });
+
+  if (!lead) {
+    return null;
+  }
+
+  const { score } = computeLeadScore(lead, lead.activities, lead.calls.length);
+
+  return prisma.lead.update({ where: { id: leadId }, data: { score } });
+};
 
 const logActivity = (leadId, type, message, createdBy) =>
   prisma.leadActivity.create({
@@ -52,7 +69,8 @@ const createLead = async (data, user) => {
     console.error("[leads] new_lead automation failed:", error.message)
   );
 
-  return lead;
+  // Auto-score the freshly captured lead from its real signals.
+  return recalculateLeadScore(lead.id);
 };
 
 const getLeads = async (query, user) => {
@@ -129,9 +147,7 @@ const updateLead = async (id, data, user) => {
     }
   );
 
-  if (data.score !== undefined) {
-    updateData.score = Number(data.score) || 0;
-  }
+  // Score is derived automatically by the engine, never set by hand.
 
   if (data.status !== undefined) {
     if (!STATUSES.includes(data.status)) {
@@ -158,7 +174,8 @@ const updateLead = async (id, data, user) => {
     );
   }
 
-  return lead;
+  // Any change (status, profile fields, new touchpoint) shifts intent — rescore.
+  return recalculateLeadScore(lead.id);
 };
 
 const deleteLead = async (id, user) => {
@@ -231,6 +248,47 @@ const getLeadScoring = async (user) => {
     count: bucket.count,
     avgScore: bucket.count > 0 ? Math.round(bucket.totalScore / bucket.count) : 0,
   }));
+};
+
+// Recompute and persist scores for every lead. Used to backfill existing leads
+// and to refresh after time-based factors (recency) drift.
+const recalculateAllScores = async (user) => {
+  if (!isAdmin(user)) {
+    throw new Error("Only admin can recalculate scores");
+  }
+
+  const leads = await prisma.lead.findMany({
+    include: { activities: true, calls: true },
+  });
+
+  await Promise.all(
+    leads.map((lead) => {
+      const { score } = computeLeadScore(lead, lead.activities, lead.calls.length);
+      return prisma.lead.update({ where: { id: lead.id }, data: { score } });
+    })
+  );
+
+  return { updated: leads.length };
+};
+
+// Explain a single lead's score: return the per-factor breakdown.
+const getLeadScoreBreakdown = async (id, user) => {
+  if (!isAdmin(user)) {
+    throw new Error("Only admin can view score breakdown");
+  }
+
+  const lead = await prisma.lead.findUnique({
+    where: { id },
+    include: { activities: true, calls: true },
+  });
+
+  if (!lead) {
+    throw new Error("Lead not found");
+  }
+
+  const { score, factors } = computeLeadScore(lead, lead.activities, lead.calls.length);
+
+  return { id: lead.id, name: lead.name, score, factors };
 };
 
 const getActivity = async (user) => {
@@ -481,4 +539,7 @@ module.exports = {
   getWorkspaceStats,
   getFollowUpSuggestions,
   getCounselorPerformance,
+  recalculateLeadScore,
+  recalculateAllScores,
+  getLeadScoreBreakdown,
 };
