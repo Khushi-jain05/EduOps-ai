@@ -17,6 +17,7 @@ const {
   getCounselorPerformance,
   recalculateScores,
   getScoreBreakdown,
+  logFollowUp,
 } = require("../controllers/lead.controller");
 
 router.get("/stats", auth, getLeadStats);

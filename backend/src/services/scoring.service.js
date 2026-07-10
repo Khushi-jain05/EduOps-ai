@@ -41,6 +41,16 @@ const computeLeadScore = (lead, activities = [], callCount = 0) => {
     factors.push({ label: `${callCount} call attempt(s)`, points: callPts });
   }
 
+  // 3b. Follow-up engagement (0-18) — logged manual touches (call/whatsapp/email).
+  const touches = activities.filter((a) =>
+    ["call", "whatsapp", "email"].includes(a.type)
+  ).length;
+  const touchPts = Math.min(touches * 6, 18);
+  if (touchPts > 0) {
+    score += touchPts;
+    factors.push({ label: `${touches} follow-up touch(es)`, points: touchPts });
+  }
+
   // 4. Recency (-10 to +20) — recent activity signals live intent, stale = cold.
   const lastTouch =
     activities.reduce(

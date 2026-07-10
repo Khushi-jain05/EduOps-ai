@@ -56,3 +56,13 @@ export const getCounselorPerformance = async () => {
   const res = await axios.get(`${API}/counselor-performance`, authHeaders());
   return res.data;
 };
+
+export const recalculateScores = async () => {
+  const res = await axios.post(`${API}/recalculate-scores`, {}, authHeaders());
+  return res.data;
+};
+
+export const getScoreBreakdown = async (id) => {
+  const res = await axios.get(`${API}/${id}/score-breakdown`, authHeaders());
+  return res.data;
+};

@@ -133,6 +133,15 @@ const getScoreBreakdown = async (req, res) => {
   }
 };
 
+const logFollowUp = async (req, res) => {
+  try {
+    const lead = await LeadService.logFollowUp(req.params.id, req.body, req.user);
+    res.json(lead);
+  } catch (error) {
+    sendError(res, error, "Failed to log follow-up");
+  }
+};
+
 module.exports = {
   createLead,
   getLeads,
@@ -147,4 +156,5 @@ module.exports = {
   getCounselorPerformance,
   recalculateScores,
   getScoreBreakdown,
+  logFollowUp,
 };

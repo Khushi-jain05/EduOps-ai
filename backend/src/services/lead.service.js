@@ -455,6 +455,64 @@ ${withRecency
   }));
 };
 
+const FOLLOW_UP_CHANNELS = ["call", "whatsapp", "email", "note"];
+
+// Record a real follow-up touch on a lead: logs an activity, optionally bumps a
+// brand-new lead to "contacted", and rescores. This is what makes the Smart
+// Follow-ups actions actually change the pipeline (recency resets, score moves,
+// activity feed + counselor stats update).
+const logFollowUp = async (leadId, data, user) => {
+  if (!isAdmin(user)) {
+    throw new Error("Only admin can log follow-ups");
+  }
+
+  const channel = data.channel || "note";
+
+  if (!FOLLOW_UP_CHANNELS.includes(channel)) {
+    throw new Error("Invalid follow-up channel");
+  }
+
+  const lead = await prisma.lead.findUnique({ where: { id: leadId } });
+
+  if (!lead) {
+    throw new Error("Lead not found");
+  }
+
+  const channelLabel = {
+    call: "Called",
+    whatsapp: "Messaged on WhatsApp",
+    email: "Emailed",
+    note: "Logged a note for",
+  }[channel];
+
+  await logActivity(
+    leadId,
+    channel,
+    data.note?.trim() || `${channelLabel} ${lead.name}.`,
+    getUserId(user)
+  );
+
+  // First real contact moves a brand-new lead into the "contacted" stage.
+  const shouldMarkContacted = data.markContacted && lead.status === "new";
+
+  if (shouldMarkContacted) {
+    await prisma.lead.update({
+      where: { id: leadId },
+      data: { status: "contacted" },
+    });
+
+    await logActivity(
+      leadId,
+      "status_change",
+      `Status changed from new to contacted.`,
+      getUserId(user)
+    );
+  }
+
+  // Recompute the score now that recency + engagement (and maybe status) changed.
+  return recalculateLeadScore(leadId);
+};
+
 const getCounselorPerformance = async (user) => {
   if (!isAdmin(user)) {
     throw new Error("Only admin can view counselor performance");
@@ -542,4 +600,5 @@ module.exports = {
   recalculateLeadScore,
   recalculateAllScores,
   getLeadScoreBreakdown,
+  logFollowUp,
 };

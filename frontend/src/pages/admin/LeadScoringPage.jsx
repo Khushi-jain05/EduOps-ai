@@ -3,9 +3,15 @@ import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/layout/Sidebar";
 import Navbar from "../../components/layout/Navbar";
 import LeadScoringTab from "../../components/admin/leads/tabs/LeadScoringTab";
-import { card } from "../../components/admin/leads/leadsStyles";
-import { getLeadScoring, getLeadStats, getLeads } from "../../services/leads.service";
-import { FiTarget, FiTrendingUp, FiUsers, FiArrowRight } from "react-icons/fi";
+import { card, modalOverlay, modalCard } from "../../components/admin/leads/leadsStyles";
+import {
+  getLeadScoring,
+  getLeadStats,
+  getLeads,
+  recalculateScores,
+  getScoreBreakdown,
+} from "../../services/leads.service";
+import { FiTarget, FiTrendingUp, FiUsers, FiArrowRight, FiRefreshCw } from "react-icons/fi";
 
 const BUCKETS = [
   {
@@ -37,14 +43,16 @@ const BUCKETS = [
   },
 ];
 
+// These mirror the real backend engine in scoring.service.js — every lead's
+// 0-100 score is the sum of these factors, computed from actual data.
 const SCORING_GUIDE = [
-  { signal: "Application form started", points: "+25" },
-  { signal: "Visited fees page multiple times", points: "+18" },
-  { signal: "Downloaded brochure", points: "+12" },
-  { signal: "Replied to WhatsApp quickly", points: "+15" },
-  { signal: "Booked a counseling slot", points: "+30" },
-  { signal: "No engagement for 7+ days", points: "−20" },
-  { signal: "Marked 'just researching'", points: "−10" },
+  { signal: "Pipeline stage: enrolled / hot", points: "+40" },
+  { signal: "Pipeline stage: contacted", points: "+25" },
+  { signal: "Each status update (progression)", points: "+7" },
+  { signal: "Each call attempt logged", points: "+8" },
+  { signal: "Last touch within 2 days", points: "+20" },
+  { signal: "Complete profile (email + course + city)", points: "+15" },
+  { signal: "No touch for 14+ days", points: "−10" },
 ];
 
 export default function LeadScoringPage() {
@@ -53,6 +61,8 @@ export default function LeadScoringPage() {
   const [leads, setLeads] = useState([]);
   const [conversionRate, setConversionRate] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [recalculating, setRecalculating] = useState(false);
+  const [breakdown, setBreakdown] = useState(null);
 
   const load = useCallback(async () => {
     try {
@@ -74,6 +84,28 @@ export default function LeadScoringPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  const handleRecalculate = async () => {
+    setRecalculating(true);
+    try {
+      await recalculateScores();
+      await load();
+    } catch (error) {
+      console.error("Failed to recalculate scores", error);
+    } finally {
+      setRecalculating(false);
+    }
+  };
+
+  const openBreakdown = async (lead) => {
+    setBreakdown({ loading: true, name: lead.name });
+    try {
+      const data = await getScoreBreakdown(lead.id);
+      setBreakdown(data);
+    } catch (error) {
+      setBreakdown({ error: "Could not load breakdown.", name: lead.name });
+    }
+  };
 
   const avgScore =
     leads.length > 0 ? Math.round(leads.reduce((sum, l) => sum + l.score, 0) / leads.length) : 0;
@@ -114,23 +146,43 @@ export default function LeadScoringPage() {
               conversion probability is highest.
             </p>
 
-            <button
-              onClick={() => navigate("/admin/leads")}
-              style={{
-                background: "#fff",
-                color: "#2563eb",
-                border: "none",
-                borderRadius: "14px",
-                padding: "12px 22px",
-                fontWeight: 700,
-                cursor: "pointer",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "8px",
-              }}
-            >
-              View all leads <FiArrowRight />
-            </button>
+            <div style={{ display: "flex", gap: "12px" }}>
+              <button
+                onClick={handleRecalculate}
+                disabled={recalculating}
+                style={{
+                  background: "#fff",
+                  color: "#2563eb",
+                  border: "none",
+                  borderRadius: "14px",
+                  padding: "12px 22px",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
+              >
+                <FiRefreshCw /> {recalculating ? "Scoring..." : "Recalculate scores"}
+              </button>
+              <button
+                onClick={() => navigate("/admin/leads")}
+                style={{
+                  background: "rgba(255,255,255,.18)",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "14px",
+                  padding: "12px 22px",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
+              >
+                View all leads <FiArrowRight />
+              </button>
+            </div>
           </div>
 
           {loading ? (
@@ -222,7 +274,7 @@ export default function LeadScoringPage() {
                 <div style={card}>
                   <h2 style={{ margin: 0, color: "#172554" }}>Top scored leads</h2>
                   <p style={{ color: "#64748B", marginTop: "4px", marginBottom: "16px" }}>
-                    Ranked by intent right now
+                    Ranked by intent right now — click any lead to see why
                   </p>
 
                   {topLeads.length === 0 ? (
@@ -231,12 +283,14 @@ export default function LeadScoringPage() {
                     topLeads.map((lead) => (
                       <div
                         key={lead.id}
+                        onClick={() => openBreakdown(lead)}
                         style={{
                           display: "flex",
                           justifyContent: "space-between",
                           alignItems: "center",
                           padding: "10px 0",
                           borderTop: "1px solid #F1F5F9",
+                          cursor: "pointer",
                         }}
                       >
                         <div>
@@ -268,6 +322,73 @@ export default function LeadScoringPage() {
           )}
         </div>
       </div>
+
+      {breakdown && (
+        <div style={modalOverlay} onClick={() => setBreakdown(null)}>
+          <div style={modalCard} onClick={(e) => e.stopPropagation()}>
+            <h2 style={{ marginTop: 0, color: "#172554" }}>
+              Why {breakdown.name} scores {breakdown.score ?? "…"}
+            </h2>
+            <p style={{ color: "#64748B", marginTop: "-6px", marginBottom: "18px" }}>
+              Every point comes from a real signal on this lead.
+            </p>
+
+            {breakdown.loading && <p style={{ color: "#64748B" }}>Loading...</p>}
+            {breakdown.error && <p style={{ color: "#dc2626" }}>{breakdown.error}</p>}
+
+            {breakdown.factors &&
+              breakdown.factors.map((f, i) => (
+                <div
+                  key={i}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    padding: "10px 0",
+                    borderTop: "1px solid #F1F5F9",
+                  }}
+                >
+                  <span>{f.label}</span>
+                  <strong style={{ color: f.points >= 0 ? "#16a34a" : "#dc2626" }}>
+                    {f.points >= 0 ? `+${f.points}` : f.points}
+                  </strong>
+                </div>
+              ))}
+
+            {breakdown.factors && (
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  padding: "12px 0 0",
+                  marginTop: "6px",
+                  borderTop: "2px solid #E2E8F0",
+                  fontSize: "17px",
+                }}
+              >
+                <strong>Total intent score</strong>
+                <strong style={{ color: "#2563eb" }}>{breakdown.score} / 100</strong>
+              </div>
+            )}
+
+            <button
+              onClick={() => setBreakdown(null)}
+              style={{
+                marginTop: "20px",
+                width: "100%",
+                background: "#2563eb",
+                color: "#fff",
+                border: "none",
+                borderRadius: "12px",
+                padding: "12px",
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
