@@ -444,6 +444,8 @@ ${withRecency
   return withRecency.map((lead) => ({
     id: lead.id,
     name: lead.name,
+    phone: lead.phone,
+    email: lead.email,
     course: lead.course,
     city: lead.city,
     status: lead.status,

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import Sidebar from "../../components/layout/Sidebar";
 import Navbar from "../../components/layout/Navbar";
 import { card } from "../../components/admin/leads/leadsStyles";
-import { getFollowUps, getWorkspaceStats } from "../../services/leads.service";
+import { getFollowUps, getWorkspaceStats, logFollowUp } from "../../services/leads.service";
 import { getTemplates } from "../../services/whatsapp.service";
 import {
   FiAlertTriangle,
@@ -42,6 +42,8 @@ export default function SmartFollowUps() {
   const [avgResponseSeconds, setAvgResponseSeconds] = useState(0);
   const [welcomeAutomated, setWelcomeAutomated] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [loggingId, setLoggingId] = useState(null);
+  const [justLogged, setJustLogged] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -67,13 +69,86 @@ export default function SmartFollowUps() {
     load();
   }, [load]);
 
+  // Fire a tel:/mailto: protocol handler via a temp anchor — opening these in a
+  // new tab shows a "can't be reached" error page instead.
+  const triggerProtocol = (href) => {
+    const a = document.createElement("a");
+    a.href = href;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
+
+  // Opens the right channel and returns a human message describing what happened.
+  //  - WhatsApp: real https URL → new tab.
+  //  - Email: mailto: → mail client.
+  //  - Call: tel: opens the dialer on mobile; on desktop there's usually no phone
+  //    app, so we ALSO copy the number to the clipboard so it's still usable.
+  const openChannel = async (lead, channel) => {
+    const digits = lead.phone ? lead.phone.replace(/[^\d]/g, "") : "";
+
+    try {
+      if (channel === "whatsapp" && digits) {
+        window.open(
+          `https://wa.me/${digits}?text=${encodeURIComponent(lead.suggestion || "")}`,
+          "_blank",
+          "noopener"
+        );
+        return `Opened WhatsApp for ${lead.name}.`;
+      }
+
+      if (channel === "email" && lead.email) {
+        triggerProtocol(`mailto:${lead.email}`);
+        return `Opened email to ${lead.email}.`;
+      }
+
+      if (channel === "call" && digits) {
+        try {
+          await navigator.clipboard.writeText(lead.phone);
+        } catch {
+          /* clipboard may be blocked — number is still shown in the banner */
+        }
+        triggerProtocol(`tel:${digits}`);
+        return `Call ${lead.name} at ${lead.phone} — number copied to clipboard.`;
+      }
+
+      if (digits) {
+        window.open(`https://wa.me/${digits}`, "_blank", "noopener");
+        return `Opened WhatsApp for ${lead.name}.`;
+      }
+
+      return `No phone or email on file for ${lead.name} — add contact details first.`;
+    } catch (error) {
+      console.error("Failed to open channel", error);
+      return "";
+    }
+  };
+
+  const handleAction = async (lead, channel) => {
+    const actionMsg = await openChannel(lead, channel);
+
+    setLoggingId(lead.id);
+    try {
+      // Record the touch in the DB — resets recency, bumps status, rescores.
+      const updated = await logFollowUp(lead.id, { channel, markContacted: true });
+      setJustLogged({
+        name: lead.name,
+        score: updated.score,
+        status: updated.status,
+        actionMsg,
+      });
+      await load();
+    } catch (error) {
+      console.error("Failed to log follow-up", error);
+    } finally {
+      setLoggingId(null);
+    }
+  };
+
   const dueNow = followUps.length;
   const overdue = followUps.filter((l) => l.daysSinceContact > 2).length;
   const missed = followUps.filter((l) => l.daysSinceContact >= 7).length;
   const onTimePct = dueNow > 0 ? Math.round(((dueNow - overdue) / dueNow) * 100) : 100;
-
-  const waLink = (lead) =>
-    `https://wa.me/${lead.phone?.replace(/[^\d]/g, "")}?text=${encodeURIComponent(lead.suggestion)}`;
 
   return (
     <div style={{ display: "flex", height: "100vh", background: "#EEF6FF" }}>
@@ -162,6 +237,28 @@ export default function SmartFollowUps() {
                 </div>
               </div>
 
+              {justLogged && (
+                <div
+                  style={{
+                    ...card,
+                    marginBottom: "20px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    background: "#f0fdf4",
+                    color: "#166534",
+                  }}
+                >
+                  <FiCheckCircle style={{ flexShrink: 0 }} />
+                  <span>
+                    {justLogged.actionMsg ? `${justLogged.actionMsg} ` : ""}
+                    Logged follow-up with <strong>{justLogged.name}</strong> — now{" "}
+                    <strong>{justLogged.status}</strong>, intent score updated to{" "}
+                    <strong>{justLogged.score}</strong>.
+                  </span>
+                </div>
+              )}
+
               <div style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr", gap: "20px", marginBottom: "20px" }}>
                 <div style={card}>
                   <h2 style={{ margin: 0, color: "#172554" }}>Act in the next 30 minutes</h2>
@@ -178,13 +275,6 @@ export default function SmartFollowUps() {
                       const channel = channelFor(lead);
                       const meta = CHANNEL_META[channel];
                       const urgent = lead.daysSinceContact > 2;
-
-                      const actionProps =
-                        channel === "call" && lead.phone
-                          ? { href: `tel:${lead.phone}` }
-                          : channel === "email" && lead.email
-                            ? { href: `mailto:${lead.email}` }
-                            : { href: waLink(lead), target: "_blank", rel: "noreferrer" };
 
                       return (
                         <div
@@ -223,21 +313,23 @@ export default function SmartFollowUps() {
                             </p>
                           </div>
 
-                          <a
-                            {...actionProps}
+                          <button
+                            onClick={() => handleAction(lead, channel)}
+                            disabled={loggingId === lead.id}
                             style={{
                               background: "#2563eb",
                               color: "#fff",
+                              border: "none",
                               borderRadius: "10px",
                               padding: "8px 16px",
                               fontWeight: 600,
                               fontSize: "13px",
-                              textDecoration: "none",
+                              cursor: "pointer",
                               flexShrink: 0,
                             }}
                           >
-                            {meta.label}
-                          </a>
+                            {loggingId === lead.id ? "Logging..." : meta.label}
+                          </button>
                         </div>
                       );
                     })

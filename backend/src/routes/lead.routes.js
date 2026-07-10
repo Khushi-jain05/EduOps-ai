@@ -30,6 +30,7 @@ router.post("/recalculate-scores", auth, recalculateScores);
 router.post("/", auth, createLead);
 router.get("/", auth, getLeads);
 router.get("/:id/score-breakdown", auth, getScoreBreakdown);
+router.post("/:id/log-follow-up", auth, logFollowUp);
 router.get("/:id", auth, getLeadById);
 router.put("/:id", auth, updateLead);
 router.delete("/:id", auth, deleteLead);

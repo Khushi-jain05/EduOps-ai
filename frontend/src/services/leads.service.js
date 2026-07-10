@@ -66,3 +66,8 @@ export const getScoreBreakdown = async (id) => {
   const res = await axios.get(`${API}/${id}/score-breakdown`, authHeaders());
   return res.data;
 };
+
+export const logFollowUp = async (id, payload) => {
+  const res = await axios.post(`${API}/${id}/log-follow-up`, payload, authHeaders());
+  return res.data;
+};
