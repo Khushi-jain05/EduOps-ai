@@ -79,6 +79,15 @@ const testCall = async (req, res) => {
   }
 };
 
+const generateTranscript = async (req, res) => {
+  try {
+    const transcript = await CallAgentService.generateTranscript(req.params.callId, req.user);
+    res.json(transcript);
+  } catch (error) {
+    sendError(res, error, "Failed to generate call transcript");
+  }
+};
+
 module.exports = {
   createAgent,
   getAgents,
@@ -87,4 +96,5 @@ module.exports = {
   getCallStats,
   getQueue,
   testCall,
+  generateTranscript,
 };

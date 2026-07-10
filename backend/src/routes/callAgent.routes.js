@@ -11,6 +11,7 @@ const {
   getCallStats,
   getQueue,
   testCall,
+  generateTranscript,
 } = require("../controllers/callAgent.controller");
 
 router.get("/stats", auth, getCallStats);
@@ -20,5 +21,6 @@ router.get("/", auth, getAgents);
 router.put("/:id", auth, updateAgent);
 router.patch("/:id/toggle", auth, toggleAgent);
 router.post("/:id/test-call", auth, testCall);
+router.post("/queue/:callId/transcript", auth, generateTranscript);
 
 module.exports = router;

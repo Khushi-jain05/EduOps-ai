@@ -1,4 +1,5 @@
 const prisma = require("../config/prisma");
+const { askGemini } = require("./gemini.service");
 
 const isAdmin = (user) => user?.role === "admin";
 const getUserId = (user) => user?.id || user?.userId || user?.sub;
@@ -183,6 +184,48 @@ const testCall = async (agentId, user) => {
   });
 };
 
+const generateTranscript = async (callId, user) => {
+  if (!isAdmin(user)) {
+    throw new Error("Only admin can generate a call transcript");
+  }
+
+  const call = await prisma.callLog.findUnique({
+    where: { id: callId },
+    include: { Lead: true, AiVoiceAgent: true },
+  });
+
+  if (!call) {
+    throw new Error("Call not found");
+  }
+
+  const lead = call.Lead;
+  const agent = call.AiVoiceAgent;
+
+  const prompt = `You are simulating a realistic short outbound qualification call for a college admissions AI voice agent, based on real data below. Write a natural 5-6 turn back-and-forth transcript, alternating "agent" and "lead", grounded in the lead's actual course/status/score. End with one concrete next-best-action for the human counselor.
+
+Agent: ${agent.name} — ${agent.role_label} (${agent.languages})${agent.description ? `, style: ${agent.description}` : ""}
+Lead: ${lead?.name || "Unknown"}, interested in ${lead?.course || "an unspecified program"}, city ${lead?.city || "unknown"}, pipeline status "${lead?.status || "new"}", intent score ${lead?.score ?? "n/a"}.
+
+Respond with ONLY JSON in this exact shape, no other text:
+{"turns":[{"speaker":"agent","text":"..."},{"speaker":"lead","text":"..."}],"nextBestAction":"..."}`;
+
+  const raw = await askGemini(prompt);
+  const jsonMatch = raw.match(/\{[\s\S]*\}/);
+  const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : raw);
+
+  if (!Array.isArray(parsed.turns) || parsed.turns.length === 0) {
+    throw new Error("AI returned an unexpected transcript format");
+  }
+
+  return {
+    callId: call.id,
+    leadName: lead?.name || "Unknown",
+    agentName: agent.name,
+    turns: parsed.turns,
+    nextBestAction: parsed.nextBestAction || "",
+  };
+};
+
 module.exports = {
   createAgent,
   getAgents,
@@ -191,4 +234,5 @@ module.exports = {
   getCallStats,
   getQueue,
   testCall,
+  generateTranscript,
 };
