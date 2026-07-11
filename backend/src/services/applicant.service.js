@@ -1,7 +1,37 @@
 const prisma = require("../config/prisma");
 const { askGemini } = require("./gemini.service");
+const { generateMeetingLink } = require("./meetingLink.service");
+const { createLeadFromSystem } = require("./lead.service");
 
 const getUserId = (user) => user?.id || user?.userId || user?.sub;
+
+const notifyUser = (userId, title, message, type, referenceId) =>
+  prisma.notifications.create({
+    data: { user_id: userId, title, message, type, reference_id: referenceId || null },
+  });
+
+const notifyAdmins = async (title, message, type, referenceId) => {
+  const admins = await prisma.user.findMany({
+    where: { role: "admin" },
+    select: { id: true },
+  });
+  if (admins.length === 0) return;
+  await prisma.notifications.createMany({
+    data: admins.map((a) => ({
+      user_id: a.id,
+      title,
+      message,
+      type,
+      reference_id: referenceId || null,
+    })),
+  });
+};
+
+const formatSlot = (slot) =>
+  new Date(slot).toLocaleString("en-IN", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
 
 const JOURNEY_STEPS = [
   "Explore programs",
@@ -118,24 +148,68 @@ const bookAppointment = async (user, data) => {
     throw new Error("Slot format is invalid");
   }
 
-  const appointment = await prisma.appointment.create({
+  const applicant = await prisma.user.findUnique({ where: { id: userId } });
+
+  let appointment = await prisma.appointment.create({
     data: {
       applicant_id: userId,
       mode: VALID_MODES.includes(data.mode) ? data.mode : "video",
       slot,
       program: (data.program || "").toString().trim() || null,
       notes: (data.notes || "").toString().trim(),
+      status: "scheduled",
     },
   });
 
+  // Auto-generate a real working video-meeting link.
+  const meetingLink = generateMeetingLink(appointment.id);
+
+  // Bring this applicant into the Leads pipeline (deduped by email).
+  let lead = null;
+  try {
+    lead = await createLeadFromSystem({
+      name: applicant?.username || "Applicant",
+      phone: applicant?.phone || "0000000000",
+      email: applicant?.email || null,
+      course: (data.program || applicant?.program || "").toString().trim() || null,
+      city: applicant?.city || null,
+      source: "Applicant Portal",
+      status: "contacted",
+      captureNote: `Booked a ${appointment.mode} counseling call for ${formatSlot(slot)}.`,
+    });
+  } catch (error) {
+    console.error("[applicant] lead creation failed:", error.message);
+  }
+
+  appointment = await prisma.appointment.update({
+    where: { id: appointment.id },
+    data: { meeting_link: meetingLink, lead_id: lead?.id || null },
+  });
+
   // Advance the journey to at least "Book counseling call" (step 4).
-  const applicant = await prisma.user.findUnique({ where: { id: userId } });
   if ((applicant?.applicationStep || 0) < 4) {
     await prisma.user.update({
       where: { id: userId },
       data: { applicationStep: 4 },
     });
   }
+
+  const applicantName = applicant?.username || "An applicant";
+
+  await notifyAdmins(
+    "New counseling booking",
+    `${applicantName} booked a ${appointment.mode} counseling call for ${formatSlot(slot)}${appointment.program ? ` (${appointment.program})` : ""}. Connect via the Meetings page.`,
+    "appointment",
+    appointment.id
+  );
+
+  await notifyUser(
+    userId,
+    "Counseling call scheduled",
+    `Your ${appointment.mode} counseling call is scheduled for ${formatSlot(slot)}. Join link: ${meetingLink}`,
+    "appointment",
+    appointment.id
+  );
 
   return appointment;
 };
@@ -181,6 +255,40 @@ const saveApplication = async (user, { data = {}, step = 1, submitted = false })
       ...(data.program ? { program: data.program } : {}),
     },
   });
+
+  const progressPercent = Math.round((updated.applicationStep / JOURNEY_STEPS.length) * 100);
+
+  // Let the applicant know how far along their profile is.
+  await notifyUser(
+    userId,
+    "Application progress updated",
+    `Your application is now ${progressPercent}% complete.`,
+    "application"
+  );
+
+  // On final submit, alert admins and reflect it on the linked lead (if any).
+  if (submitted) {
+    const name = updated.username || "An applicant";
+    await notifyAdmins(
+      "Application submitted",
+      `${name} submitted their application${updated.program ? ` for ${updated.program}` : ""}.`,
+      "application"
+    );
+
+    if (updated.email) {
+      const lead = await prisma.lead.findFirst({ where: { email: updated.email } });
+      if (lead) {
+        await prisma.leadActivity.create({
+          data: {
+            lead_id: lead.id,
+            type: "note",
+            message: `Applicant submitted their application (${progressPercent}% complete).`,
+            created_by: null,
+          },
+        });
+      }
+    }
+  }
 
   return { applicationStep: updated.applicationStep, data: updated.applicationData };
 };

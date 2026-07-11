@@ -66,8 +66,11 @@ model Appointment {
   program      String?
   notes        String?
   status       String   @default("requested")
+  meeting_link String?
+  lead_id      String?  @db.Uuid
   created_at   DateTime @default(now())
   User         User     @relation(fields: [applicant_id], references: [id], onDelete: Cascade)
+  Lead         Lead?    @relation(fields: [lead_id], references: [id], onDelete: SetNull)
 }
 
 model Attendance {
@@ -366,9 +369,10 @@ model Lead {
   notes       String?
   created_at  DateTime       @default(now())
   updated_at  DateTime       @updatedAt
-  User        User?          @relation(fields: [assigned_to], references: [id], onDelete: SetNull)
-  activities  LeadActivity[]
-  calls       CallLog[]
+  User         User?          @relation(fields: [assigned_to], references: [id], onDelete: SetNull)
+  activities   LeadActivity[]
+  calls        CallLog[]
+  appointments Appointment[]
 }
 
 model LeadActivity {

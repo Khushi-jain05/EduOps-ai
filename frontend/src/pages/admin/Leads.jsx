@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import Sidebar from "../../components/layout/Sidebar";
 import Navbar from "../../components/layout/Navbar";
 import LeadsHeader from "../../components/admin/leads/LeadsHeader";
@@ -21,10 +22,21 @@ import { getTemplates } from "../../services/whatsapp.service";
 import { getSheetStatus } from "../../services/googleSheets.service";
 
 export default function Leads() {
+  const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState("overview");
   const [search, setSearch] = useState("");
   const [showAddLead, setShowAddLead] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  // A search coming from the global navbar (?q=) prefills the lead search and
+  // jumps straight to the All Leads table.
+  useEffect(() => {
+    const q = searchParams.get("q");
+    if (q) {
+      setSearch(q);
+      setActiveTab("all-leads");
+    }
+  }, [searchParams]);
 
   const [leads, setLeads] = useState([]);
   const [stats, setStats] = useState({

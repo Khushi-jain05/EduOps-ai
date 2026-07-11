@@ -73,6 +73,40 @@ const createLead = async (data, user) => {
   return recalculateLeadScore(lead.id);
 };
 
+// Create a lead from a non-admin/system source (e.g. an applicant booking a
+// counseling call). No role gate. Dedupes by email so the same applicant does
+// not spawn duplicate leads across multiple bookings.
+const createLeadFromSystem = async (data) => {
+  if (!data.name || !data.phone) {
+    throw new Error("Name and phone are required");
+  }
+
+  if (data.email) {
+    const existing = await prisma.lead.findFirst({ where: { email: data.email } });
+    if (existing) {
+      await logActivity(existing.id, "note", data.captureNote || "Applicant activity.", null);
+      return recalculateLeadScore(existing.id);
+    }
+  }
+
+  const lead = await prisma.lead.create({
+    data: {
+      name: data.name,
+      phone: data.phone,
+      email: data.email || null,
+      course: data.course || null,
+      city: data.city || null,
+      source: data.source || "Applicant Portal",
+      status: data.status || "contacted",
+      notes: data.notes || null,
+    },
+  });
+
+  await logActivity(lead.id, "note", data.captureNote || `Lead captured from ${lead.source}.`, null);
+  await recalculateLeadScore(lead.id);
+  return lead;
+};
+
 const getLeads = async (query, user) => {
   if (!isAdmin(user)) {
     throw new Error("Only admin can view leads");
@@ -705,4 +739,5 @@ module.exports = {
   recalculateAllScores,
   getLeadScoreBreakdown,
   logFollowUp,
+  createLeadFromSystem,
 };
