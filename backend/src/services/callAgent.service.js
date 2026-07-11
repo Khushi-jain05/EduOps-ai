@@ -222,12 +222,21 @@ Lead: ${lead?.name || "Unknown"}, interested in ${lead?.course || "an unspecifie
 Respond with ONLY JSON in this exact shape, no other text:
 {"turns":[{"speaker":"agent","text":"..."},{"speaker":"lead","text":"..."}],"nextBestAction":"..."}`;
 
-  const raw = await askGemini(prompt);
-  const jsonMatch = raw.match(/\{[\s\S]*\}/);
-  const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : raw);
+  let parsed;
 
-  if (!Array.isArray(parsed.turns) || parsed.turns.length === 0) {
-    throw new Error("AI returned an unexpected transcript format");
+  try {
+    const raw = await askGemini(prompt);
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    parsed = JSON.parse(jsonMatch ? jsonMatch[0] : raw);
+
+    if (!Array.isArray(parsed.turns) || parsed.turns.length === 0) {
+      throw new Error("AI returned an unexpected transcript format");
+    }
+  } catch (error) {
+    // Groq may be rate-limited / down — fall back to a grounded template so the
+    // transcript panel always renders something useful instead of erroring.
+    console.error("[call-agents] transcript AI failed, using fallback:", error.message);
+    parsed = buildFallbackTranscript(lead, agent);
   }
 
   return {
@@ -236,6 +245,26 @@ Respond with ONLY JSON in this exact shape, no other text:
     agentName: agent.name,
     turns: parsed.turns,
     nextBestAction: parsed.nextBestAction || "",
+  };
+};
+
+// Deterministic transcript built from the lead's real data — used when the LLM
+// is unavailable so the feature never hard-fails.
+const buildFallbackTranscript = (lead, agent) => {
+  const name = lead?.name || "there";
+  const course = lead?.course || "our programs";
+  const scoreText = lead?.score != null ? `intent score ${lead.score}` : "your profile";
+
+  return {
+    turns: [
+      { speaker: "agent", text: `Hi ${name}, this is ${agent.name} from EduOps admissions calling about your interest in ${course}. Is now a good time?` },
+      { speaker: "lead", text: `Yes, that works.` },
+      { speaker: "agent", text: `Great. I see you're exploring ${course}. What matters most to you right now — fees, placements, or the curriculum?` },
+      { speaker: "lead", text: `Mainly the fees and placement record.` },
+      { speaker: "agent", text: `Understood. Based on ${scoreText}, you may qualify for a merit scholarship. Shall I book a 20-minute counseling call to go over the details?` },
+      { speaker: "lead", text: `Sure, please set that up.` },
+    ],
+    nextBestAction: `Book a counseling slot for ${name} and share the ${course} fee + scholarship details.`,
   };
 };
 

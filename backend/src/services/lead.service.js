@@ -515,76 +515,175 @@ const logFollowUp = async (leadId, data, user) => {
   return recalculateLeadScore(leadId);
 };
 
+const FOLLOWUP_TYPES = ["call", "whatsapp", "email"];
+
+// A 0-100 quality score for how fast a counselor responds.
+const responseQuality = (secs) =>
+  secs === 0 ? 50 : secs <= 120 ? 100 : secs <= 300 ? 65 : 35;
+
+const coachingNote = (c) => {
+  if (c.leadsAssigned === 0 && c.calls === 0) return "No activity recorded yet";
+  if (c.conversionRate >= 20) return "Top performer — assign more hot leads";
+  if (c.avgResponseSeconds > 300) return "Response time critical — coach on first response";
+  if (c.followUpPct < 60) return "Improve follow-up coverage on assigned leads";
+  if (c.conversionRate < 10) return "Coach on closing / objection handling";
+  return "Solid contributor — keep it up";
+};
+
 const getCounselorPerformance = async (user) => {
   if (!isAdmin(user)) {
     throw new Error("Only admin can view counselor performance");
   }
 
-  const [leads, activities, users] = await Promise.all([
+  const [assignedLeads, activities, users, totalLeads, enrolledTotal] = await Promise.all([
     prisma.lead.findMany({
       where: { assigned_to: { not: null } },
-      select: { assigned_to: true, status: true },
+      select: {
+        assigned_to: true,
+        status: true,
+        created_at: true,
+        activities: {
+          select: { type: true, created_at: true },
+          orderBy: { created_at: "asc" },
+        },
+      },
     }),
     prisma.leadActivity.findMany({
       where: { created_by: { not: null } },
       select: { created_by: true, type: true },
     }),
     prisma.user.findMany({ select: { id: true, username: true } }),
+    prisma.lead.count(),
+    prisma.lead.count({ where: { status: "enrolled" } }),
   ]);
 
   const userNames = Object.fromEntries(users.map((u) => [u.id, u.username]));
-  const stats = {};
+  const raw = {};
 
   const ensure = (id) => {
-    if (!stats[id]) {
-      stats[id] = {
+    if (!raw[id]) {
+      raw[id] = {
         userId: id,
         name: userNames[id] || "Unknown",
         leadsAssigned: 0,
         conversions: 0,
         calls: 0,
+        followedUp: 0,
+        responseTimes: [],
       };
     }
-    return stats[id];
+    return raw[id];
   };
 
-  leads.forEach((lead) => {
-    const entry = ensure(lead.assigned_to);
-    entry.leadsAssigned += 1;
-    if (lead.status === "enrolled") {
-      entry.conversions += 1;
+  assignedLeads.forEach((lead) => {
+    const e = ensure(lead.assigned_to);
+    e.leadsAssigned += 1;
+    if (lead.status === "enrolled") e.conversions += 1;
+
+    const firstTouch = lead.activities.find((a) => a.type !== "note");
+    if (firstTouch) {
+      e.responseTimes.push(
+        (new Date(firstTouch.created_at).getTime() - new Date(lead.created_at).getTime()) / 1000
+      );
+    }
+    if (lead.activities.some((a) => FOLLOWUP_TYPES.includes(a.type))) {
+      e.followedUp += 1;
     }
   });
 
-  activities.forEach((activity) => {
-    const entry = ensure(activity.created_by);
-    if (activity.type === "call") {
-      entry.calls += 1;
-    }
+  activities.forEach((a) => {
+    if (a.type === "call") ensure(a.created_by).calls += 1;
   });
 
-  const counselors = Object.values(stats).sort(
-    (a, b) => b.conversions - a.conversions || b.leadsAssigned - a.leadsAssigned
-  );
+  const counselors = Object.values(raw)
+    .map((s) => {
+      const conversionRate = s.leadsAssigned > 0 ? (s.conversions / s.leadsAssigned) * 100 : 0;
+      const followUpPct = s.leadsAssigned > 0 ? (s.followedUp / s.leadsAssigned) * 100 : 0;
+      const avgResponseSeconds =
+        s.responseTimes.length > 0
+          ? Math.round(s.responseTimes.reduce((a, b) => a + b, 0) / s.responseTimes.length)
+          : 0;
+      const score = Math.round(
+        Math.max(
+          0,
+          Math.min(
+            100,
+            0.5 * Math.min(conversionRate * 2.5, 100) +
+              0.3 * followUpPct +
+              0.2 * responseQuality(avgResponseSeconds)
+          )
+        )
+      );
 
-  let insight = "";
+      const c = {
+        userId: s.userId,
+        name: s.name,
+        calls: s.calls,
+        leadsAssigned: s.leadsAssigned,
+        conversions: s.conversions,
+        conversionRate: Math.round(conversionRate * 10) / 10,
+        followUpPct: Math.round(followUpPct),
+        avgResponseSeconds,
+        score,
+      };
+      c.note = coachingNote(c);
+      return c;
+    })
+    .sort((a, b) => b.score - a.score || b.conversionRate - a.conversionRate);
+
+  // Team-level rollups.
+  const allResponseTimes = Object.values(raw).flatMap((s) => s.responseTimes);
+  const teamAvgResponseSeconds =
+    allResponseTimes.length > 0
+      ? Math.round(allResponseTimes.reduce((a, b) => a + b, 0) / allResponseTimes.length)
+      : 0;
+  const teamAssigned = Object.values(raw).reduce((sum, s) => sum + s.leadsAssigned, 0);
+  const teamFollowedUp = Object.values(raw).reduce((sum, s) => sum + s.followedUp, 0);
+
+  const team = {
+    conversionRate: totalLeads > 0 ? Math.round((enrolledTotal / totalLeads) * 1000) / 10 : 0,
+    avgResponseSeconds: teamAvgResponseSeconds,
+    onTimeFollowUpPct: teamAssigned > 0 ? Math.round((teamFollowedUp / teamAssigned) * 100) : 0,
+    activeCounselors: counselors.filter((c) => c.calls > 0 || c.leadsAssigned > 0).length,
+  };
+
+  const topPerformer = counselors[0] || null;
+
+  const benchmark =
+    counselors.length > 0
+      ? counselors.reduce((sum, c) => sum + c.score, 0) / counselors.length
+      : 0;
+  const attentionNeeded = counselors
+    .filter((c) => c.score < benchmark)
+    .map((c) => ({ name: c.name, score: c.score }));
+
+  // AI coaching insights, generated from the real stats (graceful fallback).
+  let coachingInsights = [];
 
   if (counselors.length > 0) {
-    const prompt = `You manage a college admissions counseling team. Here is each counselor's stats (leads assigned, calls logged, conversions to enrolled):
+    const prompt = `You manage a college admissions counseling team. Per-counselor stats:
 ${counselors
-  .map((c) => `- ${c.name}: ${c.leadsAssigned} leads, ${c.calls} calls, ${c.conversions} conversions`)
+  .map(
+    (c) =>
+      `- ${c.name}: ${c.leadsAssigned} leads, ${c.calls} calls, ${c.conversionRate}% conversion, ${c.followUpPct}% follow-up, avg response ${c.avgResponseSeconds}s, score ${c.score}`
+  )
   .join("\n")}
 
-Write ONE short sentence (max 25 words) highlighting the standout performer or an actionable observation about the team's workload balance. Respond with only that sentence, no preamble.`;
+Write up to 3 short, specific coaching bullets (max 18 words each), each naming a counselor. Respond with ONLY a JSON array of strings, no other text.`;
 
     try {
-      insight = (await askGemini(prompt)).trim();
+      const rawText = await askGemini(prompt);
+      const match = rawText.match(/\[[\s\S]*\]/);
+      coachingInsights = JSON.parse(match ? match[0] : rawText).slice(0, 3);
     } catch (error) {
-      console.error("[leads] counselor insight AI failed:", error.message);
+      console.error("[leads] counselor insights AI failed, using fallback:", error.message);
+      coachingInsights = counselors
+        .slice(0, 3)
+        .map((c) => `${c.name} — ${c.note.toLowerCase()} (score ${c.score}).`);
     }
   }
 
-  return { counselors, insight };
+  return { team, counselors, topPerformer, coachingInsights, attentionNeeded };
 };
 
 module.exports = {

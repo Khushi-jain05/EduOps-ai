@@ -2,8 +2,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Sidebar from "../../components/layout/Sidebar";
 import Navbar from "../../components/layout/Navbar";
 import { card, input, primaryButton, secondaryButton, modalOverlay, modalCard } from "../../components/admin/leads/leadsStyles";
-import { getAgents, getCallStats, getQueue, generateTranscript } from "../../services/callAgents.service";
-import { createCampaign } from "../../services/campaigns.service";
+import {
+  getAgents,
+  getCallStats,
+  getQueue,
+  generateTranscript,
+  launchCampaign,
+  advanceQueue,
+} from "../../services/callAgents.service";
 import {
   FiPhoneCall,
   FiCheckCircle,
@@ -15,21 +21,25 @@ import {
 } from "react-icons/fi";
 import { PiRobotBold } from "react-icons/pi";
 
-function LaunchCampaignModal({ onClose, onCreated }) {
+function LaunchCampaignModal({ onClose, onLaunched }) {
   const [name, setName] = useState("");
-  const [audience, setAudience] = useState(0);
+  const [audience, setAudience] = useState(10);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSave = async () => {
     if (!name) {
-      alert("Campaign name is required.");
+      setError("Campaign name is required.");
       return;
     }
     setSaving(true);
+    setError("");
     try {
-      await createCampaign({ name, channel: "call", audience_count: Number(audience) || 0, status: "active" });
-      await onCreated();
+      const result = await launchCampaign({ name, audience_count: Number(audience) || 10 });
+      onLaunched(result.queued);
       onClose();
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to launch campaign.");
     } finally {
       setSaving(false);
     }
@@ -39,12 +49,17 @@ function LaunchCampaignModal({ onClose, onCreated }) {
     <div style={modalOverlay} onClick={onClose}>
       <div style={modalCard} onClick={(e) => e.stopPropagation()}>
         <h2 style={{ marginTop: 0, color: "#172554" }}>Launch Calling Campaign</h2>
+        <p style={{ color: "#64748B", marginTop: "-6px", marginBottom: "16px" }}>
+          Queues AI voice calls to your active leads (hottest first), split across active agents.
+        </p>
 
         <label>Campaign name</label>
         <input style={input} value={name} onChange={(e) => setName(e.target.value)} placeholder="Autumn intake outreach" />
 
-        <label>Audience size</label>
+        <label>How many leads to call</label>
         <input type="number" style={input} value={audience} onChange={(e) => setAudience(e.target.value)} />
+
+        {error && <p style={{ color: "#dc2626", marginTop: "-8px" }}>{error}</p>}
 
         <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px" }}>
           <button style={secondaryButton} onClick={onClose}>Cancel</button>
@@ -82,6 +97,7 @@ export default function AiCallingPage() {
   const [transcript, setTranscript] = useState(null);
   const [transcriptLoading, setTranscriptLoading] = useState(false);
   const [previewingId, setPreviewingId] = useState(null);
+  const [banner, setBanner] = useState("");
 
   const [, forceTick] = useState(0);
 
@@ -112,6 +128,33 @@ export default function AiCallingPage() {
     const tick = setInterval(() => forceTick((n) => n + 1), 1000);
     return () => clearInterval(tick);
   }, []);
+
+  const hasActiveCalls = queue.some((c) =>
+    ["queued", "ringing", "in_call"].includes(c.status)
+  );
+
+  const runQueue = useCallback(async () => {
+    try {
+      await advanceQueue();
+      await load();
+    } catch (error) {
+      console.error("Failed to advance queue", error);
+    }
+  }, [load]);
+
+  // Auto-advance the live queue while calls are in flight, so it feels live.
+  // Pause while the user is viewing a transcript so the selected call doesn't
+  // complete and drop out of the queue mid-read.
+  useEffect(() => {
+    if (!hasActiveCalls || selectedCallId || transcriptLoading) return undefined;
+    const timer = setTimeout(runQueue, 4500);
+    return () => clearTimeout(timer);
+  }, [hasActiveCalls, selectedCallId, transcriptLoading, queue, runQueue]);
+
+  const onLaunched = async (queued) => {
+    setBanner(`Launched — ${queued} AI call(s) queued. Watch them progress in the live queue below.`);
+    await load();
+  };
 
   const handlePreview = (agent) => {
     if (!("speechSynthesis" in window)) {
@@ -198,6 +241,23 @@ export default function AiCallingPage() {
             <p style={{ color: "#64748B" }}>Loading call center...</p>
           ) : (
             <>
+              {banner && (
+                <div
+                  style={{
+                    ...card,
+                    marginBottom: "20px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    background: "#f0fdf4",
+                    color: "#166534",
+                  }}
+                >
+                  <FiCheckCircle style={{ flexShrink: 0 }} />
+                  <span>{banner}</span>
+                </div>
+              )}
+
               <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "20px", marginBottom: "20px" }}>
                 <div style={card}>
                   <div style={{ color: "#2563eb", marginBottom: "8px" }}><FiPhoneCall size={18} /></div>
@@ -272,13 +332,29 @@ export default function AiCallingPage() {
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: "20px" }}>
                 <div style={card}>
-                  <h2 style={{ margin: 0, color: "#172554" }}>Live call queue</h2>
-                  <p style={{ color: "#64748B", marginTop: "4px", marginBottom: "16px" }}>
-                    Right now — click a call to preview its AI transcript
-                  </p>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                    <div>
+                      <h2 style={{ margin: 0, color: "#172554" }}>Live call queue</h2>
+                      <p style={{ color: "#64748B", marginTop: "4px", marginBottom: "16px" }}>
+                        {hasActiveCalls
+                          ? "Calls in progress — updating live…"
+                          : "Click a call to preview its AI transcript"}
+                      </p>
+                    </div>
+                    {hasActiveCalls && (
+                      <button
+                        onClick={runQueue}
+                        style={{ ...secondaryButton, padding: "6px 12px", fontSize: "13px" }}
+                      >
+                        Advance
+                      </button>
+                    )}
+                  </div>
 
                   {queue.length === 0 ? (
-                    <p style={{ color: "#94a3b8" }}>Queue is empty.</p>
+                    <p style={{ color: "#94a3b8" }}>
+                      Queue is empty — launch a campaign to start calling leads.
+                    </p>
                   ) : (
                     queue.map((call) => (
                       <div
@@ -390,7 +466,7 @@ export default function AiCallingPage() {
       </div>
 
       {showLaunch && (
-        <LaunchCampaignModal onClose={() => setShowLaunch(false)} onCreated={load} />
+        <LaunchCampaignModal onClose={() => setShowLaunch(false)} onLaunched={onLaunched} />
       )}
     </div>
   );
