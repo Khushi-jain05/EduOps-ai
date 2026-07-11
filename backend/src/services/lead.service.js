@@ -523,10 +523,11 @@ const responseQuality = (secs) =>
 
 const coachingNote = (c) => {
   if (c.leadsAssigned === 0 && c.calls === 0) return "No activity recorded yet";
-  if (c.conversionRate >= 20) return "Top performer — assign more hot leads";
+  if (c.conversionRate >= 35) return "Top performer — assign more hot leads";
   if (c.avgResponseSeconds > 300) return "Response time critical — coach on first response";
-  if (c.followUpPct < 60) return "Improve follow-up coverage on assigned leads";
-  if (c.conversionRate < 10) return "Coach on closing / objection handling";
+  if (c.conversionRate < 15) return "Coach on closing / objection handling";
+  if (c.followUpPct < 75) return "Improve follow-up coverage on assigned leads";
+  if (c.avgResponseSeconds > 180) return "Strong closer — reduce first-response gap";
   return "Solid contributor — keep it up";
 };
 
@@ -596,6 +597,8 @@ const getCounselorPerformance = async (user) => {
   });
 
   const counselors = Object.values(raw)
+    // Only counselors who actually own a book of leads belong on the leaderboard.
+    .filter((s) => s.leadsAssigned > 0)
     .map((s) => {
       const conversionRate = s.leadsAssigned > 0 ? (s.conversions / s.leadsAssigned) * 100 : 0;
       const followUpPct = s.leadsAssigned > 0 ? (s.followedUp / s.leadsAssigned) * 100 : 0;
@@ -644,7 +647,7 @@ const getCounselorPerformance = async (user) => {
     conversionRate: totalLeads > 0 ? Math.round((enrolledTotal / totalLeads) * 1000) / 10 : 0,
     avgResponseSeconds: teamAvgResponseSeconds,
     onTimeFollowUpPct: teamAssigned > 0 ? Math.round((teamFollowedUp / teamAssigned) * 100) : 0,
-    activeCounselors: counselors.filter((c) => c.calls > 0 || c.leadsAssigned > 0).length,
+    activeCounselors: counselors.length,
   };
 
   const topPerformer = counselors[0] || null;
