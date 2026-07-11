@@ -20,6 +20,7 @@ import Navbar from "../../components/layout/Navbar";
 import {
   getApplicantDashboard,
   advanceApplication,
+  getAppointments,
 } from "../../services/applicant.service";
 
 function getUserName() {
@@ -35,11 +36,21 @@ export default function ApplicantDashboard() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [advancing, setAdvancing] = useState(false);
+  const [nextMeeting, setNextMeeting] = useState(null);
 
   const load = async () => {
     try {
       const res = await getApplicantDashboard();
       setData(res);
+      try {
+        const appts = await getAppointments();
+        const upcoming = appts
+          .filter((a) => new Date(a.slot).getTime() >= Date.now() && a.status !== "cancelled")
+          .sort((a, b) => new Date(a.slot) - new Date(b.slot));
+        setNextMeeting(upcoming[0] || null);
+      } catch {
+        /* appointments are optional on the dashboard */
+      }
     } catch (err) {
       console.error("Failed to load applicant dashboard", err);
     } finally {
@@ -130,6 +141,60 @@ export default function ApplicantDashboard() {
             <h2 style={{ marginTop: "40px" }}>Loading dashboard...</h2>
           ) : (
             <>
+              {nextMeeting && (
+                <div
+                  style={{
+                    marginTop: "28px",
+                    background: "linear-gradient(135deg,#2563EB,#4F8EF7)",
+                    borderRadius: "22px",
+                    padding: "24px 28px",
+                    color: "#fff",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: "16px",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <div>
+                    <p style={{ margin: 0, opacity: 0.85, fontSize: "13px", letterSpacing: "1px" }}>
+                      UPCOMING COUNSELING CALL
+                    </p>
+                    <h2 style={{ margin: "6px 0 0", fontSize: "22px" }}>
+                      {new Date(nextMeeting.slot).toLocaleString(undefined, {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                      })}
+                    </h2>
+                    <p style={{ margin: "4px 0 0", opacity: 0.9 }}>
+                      {nextMeeting.mode} • {nextMeeting.program || "General counseling"} •{" "}
+                      <span style={{ textTransform: "capitalize" }}>{nextMeeting.status}</span>
+                    </p>
+                  </div>
+                  {nextMeeting.meeting_link && (
+                    <a
+                      href={nextMeeting.meeting_link}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{
+                        background: "#fff",
+                        color: "#2563EB",
+                        borderRadius: "14px",
+                        padding: "14px 24px",
+                        fontWeight: 700,
+                        textDecoration: "none",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      <FiPhone /> Join meeting
+                    </a>
+                  )}
+                </div>
+              )}
+
               {/* Stat cards */}
               <div
                 style={{

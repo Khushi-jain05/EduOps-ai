@@ -32,6 +32,7 @@ import LeadScoringPage from "./pages/admin/LeadScoringPage";
 import SmartFollowUps from "./pages/admin/SmartFollowUps";
 import AiCallingPage from "./pages/admin/AiCallingPage";
 import CounselorPerformance from "./pages/admin/CounselorPerformance";
+import Meetings from "./pages/admin/Meetings";
 function App() {
   return (
     <BrowserRouter>
@@ -299,6 +300,14 @@ element={
   element={
     <ProtectedRoute allowedRoles={["admin"]}>
       <CounselorPerformance />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/admin/meetings"
+  element={
+    <ProtectedRoute allowedRoles={["admin"]}>
+      <Meetings />
     </ProtectedRoute>
   }
 />
